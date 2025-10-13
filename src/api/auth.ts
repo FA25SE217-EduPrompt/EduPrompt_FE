@@ -13,3 +13,8 @@ export async function loginUser(data: { email: string; password: string }) {
   const response = await axios.post(`${API_BASE_URL}/api/auth/login`, data);
   return response.data;
 }
+// Đặt lại mật khẩu
+export async function resetPassword(data: { token: string; newPassword: string }) {
+  const response = await axios.post(`${API_BASE_URL}/api/auth/reset-password`, data);
+  return response.data;
+}

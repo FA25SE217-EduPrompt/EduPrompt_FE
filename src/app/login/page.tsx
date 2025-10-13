@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { loginUser } from "../../api/auth";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 
 export default function LoginPage() {
@@ -9,17 +10,23 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [message, setMessage] = useState("");
+  const [userInfo, setUserInfo] = useState<any>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       // Đăng nhập bằng email và password
       const res = await loginUser({ email, password });
-      setMessage("Đăng nhập thành công! " + JSON.stringify(res));
+      setMessage("Đăng nhập thành công!");
+      router.push("/");
+      setUserInfo(res);
     } catch (err: any) {
       setMessage("Đăng nhập thất bại: " + (err.response?.data?.message || err.message));
+      setUserInfo(null);
     }
   };
+
+  const router = useRouter();
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50">
@@ -40,7 +47,7 @@ export default function LoginPage() {
           />
           <label className="text-gray-600 text-sm">Mật khẩu</label>
           <input
-            type="text"
+            type="password"
             value={password}
             onChange={e => setPassword(e.target.value)}
             className="border border-gray-300 rounded px-3 py-2 focus:outline-blue-400 text-gray-900"
@@ -84,7 +91,7 @@ export default function LoginPage() {
           Bạn chưa có tài khoản?{' '}
           <a href="/register" className="text-blue-500 font-semibold hover:underline">Đăng kí ngay</a>
         </div>
-        {message && <div className="mt-4 text-red-500 text-center">{message}</div>}
+        {message && <div className={`mt-4 text-center ${message.includes('thành công') ? 'text-green-600' : 'text-red-500'}`}>{message}</div>}
       </div>
     </div>
   );

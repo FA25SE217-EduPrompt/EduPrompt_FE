@@ -43,7 +43,7 @@ export default function ForgotPasswordPage() {
               required
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#7b6cf6] focus:border-[#7b6cf6] text-base"
+              className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#7b6cf6] focus:border-[#7b6cf6] text-base text-gray-900"
               placeholder="Nhập email của bạn"
               disabled={loading}
             />
