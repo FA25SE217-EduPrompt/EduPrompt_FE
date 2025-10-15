@@ -18,7 +18,7 @@ export default function LoginPage() {
       // Đăng nhập bằng email và password
       const res = await loginUser({ email, password });
       setMessage("Đăng nhập thành công!");
-      router.push("/");
+      router.push("/prompts");
       setUserInfo(res);
     } catch (err: any) {
       setMessage("Đăng nhập thất bại: " + (err.response?.data?.message || err.message));

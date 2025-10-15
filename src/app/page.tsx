@@ -30,32 +30,45 @@ export default function Home() {
 		return () => window.removeEventListener("scroll", handleScroll);
 	}, []);
 
-	return (
-		<div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8fafc] via-[#e0e7ef] to-[#f1f5f9]">
-			<Navbar />
-			{/* Hero Section */}
-			<header className="flex-1 flex flex-col justify-center items-center px-4 pt-24 pb-16 relative overflow-hidden">
-				<div className="absolute inset-0 pointer-events-none z-0">
-					<div className="absolute -top-32 -left-32 w-[600px] h-[600px] bg-blue-100 rounded-full blur-3xl opacity-60" />
-					<div className="absolute top-1/2 right-0 w-[400px] h-[400px] bg-blue-200 rounded-full blur-2xl opacity-40" />
-				</div>
-				<div className="max-w-3xl w-full flex flex-col items-center text-center z-10">
-					<h1 className="text-5xl sm:text-6xl font-extrabold text-gray-900 mb-6 leading-tight tracking-tight drop-shadow-lg">
-						EduPrompt
-					</h1>
-					<p className="text-xl sm:text-2xl text-gray-700 mb-10 font-medium max-w-2xl mx-auto">
-						Khám phá, tạo mới và chia sẻ các prompt AI chất lượng cao. Đơn giản, nhanh chóng, hiệu quả cho mọi nhu cầu học tập, sáng tạo và làm việc.
-					</p>
-					<div className="flex flex-col sm:flex-row gap-4 w-full justify-center mb-8">
-						<a href="/register" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-xl shadow-lg transition text-xl cursor-pointer">
-							Bắt đầu ngay
-						</a>
-					</div>
-				</div>
-				<div className="mt-10 flex justify-center z-10">
-					<Image src="/globe.svg" alt="Hero Illustration" width={420} height={260} className="drop-shadow-2xl" />
-				</div>
-			</header>
+	 const handleStartClick = () => {
+		 if (typeof window !== "undefined") {
+			 const token = localStorage.getItem("token");
+			 if (token) {
+				 window.location.href = "/prompts";
+			 } else {
+				 window.location.href = "/login";
+			 }
+		 }
+	 };
+	 return (
+		 <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8fafc] via-[#e0e7ef] to-[#f1f5f9]">
+			 <Navbar />
+			 {/* Hero Section */}
+			 <header className="flex-1 flex flex-col justify-center items-center px-4 pt-24 pb-16 relative overflow-hidden">
+				 <div className="absolute inset-0 pointer-events-none z-0">
+					 <div className="absolute -top-32 -left-32 w-[600px] h-[600px] bg-blue-100 rounded-full blur-3xl opacity-60" />
+					 <div className="absolute top-1/2 right-0 w-[400px] h-[400px] bg-blue-200 rounded-full blur-2xl opacity-40" />
+				 </div>
+				 <div className="max-w-3xl w-full flex flex-col items-center text-center z-10">
+					 <h1 className="text-5xl sm:text-6xl font-extrabold text-gray-900 mb-6 leading-tight tracking-tight drop-shadow-lg">
+						 EduPrompt
+					 </h1>
+					 <p className="text-xl sm:text-2xl text-gray-700 mb-10 font-medium max-w-2xl mx-auto">
+						 Khám phá, tạo mới và chia sẻ các prompt AI chất lượng cao. Đơn giản, nhanh chóng, hiệu quả cho mọi nhu cầu học tập, sáng tạo và làm việc.
+					 </p>
+					 <div className="flex flex-col sm:flex-row gap-4 w-full justify-center mb-8">
+						 <button
+							 onClick={handleStartClick}
+							 className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-xl shadow-lg transition text-xl cursor-pointer"
+						 >
+							 Bắt đầu ngay
+						 </button>
+					 </div>
+				 </div>
+				 <div className="mt-10 flex justify-center z-10">
+					 <Image src="/globe.svg" alt="Hero Illustration" width={420} height={260} className="drop-shadow-2xl" />
+				 </div>
+			 </header>
 
 					{/* Pricing Section */}
 					<section className="w-full py-20 bg-transparent flex justify-center items-center">
