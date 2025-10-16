@@ -1,8 +1,10 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from 'next/navigation';
 import { registerUser } from "../../api/auth";
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
   const [lastName, setLastName] = useState("");
@@ -23,6 +25,10 @@ export default function RegisterPage() {
       // Gửi dữ liệu đăng ký, có thể cần chỉnh lại key cho đúng backend
       await registerUser({ email, password, firstName, lastName, phoneNumber });
       setMessage("Đăng ký thành công!");
+      // Redirect to login after a short delay so user can see the message
+      setTimeout(() => {
+        router.push('/login');
+      }, 1000);
     } catch (err: unknown) {
       // Safely extract message from unknown error without using `any`
       function extractMessage(e: unknown): string {
