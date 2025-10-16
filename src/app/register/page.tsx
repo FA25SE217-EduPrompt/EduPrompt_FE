@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import { registerUser } from "../../api/auth";
-import Image from "next/image";
 
 export default function RegisterPage() {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -22,20 +21,36 @@ export default function RegisterPage() {
     }
     try {
       // Gửi dữ liệu đăng ký, có thể cần chỉnh lại key cho đúng backend
-  const res = await registerUser({ email, password, firstName, lastName, phoneNumber });
-      setMessage("Đăng ký thành công! " + JSON.stringify(res));
-    } catch (err: any) {
-      setMessage("Đăng ký thất bại: " + (err.response?.data?.message || err.message));
+      await registerUser({ email, password, firstName, lastName, phoneNumber });
+      setMessage("Đăng ký thành công!");
+    } catch (err: unknown) {
+      // Safely extract message from unknown error without using `any`
+      function extractMessage(e: unknown): string {
+        if (typeof e === "string") return e;
+        if (e instanceof Error) return e.message;
+        try {
+          return JSON.stringify(e);
+        } catch {
+          return String(e);
+        }
+      }
+      setMessage("Đăng ký thất bại: " + extractMessage(err));
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50">
       <div className="w-full max-w-xl bg-white rounded-xl shadow-lg p-8 flex flex-col items-center">
-        <div className="mb-4 flex flex-col items-center">
+        <div className="mb-6 flex flex-col items-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-tr from-blue-400 to-indigo-600 rounded-full mb-3 shadow-md">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-8 h-8 text-white">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 14l9-5-9-5-9 5 9 5z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 14l6.16-3.422A12.083 12.083 0 0118 17.933V20l-6 3-6-3v-2.067c0-1.99.7-3.89 1.84-5.355L12 14z" />
+            </svg>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 text-center">EduPrompt System</h1>
+          <p className="mt-1 text-sm text-gray-600 text-center">AI-powered prompts and curated lessons to help you learn faster.</p>
         </div>
-        <h2 className="text-lg font-semibold mb-1 text-gray-700">Welcome to</h2>
-        <h1 className="text-2xl font-bold mb-6 text-gray-900 text-center">EduPromt System</h1>
         <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
           <label className="text-gray-600 text-sm">Số điện thoại</label>
           <input
@@ -78,7 +93,7 @@ export default function RegisterPage() {
           </div>
           <div className="flex gap-4">
             <div className="flex-1">
-              <label className="text-gray-600 text-sm">Password</label>
+              <label className="text-gray-600 text-sm">Mật khẩu</label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -106,7 +121,7 @@ export default function RegisterPage() {
               </div>
             </div>
             <div className="flex-1">
-              <label className="text-gray-600 text-sm">Nhập lại Password</label>
+              <label className="text-gray-600 text-sm">Nhập lại mật khẩu</label>
               <div className="relative">
                 <input
                   type={showRePassword ? "text" : "password"}
