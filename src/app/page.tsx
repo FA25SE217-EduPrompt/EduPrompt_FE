@@ -1,172 +1,287 @@
 "use client";
 
 import Navbar from "./components/Navbar";
-import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import Footer from "./components/Footer";
+import Link from "next/link";
+import { useEffect } from "react";
 
 export default function Home() {
-	// Animation for pricing cards
-	const cardsRef = useRef<Array<HTMLDivElement | null>>([]);
-	const [showCards, setShowCards] = useState([false, false, false]);
+  useEffect(() => {
+    // Smooth scrolling for navigation links
+    const handleClick = (e: Event) => {
+      const target = e.target as HTMLAnchorElement;
+      if (target.getAttribute('href')?.startsWith('#')) {
+        e.preventDefault();
+        const element = document.querySelector(target.getAttribute('href')!);
+        if (element) {
+          element.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      }
+    };
 
-	useEffect(() => {
-		if (typeof window === "undefined") return;
-		const handleScroll = () => {
-			cardsRef.current.forEach((card, idx) => {
-				if (!card) return;
-				const rect = card.getBoundingClientRect();
-				if (rect.top < window.innerHeight - 100) {
-					setShowCards((prev) => {
-						if (prev[idx]) return prev;
-						const next = [...prev];
-						next[idx] = true;
-						return next;
-					});
-				}
-			});
-		};
-		window.addEventListener("scroll", handleScroll);
-		handleScroll();
-		return () => window.removeEventListener("scroll", handleScroll);
-	}, []);
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', handleClick);
+    });
 
-	return (
-		<div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8fafc] via-[#e0e7ef] to-[#f1f5f9]">
-			<Navbar />
-			{/* Hero Section */}
-			<header className="flex-1 flex flex-col justify-center items-center px-4 pt-24 pb-16 relative overflow-hidden">
-				<div className="absolute inset-0 pointer-events-none z-0">
-					<div className="absolute -top-32 -left-32 w-[600px] h-[600px] bg-blue-100 rounded-full blur-3xl opacity-60" />
-					<div className="absolute top-1/2 right-0 w-[400px] h-[400px] bg-blue-200 rounded-full blur-2xl opacity-40" />
-				</div>
-				<div className="max-w-3xl w-full flex flex-col items-center text-center z-10">
-					<h1 className="text-5xl sm:text-6xl font-extrabold text-gray-900 mb-6 leading-tight tracking-tight drop-shadow-lg">
-						EduPrompt
-					</h1>
-					<p className="text-xl sm:text-2xl text-gray-700 mb-10 font-medium max-w-2xl mx-auto">
-						Khám phá, tạo mới và chia sẻ các prompt AI chất lượng cao. Đơn giản, nhanh chóng, hiệu quả cho mọi nhu cầu học tập, sáng tạo và làm việc.
-					</p>
-					<div className="flex flex-col sm:flex-row gap-4 w-full justify-center mb-8">
-						<a href="/register" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-xl shadow-lg transition text-xl cursor-pointer">
-							Bắt đầu ngay
-						</a>
-					</div>
-				</div>
-				<div className="mt-10 flex justify-center z-10">
-					<Image src="/globe.svg" alt="Hero Illustration" width={420} height={260} className="drop-shadow-2xl" />
-				</div>
-			</header>
+    return () => {
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.removeEventListener('click', handleClick);
+      });
+    };
+  }, []);
 
-					{/* Pricing Section */}
-					<section className="w-full py-20 bg-transparent flex justify-center items-center">
-						<div className="max-w-5xl w-full flex flex-col items-center">
-							<h2 className="text-3xl sm:text-4xl font-extrabold text-[#23205a] mb-10 text-center">Simple transparent pricing</h2>
-										<div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
-											{/* BUSINESS */}
-											<div
-												  ref={el => { cardsRef.current[0] = el; }}
-												className={`bg-gradient-to-br from-[#7b6cf6] to-[#5f4be6] rounded-2xl p-8 text-white shadow-xl flex flex-col items-center border-2 border-[#b3aaff] transition-all duration-700 hover:shadow-[0_0_32px_8px_rgba(123,108,246,0.4)] hover:border-[#7b6cf6] hover:scale-105
-													${showCards[0] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'}
-												`}
-												style={{ transitionDelay: showCards[0] ? '0ms' : '0ms' }}
-											>
-									<h3 className="text-xl font-extrabold mb-1 tracking-widest uppercase">BUSINESS</h3>
-									<div className="text-lg font-semibold mb-2">Prompt + Chat Collaboration</div>
-									<div className="text-5xl font-extrabold mb-1">$10</div>
-									<div className="text-xs font-semibold mb-6 tracking-wide">PER USER/MONTH + CHAT AI API FEES</div>
-									<hr className="w-full border-[#e0e7ef] mb-4" />
-									<div className="w-full text-left mb-2 font-bold">Feature included:</div>
-									<ul className="text-base space-y-2 mb-8 w-full">
-										<li className="flex items-center gap-2"><span className="text-xl">✔</span> Unlimited chats</li>
-										<li className="flex items-center gap-2"><span className="text-xl">✔</span> Chat collaboration</li>
-										<li className="flex items-center gap-2"><span className="text-xl">✔</span> OpenAI GPT integration</li>
-										<li className="flex items-center gap-2"><span className="text-xl">✔</span> Claude integration</li>
-										<li className="flex items-center gap-2"><span className="text-xl">✔</span> Google Gemini integration</li>
-										<li className="flex items-center gap-2"><span className="text-xl">✔</span> Bring Your Own API Keys</li>
-										<li className="flex items-center gap-2"><span className="text-xl">+</span> Everything in TEAM</li>
-									</ul>
-									<a href="#" className="mt-auto w-full bg-white text-[#5f4be6] font-bold py-3 px-6 rounded-lg shadow hover:bg-[#ede9fe] transition text-center border-2 border-[#e0e7ef]">Get Started</a>
-								</div>
-								{/* TEAM */}
-											<div
-												  ref={el => { cardsRef.current[1] = el; }}
-												className={`bg-[#f7f5ff] rounded-2xl p-8 text-[#23205a] shadow-xl flex flex-col items-center border-2 border-[#b3aaff] transition-all duration-700 hover:shadow-[0_0_32px_8px_rgba(123,108,246,0.2)] hover:border-[#7b6cf6] hover:scale-105
-													${showCards[1] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'}
-												`}
-												style={{ transitionDelay: showCards[1] ? '150ms' : '0ms' }}
-											>
-									<h3 className="text-xl font-extrabold mb-1 tracking-widest uppercase">TEAM</h3>
-									<div className="text-lg font-semibold mb-2">Prompt Collaboration</div>
-									<div className="text-5xl font-extrabold mb-1">$5</div>
-									<div className="text-xs font-semibold mb-6 tracking-wide">PER USER/MONTH</div>
-									<hr className="w-full border-[#b3aaff] mb-4" />
-									<div className="w-full text-left mb-2 font-bold">Feature included:</div>
-									<ul className="text-base space-y-2 mb-8 w-full">
-										<li className="flex items-center gap-2"><span className="text-xl">✔</span> Prompt collaboration</li>
-										<li className="flex items-center gap-2"><span className="text-xl">✔</span> Private sharing</li>
-										<li className="flex items-center gap-2"><span className="text-xl">+</span> Everything in PERSONAL</li>
-									</ul>
-									<a href="#" className="mt-auto w-full bg-[#5f4be6] text-white font-bold py-3 px-6 rounded-lg shadow hover:bg-[#7b6cf6] transition text-center">Get Started</a>
-								</div>
-								{/* PERSONAL */}
-											<div
-												  ref={el => { cardsRef.current[2] = el; }}
-												className={`bg-[#faf8ff] rounded-2xl p-8 text-[#23205a] shadow-xl flex flex-col items-center border-2 border-[#b3aaff] transition-all duration-700 hover:shadow-[0_0_32px_8px_rgba(123,108,246,0.15)] hover:border-[#7b6cf6] hover:scale-105
-													${showCards[2] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'}
-												`}
-												style={{ transitionDelay: showCards[2] ? '300ms' : '0ms' }}
-											>
-									<h3 className="text-xl font-extrabold mb-1 tracking-widest uppercase">PERSONAL</h3>
-									<div className="text-lg font-semibold mb-2">Prompts Organization</div>
-									<div className="text-5xl font-extrabold mb-1">FREE</div>
-									<div className="text-xs font-semibold mb-6 tracking-wide">NO CREDIT CARD NEEDED</div>
-									<hr className="w-full border-[#b3aaff] mb-4" />
-									<div className="w-full text-left mb-2 font-bold">Features included:</div>
-									<ul className="text-base space-y-2 mb-8 w-full">
-										<li className="flex items-center gap-2"><span className="text-xl">✔</span> Unlimited prompts</li>
-										<li className="flex items-center gap-2"><span className="text-xl">✔</span> Public sharing links</li>
-										<li className="flex items-center gap-2"><span className="text-xl">✔</span> Chrome extension</li>
-									</ul>
-									<a href="#" className="mt-auto w-full bg-[#5f4be6] text-white font-bold py-3 px-6 rounded-lg shadow hover:bg-[#7b6cf6] transition text-center">Get Started (free)</a>
-								</div>
-							</div>
-						</div>
-					</section>
+  return (
+    <div className="bg-white">
+      <Navbar />
 
-			{/* Footer mới */}
-			<footer className="w-full bg-[#f5f3ff] pt-16 pb-6 mt-auto border-t border-[#e0e7ef]">
-				<div className="max-w-4xl mx-auto flex flex-col items-center text-center">
-											<h2 className="text-5xl font-extrabold text-[#23205a] mb-2">
-												edu<span className="text-[#3b28c1]">/</span>Prompt
-											</h2>
-					<p className="text-lg text-gray-600 mb-6 max-w-2xl">
-						eduPrompt lets you organize, share, and collaborate on AI prompts.<br/>
-						You can use ChatGPT, Claude, and Gemini—all in one workspace.
-					</p>
-					<div className="flex gap-3 mb-6">
-						<a href="#" className="bg-[#3b28c1] hover:bg-[#23205a] text-white rounded-md p-2 transition" aria-label="Twitter">
-							<svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M22.46 5.924c-.793.352-1.646.59-2.54.697a4.48 4.48 0 0 0 1.965-2.475 8.94 8.94 0 0 1-2.828 1.082A4.48 4.48 0 0 0 11.2 9.03a12.72 12.72 0 0 1-9.24-4.684 4.48 4.48 0 0 0 1.39 5.98A4.44 4.44 0 0 1 2 9.13v.057a4.48 4.48 0 0 0 3.6 4.39c-.4.11-.82.17-1.25.17-.31 0-.6-.03-.89-.08a4.48 4.48 0 0 0 4.18 3.11A8.98 8.98 0 0 1 2 19.54a12.7 12.7 0 0 0 6.88 2.02c8.26 0 12.78-6.84 12.78-12.77 0-.19-.01-.37-.02-.56A9.1 9.1 0 0 0 24 4.59a8.93 8.93 0 0 1-2.54.7z"/></svg>
-						</a>
-						<a href="#" className="bg-[#3b28c1] hover:bg-[#23205a] text-white rounded-md p-2 transition" aria-label="LinkedIn">
-							<svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.76 0-5 2.24-5 5v14c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24 5-5v-14c0-2.76-2.24-5-5-5zm-11 19h-3v-9h3v9zm-1.5-10.28c-.97 0-1.75-.79-1.75-1.75s.78-1.75 1.75-1.75 1.75.79 1.75 1.75-.78 1.75-1.75 1.75zm15.5 10.28h-3v-4.5c0-1.08-.02-2.47-1.5-2.47-1.5 0-1.73 1.17-1.73 2.39v4.58h-3v-9h2.89v1.23h.04c.4-.75 1.38-1.54 2.84-1.54 3.04 0 3.6 2 3.6 4.59v4.72z"/></svg>
-						</a>
-						<a href="#" className="bg-[#3b28c1] hover:bg-[#23205a] text-white rounded-md p-2 transition" aria-label="YouTube">
-							<svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a2.994 2.994 0 0 0-2.112-2.112C19.454 3.5 12 3.5 12 3.5s-7.454 0-9.386.574A2.994 2.994 0 0 0 .502 6.186C0 8.12 0 12 0 12s0 3.88.502 5.814a2.994 2.994 0 0 0 2.112 2.112C4.546 20.5 12 20.5 12 20.5s7.454 0 9.386-.574a2.994 2.994 0 0 0 2.112-2.112C24 15.88 24 12 24 12s0-3.88-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-						</a>
-					</div>
-					<div className="flex flex-wrap justify-center gap-6 mb-6 text-lg">
-						<a href="#" className="text-[#3b28c1] hover:underline font-medium">Prompt Library</a>
-						<a href="#" className="text-[#3b28c1] hover:underline font-medium">Blog</a>
-						<a href="#" className="text-[#3b28c1] hover:underline font-medium">Pricing</a>
-						<a href="#" className="text-[#3b28c1] hover:underline font-medium">Contact</a>
-						<a href="/login" className="text-[#3b28c1] hover:underline font-medium">Login</a>
-						<a href="/register" className="text-[#3b28c1] hover:underline font-medium">Get Started (free)</a>
-					</div>
-					<hr className="w-full border-t border-[#e0e7ef] mb-4" />
-								{/* footer links removed as requested */}
-				</div>
-			</footer>
-		</div>
-	);
+      <main>
+        {/* Hero Section */}
+        <section className="gradient-bg py-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center">
+              <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+                AI-Powered Teaching<br />
+                <span className="text-sky-200">Made Simple</span>
+              </h1>
+              <p className="text-xl text-sky-100 mb-8 max-w-3xl mx-auto">
+                Streamline your lesson planning with our intelligent prompt management system. 
+                Create, share, and personalize AI prompts tailored to your teaching style and curriculum.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="/register" className="btn-primary text-white px-8 py-4 rounded-lg text-lg font-semibold">
+                  Start Free Trial
+                </Link>
+                <button className="bg-white text-blue-800 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-50 transition-colors">
+                  Watch Demo
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
 
+        {/* Features Section */}
+        <section id="features" className="py-20 bg-gray-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold text-blue-800 mb-4">
+                Everything You Need to Enhance Teaching
+              </h2>
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                Discover powerful features designed specifically for high school educators
+              </p>
+            </div>
 
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {/* Feature 1 */}
+              <div className="feature-card bg-white p-8 rounded-xl shadow-sm">
+                <div className="w-12 h-12 bg-sky-500 rounded-lg flex items-center justify-center mb-6">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-blue-800 mb-3">Prompt Repository</h3>
+                <p className="text-gray-600">Access thousands of categorized prompts organized by subject, grade level, and teaching objectives.</p>
+              </div>
+
+              {/* Feature 2 */}
+              <div className="feature-card bg-white p-8 rounded-xl shadow-sm">
+                <div className="w-12 h-12 bg-sky-500 rounded-lg flex items-center justify-center mb-6">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-blue-800 mb-3">Personalization Engine</h3>
+                <p className="text-gray-600">AI adapts prompts to match your unique teaching style, subject expertise, and classroom needs.</p>
+              </div>
+
+              {/* Feature 3 */}
+              <div className="feature-card bg-white p-8 rounded-xl shadow-sm">
+                <div className="w-12 h-12 bg-sky-500 rounded-lg flex items-center justify-center mb-6">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-blue-800 mb-3">Collaboration Hub</h3>
+                <p className="text-gray-600">Share, rate, and collaborate on prompts with fellow educators in your school and beyond.</p>
+              </div>
+
+              {/* Feature 4 */}
+              <div className="feature-card bg-white p-8 rounded-xl shadow-sm">
+                <div className="w-12 h-12 bg-sky-500 rounded-lg flex items-center justify-center mb-6">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-blue-800 mb-3">AI Suggestions</h3>
+                <p className="text-gray-600">Get intelligent recommendations based on your teaching patterns and curriculum requirements.</p>
+              </div>
+
+              {/* Feature 5 */}
+              <div className="feature-card bg-white p-8 rounded-xl shadow-sm">
+                <div className="w-12 h-12 bg-sky-500 rounded-lg flex items-center justify-center mb-6">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-blue-800 mb-3">Role-Based Access</h3>
+                <p className="text-gray-600">Secure permissions system for teachers, administrators, and system managers.</p>
+              </div>
+
+              {/* Feature 6 */}
+              <div className="feature-card bg-white p-8 rounded-xl shadow-sm">
+                <div className="w-12 h-12 bg-sky-500 rounded-lg flex items-center justify-center mb-6">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-blue-800 mb-3">Cross-Platform</h3>
+                <p className="text-gray-600">Access your prompts anywhere with our responsive web platform and mobile app.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Pricing Section */}
+        <section id="pricing" className="py-20 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold text-blue-800 mb-4">
+                Choose Your Plan
+              </h2>
+              <p className="text-xl text-gray-600">
+                Flexible pricing options for individual teachers and schools
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+              {/* Free Tier */}
+              <div className="bg-gray-50 p-8 rounded-xl">
+                <h3 className="text-2xl font-bold text-blue-800 mb-4">Free Trial</h3>
+                <div className="text-4xl font-bold text-blue-800 mb-6">$0<span className="text-lg text-gray-500">/month</span></div>
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-center text-gray-600">
+                    <svg className="w-5 h-5 text-sky-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+                    </svg>
+                    Limited prompt library
+                  </li>
+                  <li className="flex items-center text-gray-600">
+                    <svg className="w-5 h-5 text-sky-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+                    </svg>
+                    1 teacher per school
+                  </li>
+                  <li className="flex items-center text-gray-600">
+                    <svg className="w-5 h-5 text-sky-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+                    </svg>
+                    Basic features
+                  </li>
+                </ul>
+                <Link href="/register" className="w-full bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors block text-center">
+                  Start Free Trial
+                </Link>
+              </div>
+
+              {/* Standard */}
+              <div className="bg-white border-2 border-sky-500 p-8 rounded-xl relative">
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                  <span className="bg-sky-500 text-white px-4 py-1 rounded-full text-sm font-semibold">Most Popular</span>
+                </div>
+                <h3 className="text-2xl font-bold text-blue-800 mb-4">Standard</h3>
+                <div className="text-4xl font-bold text-blue-800 mb-6">$29<span className="text-lg text-gray-500">/teacher/month</span></div>
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-center text-gray-600">
+                    <svg className="w-5 h-5 text-sky-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+                    </svg>
+                    Full repository access
+                  </li>
+                  <li className="flex items-center text-gray-600">
+                    <svg className="w-5 h-5 text-sky-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+                    </svg>
+                    AI personalization
+                  </li>
+                  <li className="flex items-center text-gray-600">
+                    <svg className="w-5 h-5 text-sky-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+                    </svg>
+                    Collaboration features
+                  </li>
+                  <li className="flex items-center text-gray-600">
+                    <svg className="w-5 h-5 text-sky-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+                    </svg>
+                    Priority support
+                  </li>
+                </ul>
+                <button className="w-full btn-primary text-white py-3 rounded-lg font-semibold">
+                  Get Started
+                </button>
+              </div>
+
+              {/* School-Wide */}
+              <div className="bg-gray-50 p-8 rounded-xl">
+                <h3 className="text-2xl font-bold text-blue-800 mb-4">School-Wide</h3>
+                <div className="text-4xl font-bold text-blue-800 mb-6">$499<span className="text-lg text-gray-500">/school/year</span></div>
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-center text-gray-600">
+                    <svg className="w-5 h-5 text-sky-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+                    </svg>
+                    Unlimited teachers
+                  </li>
+                  <li className="flex items-center text-gray-600">
+                    <svg className="w-5 h-5 text-sky-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+                    </svg>
+                    Admin dashboard
+                  </li>
+                  <li className="flex items-center text-gray-600">
+                    <svg className="w-5 h-5 text-sky-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+                    </svg>
+                    Analytics & reporting
+                  </li>
+                  <li className="flex items-center text-gray-600">
+                    <svg className="w-5 h-5 text-sky-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+                    </svg>
+                    Premium add-ons
+                  </li>
+                </ul>
+                <button className="w-full bg-blue-800 text-white py-3 rounded-lg font-semibold hover:bg-blue-900 transition-colors">
+                  Contact Sales
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="gradient-bg py-20">
+          <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+              Ready to Transform Your Teaching?
+            </h2>
+            <p className="text-xl text-sky-100 mb-8">
+              Join thousands of educators already using EduPrompt to create more engaging and effective lessons.
+            </p>
+            <Link href="/register" className="btn-primary text-white px-8 py-4 rounded-lg text-lg font-semibold mr-4">
+              Start Your Free Trial
+            </Link>
+            <button className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-blue-800 transition-colors">
+              Schedule Demo
+            </button>
+          </div>
+        </section>
+      </main>
+
+      <Footer />
+    </div>
+  );
+}
