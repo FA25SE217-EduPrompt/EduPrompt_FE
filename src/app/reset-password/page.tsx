@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { resetPassword } from "../../api/auth";
+import { resetPassword } from "@/services/auth";
 
 export default function ResetPasswordPage() {
   const [token, setToken] = useState("");
