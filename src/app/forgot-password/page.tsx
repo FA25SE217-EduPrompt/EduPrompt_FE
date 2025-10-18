@@ -1,8 +1,15 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { forgotPassword } from "@/services/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { mapErrorToUserMessage, getErrorType } from "@/utils/errorMapper";
+
+
+type ApiForgotResponse = {
+  data: { message?: string } | null;
+  error: { code?: string; messages?: string[]; status?: string } | null;
+};
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -12,32 +19,59 @@ export default function ForgotPasswordPage() {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [successMessage, setSuccessMessage] = useState<string>("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMessage("");
-    setSuccessMessage("");
-    setSubmitting(true);
-
-    try {
-      const res = await forgotPassword({ email });
-      if (res?.error) {
-        const firstMessage = Array.isArray(res.error.messages) && res.error.messages.length > 0
-          ? res.error.messages[0]
-          : "Có lỗi xảy ra khi gửi email";
-        setErrorMessage(firstMessage);
-        return;
-      }
-      setSuccessMessage(res?.data?.message || "Vui lòng kiểm tra email để đặt lại mật khẩu!");
-    } catch (err: any) {
-      const fallback = err?.response?.data?.error?.messages?.[0] || err?.message || "Có lỗi xảy ra. Vui lòng thử lại.";
-      setErrorMessage(fallback);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  // Focus state for smooth animations
   const [focusedId, setFocusedId] = useState<string | null>(null);
+
+  // (prevents memory leaks)
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!mountedRef.current) return;
+
+      setErrorMessage("");
+      setSuccessMessage("");
+      setSubmitting(true);
+
+      try {
+        const res = (await forgotPassword({ email })) as ApiForgotResponse;
+
+        // Explicitly check for `error !== null` per API envelope contract
+        if (res?.error !== null) {
+          const firstMessage =
+            Array.isArray(res.error?.messages) && res.error!.messages!.length > 0
+              ? res.error!.messages![0]
+              : mapErrorToUserMessage(res.error) || "Có lỗi xảy ra khi gửi email";
+          if (!mountedRef.current) return;
+          setErrorMessage(firstMessage);
+          return;
+        }
+
+        // Success path: use message from data or fallback copy
+        const success = res?.data?.message || "Vui lòng kiểm tra email để đặt lại mật khẩu!";
+        if (!mountedRef.current) return;
+        setSuccessMessage(success);
+      } catch (err: any) {
+        if (!mountedRef.current) return;
+        // Prefer mapErrorToUserMessage (handles many shapes), fallback to sensible strings
+        const fallback =
+          mapErrorToUserMessage(err) ||
+          err?.response?.data?.error?.messages?.[0] ||
+          err?.message ||
+          "Có lỗi xảy ra. Vui lòng thử lại.";
+        setErrorMessage(fallback);
+      } finally {
+        if (mountedRef.current) setSubmitting(false);
+      }
+    },
+    [email]
+  );
 
   return (
     <div className="min-h-screen gradient-bg from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center px-4 py-12">
@@ -60,8 +94,8 @@ export default function ForgotPasswordPage() {
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Email Field */}
           <div className="group">
-            <label 
-              htmlFor="email" 
+            <label
+              htmlFor="email"
               className="block text-sm font-semibold text-gray-700 mb-3 transition-colors group-focus-within:text-blue-600"
             >
               Email Address
@@ -84,9 +118,11 @@ export default function ForgotPasswordPage() {
                 placeholder="Enter your email address"
                 disabled={submitting}
               />
-              <div className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
+              <div
+                className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
                             ${focusedId === "email" ? "from-blue-400/10 via-blue-400/5 to-blue-400/10" : ""} 
-                            transition-all duration-300 pointer-events-none`}></div>
+                            transition-all duration-300 pointer-events-none`}
+              ></div>
             </div>
           </div>
 
@@ -99,8 +135,10 @@ export default function ForgotPasswordPage() {
 
           {/* Error Message */}
           {errorMessage && (
-            <div className="text-red-600 text-sm text-center bg-red-50 p-4 rounded-xl border border-red-200 
-                          animate-pulse">
+            <div
+              className="text-red-600 text-sm text-center bg-red-50 p-4 rounded-xl border border-red-200 
+                          animate-pulse"
+            >
               {errorMessage}
             </div>
           )}
@@ -116,10 +154,8 @@ export default function ForgotPasswordPage() {
                      focus:outline-none focus:ring-4 focus:ring-blue-300/50
                      disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none
                      active:scale-[0.98]
-                     ${successMessage 
-                       ? "bg-green-500 hover:bg-green-600" 
-                       : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
-                     }`}
+                     ${successMessage ? "bg-green-500 hover:bg-green-600" : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
+            }`}
           >
             <span className="inline-flex items-center justify-center">
               {successMessage ? (
@@ -131,14 +167,23 @@ export default function ForgotPasswordPage() {
                 </>
               ) : submitting ? (
                 <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   Sending...
                 </>
               ) : (
-                'Send Reset Link'
+                "Send Reset Link"
               )}
             </span>
           </button>
@@ -147,21 +192,19 @@ export default function ForgotPasswordPage() {
         {/* Navigation Links */}
         <footer className="mt-8 text-center">
           <p className="text-gray-600">
-            Remember your password?{' '}
-            <Link 
-              href="/login" 
-              className="text-blue-600 font-semibold hover:text-blue-800 transition-colors duration-200 
-                       hover:underline underline-offset-2"
+            Remember your password?{" "}
+            <Link
+              href="/login"
+              className="text-blue-600 font-semibold hover:text-blue-800 transition-colors duration-200 hover:underline underline-offset-2"
             >
               Sign in
             </Link>
           </p>
           <p className="text-gray-600 mt-2">
-            Don't have an account?{' '}
-            <Link 
-              href="/register" 
-              className="text-blue-600 font-semibold hover:text-blue-800 transition-colors duration-200 
-                       hover:underline underline-offset-2"
+            Don't have an account?{" "}
+            <Link
+              href="/register"
+              className="text-blue-600 font-semibold hover:text-blue-800 transition-colors duration-200 hover:underline underline-offset-2"
             >
               Create one
             </Link>

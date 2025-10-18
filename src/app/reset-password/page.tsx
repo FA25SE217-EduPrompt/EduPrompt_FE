@@ -1,8 +1,17 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { resetPassword } from "@/services/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { mapErrorToUserMessage } from "@/utils/errorMapper";
+
+/**
+ * Local response type matching your API envelope (only the fields this page uses).
+ */
+type ApiResetResponse = {
+  data: { message?: string } | null;
+  error: { code?: string; messages?: string[]; status?: string } | null;
+};
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -17,52 +26,83 @@ export default function ResetPasswordPage() {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [successMessage, setSuccessMessage] = useState<string>("");
 
+  const [focusedId, setFocusedId] = useState<string | null>(null);
+
+  //(prevents memory leaks)
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  // Read token from query string on mount 
   useEffect(() => {
     const queryToken = new URLSearchParams(window.location.search).get("token");
     if (queryToken) {
-      setToken(queryToken);
+      if (mountedRef.current) setToken(queryToken);
     } else {
-      setErrorMessage("Invalid or missing reset token. Please request a new reset link.");
+      if (mountedRef.current)
+        setErrorMessage("Invalid or missing reset token. Please request a new reset link.");
     }
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMessage("");
-    setSuccessMessage("");
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!mountedRef.current) return;
 
-    if (!token) {
-      setErrorMessage("Reset token is required. Please check your email link.");
-      return;
-    }
+      setErrorMessage("");
+      setSuccessMessage("");
 
-    if (newPassword !== confirmPassword) {
-      setErrorMessage("Mật khẩu không khớp!");
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      const res = await resetPassword({ token, newPassword });
-      if (res?.error) {
-        const firstMessage = Array.isArray(res.error.messages) && res.error.messages.length > 0
-          ? res.error.messages[0]
-          : "Đặt lại mật khẩu thất bại";
-        setErrorMessage(firstMessage);
+      if (!token) {
+        setErrorMessage("Reset token is required. Please check your email link.");
         return;
       }
-      setSuccessMessage(res?.data?.message || "Đặt lại mật khẩu thành công! Bạn có thể đăng nhập với mật khẩu mới.");
-      setTimeout(() => router.push("/login"), 2000);
-    } catch (err: any) {
-      const fallback = err?.response?.data?.error?.messages?.[0] || err?.message || "Đặt lại mật khẩu thất bại";
-      setErrorMessage(fallback);
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
-  // Focus state for smooth animations
-  const [focusedId, setFocusedId] = useState<string | null>(null);
+      if (newPassword !== confirmPassword) {
+        setErrorMessage("Mật khẩu không khớp!");
+        return;
+      }
+
+      setSubmitting(true);
+      try {
+        const res = (await resetPassword({ token, newPassword })) as ApiResetResponse;
+
+        // Follow the API envelope contract: `error` is null on success
+        if (res?.error !== null) {
+          const firstMessage =
+            Array.isArray(res.error?.messages) && res.error!.messages!.length > 0
+              ? res.error!.messages![0]
+              : mapErrorToUserMessage(res.error) || "Đặt lại mật khẩu thất bại";
+          if (!mountedRef.current) return;
+          setErrorMessage(firstMessage);
+          return;
+        }
+
+        const success = res?.data?.message || "Đặt lại mật khẩu thành công! Bạn có thể đăng nhập với mật khẩu mới.";
+        if (!mountedRef.current) return;
+        setSuccessMessage(success);
+
+        // preserve original 2000ms redirect timing
+        setTimeout(() => {
+          if (mountedRef.current) router.push("/login");
+        }, 2000);
+      } catch (err: any) {
+        if (!mountedRef.current) return;
+        const fallback =
+          mapErrorToUserMessage(err) ||
+          err?.response?.data?.error?.messages?.[0] ||
+          err?.message ||
+          "Đặt lại mật khẩu thất bại";
+        setErrorMessage(fallback);
+      } finally {
+        if (mountedRef.current) setSubmitting(false);
+      }
+    },
+    [token, newPassword, confirmPassword, router]
+  );
 
   return (
     <div className="min-h-screen gradient-bg from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center px-4 py-12">
@@ -85,8 +125,8 @@ export default function ResetPasswordPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* New Password Field */}
           <div className="group">
-            <label 
-              htmlFor="newPassword" 
+            <label
+              htmlFor="newPassword"
               className="block text-sm font-semibold text-gray-700 mb-3 transition-colors group-focus-within:text-blue-600"
             >
               New Password
@@ -126,16 +166,18 @@ export default function ResetPasswordPage() {
                   </svg>
                 )}
               </button>
-              <div className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
+              <div
+                className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
                             ${focusedId === "newPassword" ? "from-blue-400/10 via-blue-400/5 to-blue-400/10" : ""} 
-                            transition-all duration-300 pointer-events-none`}></div>
+                            transition-all duration-300 pointer-events-none`}
+              ></div>
             </div>
           </div>
 
           {/* Confirm Password Field */}
           <div className="group">
-            <label 
-              htmlFor="confirmPassword" 
+            <label
+              htmlFor="confirmPassword"
               className="block text-sm font-semibold text-gray-700 mb-3 transition-colors group-focus-within:text-blue-600"
             >
               Confirm New Password
@@ -175,9 +217,11 @@ export default function ResetPasswordPage() {
                   </svg>
                 )}
               </button>
-              <div className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
+              <div
+                className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
                             ${focusedId === "confirmPassword" ? "from-blue-400/10 via-blue-400/5 to-blue-400/10" : ""} 
-                            transition-all duration-300 pointer-events-none`}></div>
+                            transition-all duration-300 pointer-events-none`}
+              ></div>
             </div>
           </div>
 
@@ -190,8 +234,7 @@ export default function ResetPasswordPage() {
 
           {/* Error Message */}
           {errorMessage && (
-            <div className="text-red-600 text-sm text-center bg-red-50 p-4 rounded-xl border border-red-200 
-                          animate-pulse">
+            <div className="text-red-600 text-sm text-center bg-red-50 p-4 rounded-xl border border-red-200 animate-pulse">
               {errorMessage}
             </div>
           )}
@@ -207,10 +250,8 @@ export default function ResetPasswordPage() {
                      focus:outline-none focus:ring-4 focus:ring-blue-300/50
                      disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none
                      active:scale-[0.98]
-                     ${successMessage 
-                       ? "bg-green-500 hover:bg-green-600" 
-                       : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
-                     }`}
+                     ${successMessage ? "bg-green-500 hover:bg-green-600" : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
+            }`}
           >
             <span className="inline-flex items-center justify-center">
               {successMessage ? (
@@ -229,7 +270,7 @@ export default function ResetPasswordPage() {
                   Resetting Password...
                 </>
               ) : (
-                'Reset Password'
+                "Reset Password"
               )}
             </span>
           </button>
@@ -238,22 +279,14 @@ export default function ResetPasswordPage() {
         {/* Navigation Links */}
         <footer className="mt-8 text-center">
           <p className="text-gray-600">
-            Remember your password?{' '}
-            <Link 
-              href="/login" 
-              className="text-blue-600 font-semibold hover:text-blue-800 transition-colors duration-200 
-                       hover:underline underline-offset-2"
-            >
+            Remember your password?{" "}
+            <Link href="/login" className="text-blue-600 font-semibold hover:text-blue-800 transition-colors duration-200 hover:underline underline-offset-2">
               Sign in
             </Link>
           </p>
           <p className="text-gray-600 mt-2">
-            Need a new reset link?{' '}
-            <Link 
-              href="/forgot-password" 
-              className="text-blue-600 font-semibold hover:text-blue-800 transition-colors duration-200 
-                       hover:underline underline-offset-2"
-            >
+            Need a new reset link?{" "}
+            <Link href="/forgot-password" className="text-blue-600 font-semibold hover:text-blue-800 transition-colors duration-200 hover:underline underline-offset-2">
               Request another
             </Link>
           </p>
