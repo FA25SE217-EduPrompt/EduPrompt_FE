@@ -1,19 +1,56 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { loginUser, loginWithGoogle } from "@/services/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import ErrorPopup from "@/components/ui/ErrorPopup";
+import { mapErrorToUserMessage, getErrorType } from "@/utils/errorMapper";
+import { BaseResponse } from "@/types/api";
+
+type ApiLoginResponse = BaseResponse<{ token: string }>;
 
 export default function LoginPage() {
   const router = useRouter();
 
+  // form state (kept as-is to preserve behavior)
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [errorType, setErrorType] = useState<"error" | "warning" | "info">("error");
+  const [showErrorPopup, setShowErrorPopup] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  // small focus scale state to mimic the original input animation
+  const [focusedId, setFocusedId] = useState<string | null>(null);
+
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  const safeLocalStorageSet = useCallback((key: string, value: string) => {
+    try {
+      localStorage.setItem(key, value);
+    } catch (e) {
+      // log to avoid silent failures
+      console.warn(`localStorage.setItem failed for ${key}:`, e);
+    }
+  }, []);
+
+  const safeLocalStorageRemove = useCallback((key: string) => {
+    try {
+      localStorage.removeItem(key);
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn(`localStorage.removeItem failed for ${key}:`, e);
+    }
+  }, []);
 
   useEffect(() => {
     try {
@@ -22,19 +59,24 @@ export default function LoginPage() {
         setEmail(rememberEmail);
         setRemember(true);
       }
-    } catch {}
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn("Reading rememberEmail failed:", e);
+    }
   }, []);
 
-  // Google Identity Services
+  // Google Identity Services - use ref for button and safer script handling
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+  const googleBtnRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (!googleClientId) return;
-    const script = document.createElement('script');
-    script.src = 'https://accounts.google.com/gsi/client';
+
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
     script.async = true;
     script.defer = true;
-    document.body.appendChild(script);
-    script.onload = () => {
+
+    const handleLoad = () => {
       try {
         // @ts-ignore
         window.google?.accounts.id.initialize({
@@ -42,102 +84,149 @@ export default function LoginPage() {
           callback: (response: any) => {
             const credential = response?.credential;
             if (credential) {
-              handleGoogleCredential(credential);
+              // only call if component still mounted
+              if (mountedRef.current) {
+                handleGoogleCredential(credential);
+              }
             }
           },
         });
         // @ts-ignore
         window.google?.accounts.id.renderButton(
-          document.getElementById('googleSignInBtn'),
-          { theme: 'outline', size: 'large', width: 320 }
+          googleBtnRef.current ?? document.getElementById("googleSignInBtn"),
+          { theme: "outline", size: "large", width: 320 }
         );
-      } catch {}
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn("Google Identity init error:", e);
+      }
     };
+
+    script.addEventListener("load", handleLoad);
+    document.body.appendChild(script);
+
     return () => {
-      document.body.removeChild(script);
+      script.removeEventListener("load", handleLoad);
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+      try {
+        // @ts-ignore
+        if (window.google?.accounts?.id?.cancel) {
+          // @ts-ignore
+          window.google.accounts.id.cancel();
+        }
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.debug("Google cleanup no-op:", e);
+      }
     };
+    // Intentionally only depends on googleClientId
   }, [googleClientId]);
 
-  const handleGoogleCredential = async (credential: string) => {
+  // handle Google credential (extracted and typed)
+  const handleGoogleCredential = useCallback(async (credential: string) => {
+    // preserve original UI flow and timings
+    if (!mountedRef.current) return;
     setErrorMessage("");
+    setShowErrorPopup(false);
     setSubmitting(true);
+
     try {
-      const res = await loginWithGoogle({ tokenId: credential });
+      const res = (await loginWithGoogle({ tokenId: credential })) as ApiLoginResponse;
+
       if (res?.error) {
-        const firstMessage = Array.isArray(res.error.messages) && res.error.messages.length > 0
-          ? res.error.messages[0]
-          : "Google đăng nhập thất bại";
-        setErrorMessage(firstMessage);
+        const userFriendlyMessage = mapErrorToUserMessage(res.error);
+        if (!mountedRef.current) return;
+        setErrorMessage(userFriendlyMessage);
+        setErrorType(getErrorType(res.error));
+        setShowErrorPopup(true);
         return;
       }
+
       const token = res?.data?.token;
       if (!token) {
-        setErrorMessage("Phản hồi không hợp lệ từ máy chủ");
+        const message = "Phản hồi không hợp lệ từ máy chủ";
+        if (!mountedRef.current) return;
+        setErrorMessage(message);
+        setErrorType("error");
+        setShowErrorPopup(true);
         return;
       }
-      try {
-        localStorage.setItem("token", token);
-      } catch {}
+
+      safeLocalStorageSet("token", token);
+
+      if (!mountedRef.current) return;
       setSuccess(true);
       setTimeout(() => {
-        router.push("/");
+        // ensure navigation only when mounted
+        if (mountedRef.current) router.push("/");
       }, 400);
     } catch (err: any) {
-      const fallback = err?.response?.data?.error?.messages?.[0] || err?.message || "Google đăng nhập thất bại";
-      setErrorMessage(fallback);
+      if (!mountedRef.current) return;
+      const userFriendlyMessage = mapErrorToUserMessage(err);
+      setErrorMessage(userFriendlyMessage);
+      setErrorType(getErrorType(err));
+      setShowErrorPopup(true);
     } finally {
-      setSubmitting(false);
+      if (mountedRef.current) setSubmitting(false);
     }
-  };
+  }, [router, safeLocalStorageSet]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // handle submit (login)
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!mountedRef.current) return;
+
     setErrorMessage("");
+    setShowErrorPopup(false);
     setSubmitting(true);
 
     try {
-      const res = await loginUser({ email, password });
+      const res = await loginUser({ email, password }) as ApiLoginResponse;
 
       if (res?.error) {
-        const firstMessage =
-          Array.isArray(res.error.messages) && res.error.messages.length > 0
-            ? res.error.messages[0]
-            : "Đăng nhập thất bại";
-        setErrorMessage(firstMessage);
+        const userFriendlyMessage = mapErrorToUserMessage(res.error);
+        if (!mountedRef.current) return;
+        setErrorMessage(userFriendlyMessage);
+        setErrorType(getErrorType(res.error));
+        setShowErrorPopup(true);
         return;
       }
 
       const token = res?.data?.token;
       if (!token) {
-        setErrorMessage("Phản hồi không hợp lệ từ máy chủ");
+        const message = "Phản hồi không hợp lệ từ máy chủ";
+        if (!mountedRef.current) return;
+        setErrorMessage(message);
+        setErrorType("error");
+        setShowErrorPopup(true);
         return;
       }
 
-      try {
-        localStorage.setItem("token", token);
-        if (remember) {
-          localStorage.setItem("rememberEmail", email);
-        } else {
-          localStorage.removeItem("rememberEmail");
-        }
-      } catch {}
+      safeLocalStorageSet("token", token);
+      if (remember) {
+        safeLocalStorageSet("rememberEmail", email);
+      } else {
+        safeLocalStorageRemove("rememberEmail");
+      }
 
-      // success UI, then redirect
+      // success UI, then redirect (preserve 600ms)
+      if (!mountedRef.current) return;
       setSuccess(true);
       setTimeout(() => {
-        router.push("/");
+        if (mountedRef.current) router.push("/");
       }, 600);
     } catch (err: any) {
-      const fallback =
-        err?.response?.data?.error?.messages?.[0] || err?.message || "Đăng nhập thất bại";
-      setErrorMessage(fallback);
+      if (!mountedRef.current) return;
+      const userFriendlyMessage = mapErrorToUserMessage(err);
+      setErrorMessage(userFriendlyMessage);
+      setErrorType(getErrorType(err));
+      setShowErrorPopup(true);
     } finally {
-      setSubmitting(false);
+      if (mountedRef.current) setSubmitting(false);
     }
-  };
-
-  // small focus scale state to mimic the original input animation
-  const [focusedId, setFocusedId] = useState<string | null>(null);
+  }, [email, password, remember, router, safeLocalStorageSet, safeLocalStorageRemove]);
 
   return (
     <div className="min-h-screen gradient-bg flex items-center justify-center px-4 py-12">
@@ -160,8 +249,8 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Email Field */}
           <div className="group">
-            <label 
-              htmlFor="email" 
+            <label
+              htmlFor="email"
               className="block text-sm font-semibold text-gray-700 mb-3 transition-colors group-focus-within:text-blue-600"
             >
               Email Address
@@ -183,16 +272,18 @@ export default function LoginPage() {
                 required
                 placeholder="Enter your email address"
               />
-              <div className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
+              <div
+                className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
                             ${focusedId === "email" ? "from-blue-400/10 via-blue-400/5 to-blue-400/10" : ""} 
-                            transition-all duration-300 pointer-events-none`}></div>
+                            transition-all duration-300 pointer-events-none`}
+              ></div>
             </div>
           </div>
 
           {/* Password Field */}
           <div className="group">
-            <label 
-              htmlFor="password" 
+            <label
+              htmlFor="password"
               className="block text-sm font-semibold text-gray-700 mb-3 transition-colors group-focus-within:text-blue-600"
             >
               Password
@@ -214,9 +305,11 @@ export default function LoginPage() {
                 required
                 placeholder="Enter your password"
               />
-              <div className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
+              <div
+                className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
                             ${focusedId === "password" ? "from-blue-400/10 via-blue-400/5 to-blue-400/10" : ""} 
-                            transition-all duration-300 pointer-events-none`}></div>
+                            transition-all duration-300 pointer-events-none`}
+              ></div>
             </div>
           </div>
 
@@ -235,8 +328,8 @@ export default function LoginPage() {
                 Remember me
               </span>
             </label>
-            <Link 
-              href="/forgot-password" 
+            <Link
+              href="/forgot-password"
               className="text-sm text-blue-600 font-semibold hover:text-blue-800 transition-colors duration-200 
                        hover:underline underline-offset-2"
             >
@@ -244,8 +337,8 @@ export default function LoginPage() {
             </Link>
           </div>
 
-          {/* Error Message */}
-          {errorMessage && (
+          {/* Error Message - Keep for form validation errors */}
+          {errorMessage && !showErrorPopup && (
             <div className="text-red-600 text-sm text-center bg-red-50 p-4 rounded-xl border border-red-200 
                           animate-pulse">
               {errorMessage}
@@ -263,10 +356,10 @@ export default function LoginPage() {
                      focus:outline-none focus:ring-4 focus:ring-blue-300/50
                      disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none
                      active:scale-[0.98]
-                     ${success 
-                       ? "bg-green-500 hover:bg-green-600" 
-                       : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
-                     }`}
+                     ${success
+                ? "bg-green-500 hover:bg-green-600"
+                : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
+              }`}
           >
             <span className="inline-flex items-center justify-center">
               {success ? (
@@ -282,37 +375,38 @@ export default function LoginPage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Signing in...
+                  Signing in.
                 </>
               ) : (
-                'Sign In'
+                "Sign In"
               )}
             </span>
           </button>
         </form>
 
-         {/* Social Login */}
-         {googleClientId && (
-           <div className="mt-6">
-             <div className="relative">
-               <div className="flex items-center">
-                 <div className="flex-grow h-px bg-gray-200" />
-                 <span className="mx-3 text-gray-400 text-sm">or continue with</span>
-                 <div className="flex-grow h-px bg-gray-200" />
-               </div>
-               <div className="mt-4 flex justify-center">
-                 <div id="googleSignInBtn"></div>
-               </div>
-             </div>
-           </div>
-         )}
+        {/* Social Login */}
+        {googleClientId && (
+          <div className="mt-6">
+            <div className="relative">
+              <div className="flex items-center">
+                <div className="flex-grow h-px bg-gray-200" />
+                <span className="mx-3 text-gray-400 text-sm">or continue with</span>
+                <div className="flex-grow h-px bg-gray-200" />
+              </div>
+              <div className="mt-4 flex justify-center">
+                {/* Use the ref to render google button */}
+                <div id="googleSignInBtn" ref={googleBtnRef}></div>
+              </div>
+            </div>
+          </div>
+        )}
 
-         {/* Sign Up Link */}
+        {/* Sign Up Link */}
         <footer className="mt-8 text-center">
           <p className="text-gray-600">
-            Don't have an account?{' '}
-            <Link 
-              href="/register" 
+            Don't have an account?{" "}
+            <Link
+              href="/register"
               className="text-blue-600 font-semibold hover:text-blue-800 transition-colors duration-200 
                        hover:underline underline-offset-2"
             >
@@ -321,6 +415,15 @@ export default function LoginPage() {
           </p>
         </footer>
       </div>
+
+      {/* Error Popup */}
+      <ErrorPopup
+        message={errorMessage}
+        isVisible={showErrorPopup}
+        onClose={() => setShowErrorPopup(false)}
+        type={errorType}
+        duration={6000}
+      />
     </div>
   );
 }

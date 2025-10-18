@@ -1,12 +1,19 @@
 "use client";
-import { useState } from "react";
+
+import { useEffect, useRef, useState, useCallback } from "react";
 import { registerUser } from "@/services/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import ErrorPopup from "@/components/ui/ErrorPopup";
+import { mapErrorToUserMessage, getErrorType } from "@/utils/errorMapper";
+import { BaseResponse } from "@/types/api";
+
+type ApiRegisterResponse = BaseResponse<{ message: string }>;
 
 export default function RegisterPage() {
   const router = useRouter();
 
+  // form state (kept as-is to preserve behavior)
   const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
   const [lastName, setLastName] = useState("");
@@ -18,40 +25,89 @@ export default function RegisterPage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [errorType, setErrorType] = useState<"error" | "warning" | "info">("error");
+  const [showErrorPopup, setShowErrorPopup] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string>("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMessage("");
-    setSuccessMessage("");
+  // Focus state for animations (unchanged behavior)
+  const [focusedId, setFocusedId] = useState<string | null>(null);
 
-    if (password !== rePassword) {
-      setErrorMessage("Mật khẩu không khớp!");
-      return;
-    }
+  // Mounted guard to avoid setting state after unmount (prevents memory leaks)
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
-    setSubmitting(true);
+  // Safe wrapper for potential future localStorage usage (keeps pattern consistent)
+  const safeLocalStorageSet = useCallback((k: string, v: string) => {
     try {
-      const res = await registerUser({ email, password, firstName, lastName, phoneNumber });
-      if (res?.error) {
-        const firstMessage = Array.isArray(res.error.messages) && res.error.messages.length > 0
-          ? res.error.messages[0]
-          : "Đăng ký thất bại";
-        setErrorMessage(firstMessage);
+      localStorage.setItem(k, v);
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn(`localStorage.setItem failed for ${k}`, e);
+    }
+  }, []);
+
+  // handle submit (extracted, typed, and stable identity)
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!mountedRef.current) return;
+
+      setErrorMessage("");
+      setShowErrorPopup(false);
+      setSuccessMessage("");
+
+      // client-side password match check (existing behavior)
+      if (password !== rePassword) {
+        setErrorMessage("Mật khẩu không khớp!");
+        setErrorType("warning");
+        setShowErrorPopup(true);
         return;
       }
-      setSuccessMessage(res?.data?.message || "Đăng ký thành công! Vui lòng kiểm tra email để xác minh.");
-      setTimeout(() => router.push("/login"), 1000);
-    } catch (err: any) {
-      const fallback = err?.response?.data?.error?.messages?.[0] || err?.message || "Đăng ký thất bại";
-      setErrorMessage(fallback);
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
-  // Focus state for smooth animations
-  const [focusedId, setFocusedId] = useState<string | null>(null);
+      setSubmitting(true);
+      try {
+        const res = (await registerUser({
+          email,
+          password,
+          firstName,
+          lastName,
+          phoneNumber,
+        })) as ApiRegisterResponse;
+
+        if (res?.error) {
+          const userFriendlyMessage = mapErrorToUserMessage(res.error);
+          if (!mountedRef.current) return;
+          setErrorMessage(userFriendlyMessage);
+          setErrorType(getErrorType(res.error));
+          setShowErrorPopup(true);
+          return;
+        }
+
+        // preserve original success message + routing behavior (1000ms)
+        const message = res?.data?.message || "Đăng ký thành công! Vui lòng kiểm tra email để xác minh.";
+        if (!mountedRef.current) return;
+        setSuccessMessage(message);
+
+        setTimeout(() => {
+          if (mountedRef.current) router.push("/login");
+        }, 1000);
+      } catch (err: any) {
+        if (!mountedRef.current) return;
+        const userFriendlyMessage = mapErrorToUserMessage(err);
+        setErrorMessage(userFriendlyMessage);
+        setErrorType(getErrorType(err));
+        setShowErrorPopup(true);
+      } finally {
+        if (mountedRef.current) setSubmitting(false);
+      }
+    },
+    [email, password, rePassword, firstName, lastName, phoneNumber, router]
+  );
 
   return (
     <div className="min-h-screen gradient-bg from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center px-4 py-12">
@@ -76,8 +132,8 @@ export default function RegisterPage() {
           <div className="grid md:grid-cols-2 gap-6">
             {/* First Name */}
             <div className="group">
-              <label 
-                htmlFor="firstName" 
+              <label
+                htmlFor="firstName"
                 className="block text-sm font-semibold text-gray-700 mb-3 transition-colors group-focus-within:text-blue-600"
               >
                 First Name
@@ -99,16 +155,18 @@ export default function RegisterPage() {
                   required
                   placeholder="Enter first name"
                 />
-                <div className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
+                <div
+                  className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
                               ${focusedId === "firstName" ? "from-blue-400/10 via-blue-400/5 to-blue-400/10" : ""} 
-                              transition-all duration-300 pointer-events-none`}></div>
+                              transition-all duration-300 pointer-events-none`}
+                ></div>
               </div>
             </div>
 
             {/* Last Name */}
             <div className="group">
-              <label 
-                htmlFor="lastName" 
+              <label
+                htmlFor="lastName"
                 className="block text-sm font-semibold text-gray-700 mb-3 transition-colors group-focus-within:text-blue-600"
               >
                 Last Name
@@ -130,17 +188,19 @@ export default function RegisterPage() {
                   required
                   placeholder="Enter last name"
                 />
-                <div className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
+                <div
+                  className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
                               ${focusedId === "lastName" ? "from-blue-400/10 via-blue-400/5 to-blue-400/10" : ""} 
-                              transition-all duration-300 pointer-events-none`}></div>
+                              transition-all duration-300 pointer-events-none`}
+                ></div>
               </div>
             </div>
           </div>
 
           {/* Email Field */}
           <div className="group">
-            <label 
-              htmlFor="email" 
+            <label
+              htmlFor="email"
               className="block text-sm font-semibold text-gray-700 mb-3 transition-colors group-focus-within:text-blue-600"
             >
               Email Address
@@ -162,16 +222,18 @@ export default function RegisterPage() {
                 required
                 placeholder="Enter your email address"
               />
-              <div className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
+              <div
+                className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
                             ${focusedId === "email" ? "from-blue-400/10 via-blue-400/5 to-blue-400/10" : ""} 
-                            transition-all duration-300 pointer-events-none`}></div>
+                            transition-all duration-300 pointer-events-none`}
+              ></div>
             </div>
           </div>
 
           {/* Phone Number Field */}
           <div className="group">
-            <label 
-              htmlFor="phoneNumber" 
+            <label
+              htmlFor="phoneNumber"
               className="block text-sm font-semibold text-gray-700 mb-3 transition-colors group-focus-within:text-blue-600"
             >
               Phone Number
@@ -193,9 +255,11 @@ export default function RegisterPage() {
                 required
                 placeholder="Enter your phone number"
               />
-              <div className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
+              <div
+                className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
                             ${focusedId === "phoneNumber" ? "from-blue-400/10 via-blue-400/5 to-blue-400/10" : ""} 
-                            transition-all duration-300 pointer-events-none`}></div>
+                            transition-all duration-300 pointer-events-none`}
+              ></div>
             </div>
           </div>
 
@@ -203,8 +267,8 @@ export default function RegisterPage() {
           <div className="grid md:grid-cols-2 gap-6">
             {/* Password */}
             <div className="group">
-              <label 
-                htmlFor="password" 
+              <label
+                htmlFor="password"
                 className="block text-sm font-semibold text-gray-700 mb-3 transition-colors group-focus-within:text-blue-600"
               >
                 Password
@@ -242,16 +306,18 @@ export default function RegisterPage() {
                     </svg>
                   )}
                 </button>
-                <div className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
+                <div
+                  className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
                               ${focusedId === "password" ? "from-blue-400/10 via-blue-400/5 to-blue-400/10" : ""} 
-                              transition-all duration-300 pointer-events-none`}></div>
+                              transition-all duration-300 pointer-events-none`}
+                ></div>
               </div>
             </div>
 
             {/* Confirm Password */}
             <div className="group">
-              <label 
-                htmlFor="rePassword" 
+              <label
+                htmlFor="rePassword"
                 className="block text-sm font-semibold text-gray-700 mb-3 transition-colors group-focus-within:text-blue-600"
               >
                 Confirm Password
@@ -289,9 +355,11 @@ export default function RegisterPage() {
                     </svg>
                   )}
                 </button>
-                <div className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
+                <div
+                  className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
                               ${focusedId === "rePassword" ? "from-blue-400/10 via-blue-400/5 to-blue-400/10" : ""} 
-                              transition-all duration-300 pointer-events-none`}></div>
+                              transition-all duration-300 pointer-events-none`}
+                ></div>
               </div>
             </div>
           </div>
@@ -303,10 +371,9 @@ export default function RegisterPage() {
             </div>
           )}
 
-          {/* Error Message */}
-          {errorMessage && (
-            <div className="text-red-600 text-sm text-center bg-red-50 p-4 rounded-xl border border-red-200 
-                          animate-pulse">
+          {/* Error Message - Keep for form validation errors */}
+          {errorMessage && !showErrorPopup && (
+            <div className="text-red-600 text-sm text-center bg-red-50 p-4 rounded-xl border border-red-200 animate-pulse">
               {errorMessage}
             </div>
           )}
@@ -322,10 +389,7 @@ export default function RegisterPage() {
                      focus:outline-none focus:ring-4 focus:ring-blue-300/50
                      disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none
                      active:scale-[0.98]
-                     ${successMessage 
-                       ? "bg-green-500 hover:bg-green-600" 
-                       : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
-                     }`}
+                     ${successMessage ? "bg-green-500 hover:bg-green-600" : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"}`}
           >
             <span className="inline-flex items-center justify-center">
               {successMessage ? (
@@ -344,7 +408,7 @@ export default function RegisterPage() {
                   Creating Account...
                 </>
               ) : (
-                'Create Account'
+                "Create Account"
               )}
             </span>
           </button>
@@ -353,17 +417,25 @@ export default function RegisterPage() {
         {/* Sign In Link */}
         <footer className="mt-8 text-center">
           <p className="text-gray-600">
-            Already have an account?{' '}
-            <Link 
-              href="/login" 
-              className="text-blue-600 font-semibold hover:text-blue-800 transition-colors duration-200 
-                       hover:underline underline-offset-2"
+            Already have an account?{" "}
+            <Link
+              href="/login"
+              className="text-blue-600 font-semibold hover:text-blue-800 transition-colors duration-200 hover:underline underline-offset-2"
             >
               Sign in
             </Link>
           </p>
         </footer>
       </div>
+
+      {/* Error Popup */}
+      <ErrorPopup
+        message={errorMessage}
+        isVisible={showErrorPopup}
+        onClose={() => setShowErrorPopup(false)}
+        type={errorType}
+        duration={6000}
+      />
     </div>
   );
 }
