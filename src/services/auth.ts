@@ -18,3 +18,17 @@ export async function resetPassword(data: { token: string; newPassword: string }
   const response = await axios.post(`${API_BASE_URL}/api/auth/reset-password`, data);
   return response.data;
 }
+
+// Đăng nhập với Google SSO
+export async function loginWithGoogle(data: { tokenId: string }) {
+  const response = await axios.post(`${API_BASE_URL}/api/auth/google`, data);
+  return response.data;
+}
+
+// Quên mật khẩu
+export async function forgotPassword(data: { email: string }) {
+  const response = await axios.post(`${API_BASE_URL}/api/auth/forgot-password`, data);
+  return response.data;
+}
+
+
