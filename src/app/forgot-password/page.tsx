@@ -34,11 +34,10 @@ export default function ForgotPasswordPage() {
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (isAuthenticated) {
+    if (!isLoading && isAuthenticated) {
       router.replace("/");
     }
-  }, [isAuthenticated, router]);
-
+  }, [isAuthenticated, isLoading, router]);
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
