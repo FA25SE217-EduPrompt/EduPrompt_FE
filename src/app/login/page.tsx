@@ -32,24 +32,6 @@ export default function LoginPage() {
     };
   }, []);
 
-  const safeLocalStorageSet = useCallback((key: string, value: string) => {
-    try {
-      localStorage.setItem(key, value);
-    } catch (e) {
-      // log to avoid silent failures
-      console.warn(`localStorage.setItem failed for ${key}:`, e);
-    }
-  }, []);
-
-  const safeLocalStorageRemove = useCallback((key: string) => {
-    try {
-      localStorage.removeItem(key);
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.warn(`localStorage.removeItem failed for ${key}:`, e);
-    }
-  }, []);
-
   useEffect(() => {
     try {
       const rememberEmail = localStorage.getItem("rememberEmail");
@@ -63,66 +45,12 @@ export default function LoginPage() {
     }
   }, []);
 
-  // Google Identity Services - use ref for button and safer script handling
+  // Google Identity Services - improved script loading and initialization
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
   const googleBtnRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    if (!googleClientId) return;
+  const [googleScriptLoaded, setGoogleScriptLoaded] = useState(false);
 
-    const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
-    script.async = true;
-    script.defer = true;
-
-    const handleLoad = () => {
-      try {
-        // @ts-ignore
-        window.google?.accounts.id.initialize({
-          client_id: googleClientId,
-          callback: (response: any) => {
-            const credential = response?.credential;
-            if (credential) {
-              // only call if component still mounted
-              if (mountedRef.current) {
-                handleGoogleCredential(credential);
-              }
-            }
-          },
-        });
-        // @ts-ignore
-        window.google?.accounts.id.renderButton(
-          googleBtnRef.current ?? document.getElementById("googleSignInBtn"),
-          { theme: "outline", size: "large", width: 320 }
-        );
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.warn("Google Identity init error:", e);
-      }
-    };
-
-    script.addEventListener("load", handleLoad);
-    document.body.appendChild(script);
-
-    return () => {
-      script.removeEventListener("load", handleLoad);
-      if (script.parentNode) {
-        script.parentNode.removeChild(script);
-      }
-      try {
-        // @ts-ignore
-        if (window.google?.accounts?.id?.cancel) {
-          // @ts-ignore
-          window.google.accounts.id.cancel();
-        }
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.debug("Google cleanup no-op:", e);
-      }
-    };
-    // Intentionally only depends on googleClientId
-  }, [googleClientId]);
-
-  // handle Google credential (extracted and typed)
+  // handle Google credential (moved up to be available for initializeGoogleAuth)
   const handleGoogleCredential = useCallback(async (credential: string) => {
     // preserve original UI flow and timings
     if (!mountedRef.current) return;
@@ -149,6 +77,81 @@ export default function LoginPage() {
       if (mountedRef.current) setSubmitting(false);
     }
   }, [router, loginWithGoogle]);
+
+  // Initialize Google Identity Services
+  const initializeGoogleAuth = useCallback(() => {
+    if (!googleClientId || !googleScriptLoaded) return;
+    
+    try {
+      // @ts-ignore
+      window.google?.accounts?.id?.initialize({
+        client_id: googleClientId,
+        callback: (response: any) => {
+          const credential = response?.credential;
+          if (credential && mountedRef.current) {
+            handleGoogleCredential(credential);
+          }
+        },
+      });
+      
+      // Render the button
+      const buttonElement = googleBtnRef.current || document.getElementById("googleSignInBtn");
+      if (buttonElement) {
+        // @ts-ignore
+        window.google?.accounts?.id?.renderButton(buttonElement, {
+          theme: "outline",
+          size: "large",
+          width: 320
+        });
+      }
+    } catch (e) {
+      console.warn("Google Identity init error:", e);
+    }
+  }, [googleClientId, googleScriptLoaded, handleGoogleCredential]);
+
+  // Load Google script
+  useEffect(() => {
+    if (!googleClientId) return;
+
+    // Check if script is already loaded
+    // @ts-ignore
+    if (window.google?.accounts?.id) {
+      setGoogleScriptLoaded(true);
+      return;
+    }
+
+    // Check if script is already in DOM
+    const existingScript = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+    if (existingScript) {
+      existingScript.addEventListener('load', () => setGoogleScriptLoaded(true));
+      return;
+    }
+
+    // Create and load new script
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+
+    const handleLoad = () => {
+      setGoogleScriptLoaded(true);
+    };
+
+    script.addEventListener("load", handleLoad);
+    document.head.appendChild(script);
+
+    return () => {
+      script.removeEventListener("load", handleLoad);
+    };
+  }, [googleClientId]);
+
+  // Initialize Google Auth when script is loaded
+  useEffect(() => {
+    if (googleScriptLoaded && googleClientId) {
+      initializeGoogleAuth();
+    }
+  }, [googleScriptLoaded, googleClientId, initializeGoogleAuth]);
+
 
   // Redirect if already authenticated
   useEffect(() => {

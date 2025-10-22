@@ -1,3 +1,5 @@
+'use client';
+
 import { ComponentType } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';

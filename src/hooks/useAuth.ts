@@ -9,10 +9,12 @@ type AuthGuardResult = {
 
 // Re-export the useAuth hook from context for convenience
 export { useAuth } from '@/contexts/AuthContext';
-export const useAuthGuard = useCallback((): AuthGuardResult => {
+
+// Custom hook for auth guard functionality
+export const useAuthGuard = (): AuthGuardResult => {
   const { isAuthenticated, isLoading } = useAuthContext();
   return useMemo(() => ({ isAuthenticated, isLoading, isReady: !isLoading }), [isAuthenticated, isLoading]);
-}, []);
+};
 
 type RequireAuthResult = {
   isAuthenticated: boolean;
@@ -21,8 +23,9 @@ type RequireAuthResult = {
   canAccess: boolean;
 };
 
-export const useRequireAuth = useCallback((): RequireAuthResult => {
+// Custom hook for require auth functionality
+export const useRequireAuth = (): RequireAuthResult => {
   const { isAuthenticated, isLoading, user } = useAuthContext();
   
   return useMemo(() => ({ isAuthenticated, isLoading, user, canAccess: isAuthenticated && !isLoading }), [isAuthenticated, isLoading, user]);
-}, []);
+};

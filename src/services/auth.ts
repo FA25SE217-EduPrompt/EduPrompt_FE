@@ -1,10 +1,23 @@
 import axios, { AxiosResponse } from 'axios';
 import { TokenManager } from '@/utils/tokenManager';
 
-const API_BASE_URL = 'https://eduprompt.up.railway.app/BE';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+// Refresh stampede protection
+let isRefreshing = false;
+let refreshSubscribers: Array<(token: string) => void> = [];
 
 // Create axios instance with default config
 const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Create a clean axios instance for refresh calls (no interceptors)
+const refreshClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
   headers: {
@@ -26,34 +39,65 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle token refresh
+// Response interceptor to handle token refresh with stampede protection
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
+    // Guard against refresh endpoint to prevent infinite loops
+    if (originalRequest.url?.includes('/refresh-token')) {
+      return Promise.reject(error);
+    }
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
+      if (isRefreshing) {
+        // If already refreshing, queue this request
+        return new Promise((resolve) => {
+          refreshSubscribers.push((token: string) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            resolve(apiClient(originalRequest));
+          });
+        });
+      }
+
+      isRefreshing = true;
+
       try {
-        // Try to refresh the token
-        const response = await apiClient.post('/api/auth/refresh-token');
+        // Use clean client for refresh to avoid interceptor loops
+        const token = TokenManager.getToken();
+        const refreshResponse = await refreshClient.post('/api/auth/refresh-token', {}, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         
-        if (response.data.data?.token) {
-          const { token } = response.data.data;
-          TokenManager.setToken(token);
+        if (refreshResponse.data.data?.token) {
+          const { token: newToken } = refreshResponse.data.data;
+          TokenManager.setToken(newToken);
+
+          // Notify all queued requests
+          refreshSubscribers.forEach(callback => callback(newToken));
+          refreshSubscribers = [];
 
           // Retry the original request
-          originalRequest.headers.Authorization = `Bearer ${token}`;
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
           return apiClient(originalRequest);
         }
       } catch (refreshError) {
-        // Refresh failed, redirect to login
+        // Refresh failed, notify all queued requests and redirect to login
+        refreshSubscribers.forEach(callback => callback(''));
+        refreshSubscribers = [];
+        
         TokenManager.clearTokens();
         if (typeof window !== 'undefined') {
           window.location.href = '/login';
         }
         return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
 
@@ -70,12 +114,6 @@ export async function registerUser(data: { email: string; password: string; firs
 // Đăng nhập
 export async function loginUser(data: { email: string; password: string }) {
   const response = await apiClient.post('/api/auth/login', data);
-  
-  // Store token if login successful
-  if (response.data.data?.token) {
-    TokenManager.setToken(response.data.data.token);
-  }
-  
   return response.data;
 }
 
@@ -88,12 +126,6 @@ export async function resetPassword(data: { token: string; newPassword: string }
 // Đăng nhập với Google SSO
 export async function loginWithGoogle(data: { tokenId: string }) {
   const response = await apiClient.post('/api/auth/google', data);
-  
-  // Store token if login successful
-  if (response.data.data?.token) {
-    TokenManager.setToken(response.data.data.token);
-  }
-  
   return response.data;
 }
 

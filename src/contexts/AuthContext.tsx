@@ -2,7 +2,9 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { decodeJWT, isTokenExpired, shouldRefreshToken, JWTPayload } from '@/utils/jwt';
+import { decodeJWT, JWTPayload } from '@/utils/jwt';
+import { TokenManager } from '@/utils/tokenManager';
+import { BaseResponse } from '@/types/api';
 
 const SYSTEM_ADMIN_ROLE = 'ADMIN';
 const SCHOOL_ADMIN_ROLE = 'SCHOOL_ADMIN';
@@ -35,13 +37,13 @@ export interface AuthContextType extends AuthState {
   loginWithGoogle: (tokenId: string) => Promise<void>;
   register: (userData: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
-  refreshToken: () => Promise<void>;
+  refreshToken: () => Promise<BaseResponse<RefreshTokenResponse>>;
   updateUser: (userData: Partial<User>) => void;
-  verifyEmail: (token: string) => Promise<void>;
-  resendVerification: (email: string) => Promise<void>;
-  changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
-  forgotPassword: (email: string) => Promise<void>;
-  resetPassword: (token: string, newPassword: string) => Promise<void>;
+  verifyEmail: (token: string) => Promise<BaseResponse<VerifyEmailResponse>>;
+  resendVerification: (email: string) => Promise<BaseResponse<ResendVerificationResponse>>;
+  changePassword: (oldPassword: string, newPassword: string) => Promise<BaseResponse<ChangePasswordResponse>>;
+  forgotPassword: (email: string) => Promise<BaseResponse<ForgotPasswordResponse>>;
+  resetPassword: (token: string, newPassword: string) => Promise<BaseResponse<ResetPasswordResponse>>;
 }
 
 export interface RegisterData {
@@ -50,6 +52,32 @@ export interface RegisterData {
   firstName: string;
   lastName: string;
   phoneNumber: string;
+}
+
+// Response DTOs for API endpoints
+export interface RefreshTokenResponse {
+  token: string;
+}
+
+export interface VerifyEmailResponse {
+  message: string;
+  isVerified: boolean;
+}
+
+export interface ResendVerificationResponse {
+  message: string;
+}
+
+export interface ChangePasswordResponse {
+  message: string;
+}
+
+export interface ForgotPasswordResponse {
+  message: string;
+}
+
+export interface ResetPasswordResponse {
+  message: string;
 }
 
 // Create context
@@ -75,63 +103,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const router = useRouter();
 
-  // Safe localStorage operations
-  const safeLocalStorage = {
-    get: (key: string): string | null => {
-      try {
-        if (typeof window !== 'undefined') {
-          return localStorage.getItem(key);
-        }
-        return null;
-      } catch (error) {
-        console.warn(`localStorage.getItem failed for ${key}:`, error);
-        return null;
-      }
-    },
-    set: (key: string, value: string): void => {
-      try {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(key, value);
-        }
-      } catch (error) {
-        console.warn(`localStorage.setItem failed for ${key}:`, error);
-      }
-    },
-    remove: (key: string): void => {
-      try {
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem(key);
-        }
-      } catch (error) {
-        console.warn(`localStorage.removeItem failed for ${key}:`, error);
-      }
-    },
-  };
 
-  // Initialize auth state from localStorage
+  // Initialize auth state from TokenManager
   useEffect(() => {
     const initializeAuth = () => {
-      const token = safeLocalStorage.get('token');
-      console.log('AuthContext - Initializing auth with token:', token ? 'Present' : 'Not found');
+      const token = TokenManager.getToken();
       
-      if (token) {
-        // Check if token is expired
-        if (isTokenExpired(token)) {
-          console.warn('Token is expired, clearing auth state');
-          safeLocalStorage.remove('token');
-          safeLocalStorage.remove('user');
-          setAuthState({
-            user: null,
-            token: null,
-            isAuthenticated: false,
-            isLoading: false,
-          });
-          return;
-        }
-
+      if (process.env.NODE_ENV === 'development') {
+        console.log('AuthContext - Initializing auth with token:', token ? 'Present' : 'Not found');
+      }
+      
+      if (token && TokenManager.isAuthenticated()) {
         // Decode JWT to get user info
         const payload = decodeJWT(token);
-        console.log('AuthContext - JWT payload:', payload);
+        
+        if (process.env.NODE_ENV === 'development') {
+          console.log('AuthContext - JWT payload:', payload);
+        }
         
         if (payload) {
           const user: User = {
@@ -146,7 +134,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             isTeacher: payload.role === TEACHER_ROLE,
           };
 
-          console.log('AuthContext - Setting authenticated state');
+          if (process.env.NODE_ENV === 'development') {
+            console.log('AuthContext - Setting authenticated state');
+          }
+          
           setAuthState({
             user,
             token,
@@ -155,12 +146,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
 
           // Fetch full user data
-          fetchUserData(token);
+          fetchUserData();
         } else {
-          console.warn('AuthContext - Invalid token, clearing auth state');
-          // Invalid token, clear auth state
-          safeLocalStorage.remove('token');
-          safeLocalStorage.remove('user');
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('AuthContext - Invalid token, clearing auth state');
+          }
+          TokenManager.clearTokens();
           setAuthState({
             user: null,
             token: null,
@@ -169,8 +160,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
         }
       } else {
-        console.log('AuthContext - No token found, setting unauthenticated state');
-        setAuthState(prev => ({ ...prev, isLoading: false }));
+        if (process.env.NODE_ENV === 'development') {
+          console.log('AuthContext - No valid token found, setting unauthenticated state');
+        }
+        TokenManager.clearTokens();
+        setAuthState({
+          user: null,
+          token: null,
+          isAuthenticated: false,
+          isLoading: false,
+        });
       }
     };
 
@@ -178,7 +177,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   // Fetch user data from API
-  const fetchUserData = useCallback(async (token: string) => {
+  const fetchUserData = useCallback(async () => {
     try {
       const { getCurrentUser } = await import('@/services/auth');
       const response = await getCurrentUser();
@@ -201,7 +200,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }));
       }
     } catch (error) {
-      console.warn('Failed to fetch user data:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Failed to fetch user data:', error);
+      }
     }
   }, []);
 
@@ -216,11 +217,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (response.error) {
         throw new Error(response.error.messages?.[0] || 'Login failed');
       }
-
       const { token } = response.data;
       if (!token) {
         throw new Error('No token received');
       }
+
+      // Store token using TokenManager
+      TokenManager.setToken(token);
 
       // Decode JWT to get user info
       const payload = decodeJWT(token);
@@ -241,14 +244,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isTeacher: payload.role === TEACHER_ROLE,
       };
 
-      // Store auth data
-      safeLocalStorage.set('token', token);
-      safeLocalStorage.set('user', JSON.stringify(user));
-
+      // Store remember email preference
       if (remember) {
-        safeLocalStorage.set('rememberEmail', email);
+        try {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('rememberEmail', email);
+          }
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Failed to store remember email:', error);
+        }
+      }
       } else {
-        safeLocalStorage.remove('rememberEmail');
+        try {
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('rememberEmail');
+          }
+        } catch (error) {
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('Failed to remove remember email:', error);
+          }
+        }
       }
 
       setAuthState({
@@ -259,7 +275,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       // Fetch full user data
-      await fetchUserData(token);
+      await fetchUserData();
 
     } catch (error) {
       setAuthState(prev => ({ ...prev, isLoading: false }));
@@ -272,8 +288,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setAuthState(prev => ({ ...prev, isLoading: true }));
 
-      const { loginWithGoogle } = await import('@/services/auth');
-      const response = await loginWithGoogle({ tokenId });
+      const { loginWithGoogle: loginWithGoogleAPI } = await import('@/services/auth');
+      const response = await loginWithGoogleAPI({ tokenId });
 
       if (response.error) {
         throw new Error(response.error.messages?.[0] || 'Google login failed');
@@ -283,6 +299,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!token) {
         throw new Error('No token received');
       }
+
+      // Store token using TokenManager
+      TokenManager.setToken(token);
 
       // Decode JWT to get user info
       const payload = decodeJWT(token);
@@ -303,10 +322,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isTeacher: payload.role === TEACHER_ROLE,
       };
 
-      // Store auth data
-      safeLocalStorage.set('token', token);
-      safeLocalStorage.set('user', JSON.stringify(user));
-
       setAuthState({
         user,
         token,
@@ -315,7 +330,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       // Fetch full user data
-      await fetchUserData(token);
+      await fetchUserData();
 
     } catch (error) {
       setAuthState(prev => ({ ...prev, isLoading: false }));
@@ -349,12 +364,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { logout: logoutAPI } = await import('@/services/auth');
       await logoutAPI();
     } catch (error) {
-      console.warn('Logout API call failed:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Logout API call failed:', error);
+      }
     } finally {
-      // Clear local storage regardless of API call result
-      safeLocalStorage.remove('token');
-      safeLocalStorage.remove('user');
-      safeLocalStorage.remove('rememberEmail');
+      // Clear tokens (handled by auth service) and remember email
+      try {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('rememberEmail');
+        }
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Failed to remove remember email:', error);
+        }
+      }
       
       setAuthState({
         user: null,
@@ -368,9 +391,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [router]);
 
   // Refresh token function
-  const refreshToken = useCallback(async () => {
+  const refreshToken = useCallback(async (): Promise<BaseResponse<RefreshTokenResponse>> => {
     try {
-      const token = safeLocalStorage.get('token');
+      const token = TokenManager.getToken();
       if (!token) {
         throw new Error('No token to refresh');
       }
@@ -387,25 +410,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('No new token received');
       }
 
-      // Update token in storage
-      safeLocalStorage.set('token', newToken);
-
-      // Update auth state
+      // Update auth state with new token
       setAuthState(prev => ({
         ...prev,
         token: newToken,
       }));
 
-      return newToken;
+      return response;
     } catch (error) {
-      console.warn('Token refresh failed:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Token refresh failed:', error);
+      }
       logout();
       throw error;
     }
   }, [logout]);
 
   // Verify email function
-  const verifyEmail = useCallback(async (token: string) => {
+  const verifyEmail = useCallback(async (token: string): Promise<BaseResponse<VerifyEmailResponse>> => {
     try {
       const { verifyEmail: verifyEmailAPI } = await import('@/services/auth');
       const response = await verifyEmailAPI(token);
@@ -414,14 +436,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error(response.error.messages?.[0] || 'Email verification failed');
       }
 
-      return response.data;
+      return response;
     } catch (error) {
       throw error;
     }
   }, []);
 
   // Resend verification function
-  const resendVerification = useCallback(async (email: string) => {
+  const resendVerification = useCallback(async (email: string): Promise<BaseResponse<ResendVerificationResponse>> => {
     try {
       const { resendVerification: resendVerificationAPI } = await import('@/services/auth');
       const response = await resendVerificationAPI(email);
@@ -430,14 +452,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error(response.error.messages?.[0] || 'Failed to resend verification');
       }
 
-      return response.data;
+      return response;
     } catch (error) {
       throw error;
     }
   }, []);
 
   // Change password function
-  const changePassword = useCallback(async (oldPassword: string, newPassword: string) => {
+  const changePassword = useCallback(async (oldPassword: string, newPassword: string): Promise<BaseResponse<ChangePasswordResponse>> => {
     try {
       const { changePassword: changePasswordAPI } = await import('@/services/auth');
       const response = await changePasswordAPI({ oldPassword, newPassword });
@@ -446,14 +468,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error(response.error.messages?.[0] || 'Password change failed');
       }
 
-      return response.data;
+      return response;
     } catch (error) {
       throw error;
     }
   }, []);
 
   // Forgot password function
-  const forgotPassword = useCallback(async (email: string) => {
+  const forgotPassword = useCallback(async (email: string): Promise<BaseResponse<ForgotPasswordResponse>> => {
     try {
       const { forgotPassword: forgotPasswordAPI } = await import('@/services/auth');
       const response = await forgotPasswordAPI({ email });
@@ -462,14 +484,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error(response.error.messages?.[0] || 'Failed to send reset email');
       }
 
-      return response.data;
+      return response;
     } catch (error) {
       throw error;
     }
   }, []);
 
   // Reset password function
-  const resetPassword = useCallback(async (token: string, newPassword: string) => {
+  const resetPassword = useCallback(async (token: string, newPassword: string): Promise<BaseResponse<ResetPasswordResponse>> => {
     try {
       const { resetPassword: resetPasswordAPI } = await import('@/services/auth');
       const response = await resetPasswordAPI({ token, newPassword });
@@ -478,7 +500,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error(response.error.messages?.[0] || 'Password reset failed');
       }
 
-      return response.data;
+      return response;
     } catch (error) {
       throw error;
     }
@@ -489,7 +511,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setAuthState(prev => {
       if (prev.user) {
         const updatedUser = { ...prev.user, ...userData };
-        safeLocalStorage.set('user', JSON.stringify(updatedUser));
         return { ...prev, user: updatedUser };
       }
       return prev;
