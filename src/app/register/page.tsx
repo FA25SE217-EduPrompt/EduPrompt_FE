@@ -39,16 +39,6 @@ export default function RegisterPage() {
     };
   }, []);
 
-  // Safe wrapper for potential future localStorage usage (keeps pattern consistent)
-  const safeLocalStorageSet = useCallback((k: string, v: string) => {
-    try {
-      localStorage.setItem(k, v);
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.warn(`localStorage.setItem failed for ${k}`, e);
-    }
-  }, []);
-
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
@@ -163,6 +153,7 @@ export default function RegisterPage() {
                            hover:border-gray-300 hover:bg-white/95
                            ${focusedId === "firstName" ? "transform scale-[1.02] shadow-lg shadow-blue-100/50" : ""}`}
                   required
+                  autoComplete="given-name"
                   placeholder="Enter first name"
                 />
                 <div
@@ -196,6 +187,7 @@ export default function RegisterPage() {
                            hover:border-gray-300 hover:bg-white/95
                            ${focusedId === "lastName" ? "transform scale-[1.02] shadow-lg shadow-blue-100/50" : ""}`}
                   required
+                  autoComplete="family-name"
                   placeholder="Enter last name"
                 />
                 <div
@@ -230,6 +222,7 @@ export default function RegisterPage() {
                          hover:border-gray-300 hover:bg-white/95
                          ${focusedId === "email" ? "transform scale-[1.02] shadow-lg shadow-blue-100/50" : ""}`}
                 required
+                autoComplete="email"
                 placeholder="Enter your email address"
               />
               <div
@@ -263,6 +256,7 @@ export default function RegisterPage() {
                          hover:border-gray-300 hover:bg-white/95
                          ${focusedId === "phoneNumber" ? "transform scale-[1.02] shadow-lg shadow-blue-100/50" : ""}`}
                 required
+                autoComplete="tel"
                 placeholder="Enter your phone number"
               />
               <div
@@ -298,10 +292,13 @@ export default function RegisterPage() {
                            hover:border-gray-300 hover:bg-white/95
                            ${focusedId === "password" ? "transform scale-[1.02] shadow-lg shadow-blue-100/50" : ""}`}
                   required
+                  autoComplete="new-password"
                   placeholder="Enter password"
                 />
                 <button
                   type="button"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  title={showPassword ? "Hide password" : "Show password"}
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
                 >
@@ -347,10 +344,13 @@ export default function RegisterPage() {
                            hover:border-gray-300 hover:bg-white/95
                            ${focusedId === "rePassword" ? "transform scale-[1.02] shadow-lg shadow-blue-100/50" : ""}`}
                   required
+                  autoComplete="new-password"
                   placeholder="Confirm password"
                 />
                 <button
                   type="button"
+                  aria-label={showRePassword ? "Hide password" : "Show password"}
+                  title={showRePassword ? "Hide password" : "Show password"}
                   onClick={() => setShowRePassword(!showRePassword)}
                   className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
                 >
