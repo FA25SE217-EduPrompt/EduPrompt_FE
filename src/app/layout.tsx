@@ -35,3 +35,5 @@ export default function RootLayout({
     </html>
   );
 }
+
+// Consider adding Open Graph/SEO later.
