@@ -31,9 +31,15 @@ export default function Navbar() {
         setIsDropdownOpen(false);
       }
     };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    const handleKeyDown = (event: KeyboardEvent) => {
+          if (event.key === "Escape") setIsDropdownOpen(false);
+         };
+         document.addEventListener('mousedown', handleClickOutside);
+         document.addEventListener('keydown', handleKeyDown);
+         return () => {
+           document.removeEventListener('mousedown', handleClickOutside);
+           document.removeEventListener('keydown', handleKeyDown);
+         }
   }, []);
 
   const handleLogout = async () => {
@@ -65,7 +71,12 @@ export default function Navbar() {
               {isAuthenticated ? (
                 <div className="relative" ref={dropdownRef}>
                   <button
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    type="button"
+                        id="user-menu-button"
+                        aria-haspopup="menu"
+                        aria-expanded={isDropdownOpen}
+                        aria-controls="user-menu"
+                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors"
                   >
                     <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
@@ -73,19 +84,25 @@ export default function Navbar() {
                         {user?.firstName?.charAt(0) || user?.email?.charAt(0) || 'U'}
                       </span>
                     </div>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
                     </svg>
                   </button>
                   
                   {isDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                    <div
+                      id="user-menu"
+                      role="menu"
+                      aria-labelledby="user-menu-button"
+                      className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+                    >
                       <div className="px-4 py-2 border-b border-gray-100">
                         <p className="text-sm font-medium text-gray-900">{user?.firstName} {user?.lastName}</p>
                         <p className="text-xs text-gray-500 truncate">{user?.email}</p>
                       </div>
                       <Link
                         href="/profile"
+                        role="menuitem"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                         onClick={() => setIsDropdownOpen(false)}
                       >
@@ -93,6 +110,7 @@ export default function Navbar() {
                       </Link>
                       <Link
                         href="/dashboard"
+                        role="menuitem"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                         onClick={() => setIsDropdownOpen(false)}
                       >
@@ -100,6 +118,8 @@ export default function Navbar() {
                       </Link>
                       <button
                         onClick={handleLogout}
+                        type="button"
+                        role="menuitem"
                         className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                       >
                         Logout
