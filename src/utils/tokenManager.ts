@@ -1,8 +1,8 @@
-import { decodeJWT, isTokenExpired } from './jwt';
+import { decodeJWT, isTokenExpired as jwtIsTokenExpired } from '@/utils/jwt';
 
 // Token management utilities
 export class TokenManager {
-  private static readonly TOKEN_KEY = 'token';
+  private static readonly TOKEN_KEY = 'eduprompt.access_token';
 
   // Get token from localStorage
   static getToken(): string | null {
@@ -29,11 +29,11 @@ export class TokenManager {
   }
 
   // Check if token is expired using JWT payload
-  static isTokenExpired(): boolean {
-    const token = this.getToken();
-    if (!token) return true;
-    return isTokenExpired(token);
-  }
+  static hasExpired(token?: string): boolean {
+        const t = token ?? this.getToken();
+        if (!t) return true;
+        return jwtIsTokenExpired(t);
+    }
 
   // Clear all tokens
   static clearTokens(): void {
@@ -55,7 +55,7 @@ export class TokenManager {
   // Check if user is authenticated
   static isAuthenticated(): boolean {
     const token = this.getToken();
-    return token !== null && !this.isTokenExpired();
+    return token !== null && !this.hasExpired(token ?? undefined);
   }
 
   // Get user info from token
@@ -67,8 +67,8 @@ export class TokenManager {
     if (!payload) return null;
 
     return {
-      email: payload.sub,
-      role: payload.role,
+      email: String(payload.sub ?? ''),
+      role: String(payload.role ?? ''),
     };
   }
 }

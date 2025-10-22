@@ -26,12 +26,12 @@ export function withAuth<P extends object>(
     useEffect(() => {
       if (!isLoading) {
         if (requireAuth && !isAuthenticated) {
-          router.push(redirectTo);
+          router.replace(redirectTo);
           return;
         }
 
         if (adminOnly && (!isAuthenticated || !user?.isSystemAdmin)) {
-          router.push('/unauthorized');
+          router.replace('/unauthorized');
           return;
         }
       }
