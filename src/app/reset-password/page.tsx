@@ -4,6 +4,7 @@ import { resetPassword } from "@/services/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { mapErrorToUserMessage } from "@/utils/errorMapper";
+import { useAuth } from "@/hooks/useAuth";
 
 /**
  * Local response type matching your API envelope (only the fields this page uses).
@@ -15,6 +16,7 @@ type ApiResetResponse = {
 
 export default function ResetPasswordPage() {
   const router = useRouter();
+  const { isAuthenticated, isLoading } = useAuth();
 
   const [token, setToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -36,6 +38,13 @@ export default function ResetPasswordPage() {
       mountedRef.current = false;
     };
   }, []);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace("/");
+    }
+  }, [isAuthenticated, router]);
 
   // Read token from query string on mount 
   useEffect(() => {
@@ -87,7 +96,7 @@ export default function ResetPasswordPage() {
 
         // preserve original 2000ms redirect timing
         setTimeout(() => {
-          if (mountedRef.current) router.push("/login");
+          if (mountedRef.current) router.replace("/login");
         }, 2000);
       } catch (err: any) {
         if (!mountedRef.current) return;
@@ -103,6 +112,20 @@ export default function ResetPasswordPage() {
     },
     [token, newPassword, confirmPassword, router]
   );
+
+  // Show loading while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen gradient-bg flex items-center justify-center px-4 py-12">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Redirect if already authenticated
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen gradient-bg from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center px-4 py-12">

@@ -1,17 +1,15 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { loginUser, loginWithGoogle } from "@/services/auth";
+import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ErrorPopup from "@/components/ui/ErrorPopup";
 import { mapErrorToUserMessage, getErrorType } from "@/utils/errorMapper";
-import { BaseResponse } from "@/types/api";
-
-type ApiLoginResponse = BaseResponse<{ token: string }>;
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login, loginWithGoogle, isAuthenticated, isLoading } = useAuth();
 
   // form state (kept as-is to preserve behavior)
   const [email, setEmail] = useState("");
@@ -133,34 +131,13 @@ export default function LoginPage() {
     setSubmitting(true);
 
     try {
-      const res = (await loginWithGoogle({ tokenId: credential })) as ApiLoginResponse;
-
-      if (res?.error) {
-        const userFriendlyMessage = mapErrorToUserMessage(res.error);
-        if (!mountedRef.current) return;
-        setErrorMessage(userFriendlyMessage);
-        setErrorType(getErrorType(res.error));
-        setShowErrorPopup(true);
-        return;
-      }
-
-      const token = res?.data?.token;
-      if (!token) {
-        const message = "Phản hồi không hợp lệ từ máy chủ";
-        if (!mountedRef.current) return;
-        setErrorMessage(message);
-        setErrorType("error");
-        setShowErrorPopup(true);
-        return;
-      }
-
-      safeLocalStorageSet("token", token);
+      await loginWithGoogle(credential);
 
       if (!mountedRef.current) return;
       setSuccess(true);
       setTimeout(() => {
         // ensure navigation only when mounted
-        if (mountedRef.current) router.push("/");
+        if (mountedRef.current) router.replace("/");
       }, 400);
     } catch (err: any) {
       if (!mountedRef.current) return;
@@ -171,7 +148,14 @@ export default function LoginPage() {
     } finally {
       if (mountedRef.current) setSubmitting(false);
     }
-  }, [router, safeLocalStorageSet]);
+  }, [router, loginWithGoogle]);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace("/");
+    }
+  }, [isAuthenticated, router]);
 
   // handle submit (login)
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
@@ -183,39 +167,13 @@ export default function LoginPage() {
     setSubmitting(true);
 
     try {
-      const res = await loginUser({ email, password }) as ApiLoginResponse;
-
-      if (res?.error) {
-        const userFriendlyMessage = mapErrorToUserMessage(res.error);
-        if (!mountedRef.current) return;
-        setErrorMessage(userFriendlyMessage);
-        setErrorType(getErrorType(res.error));
-        setShowErrorPopup(true);
-        return;
-      }
-
-      const token = res?.data?.token;
-      if (!token) {
-        const message = "Phản hồi không hợp lệ từ máy chủ";
-        if (!mountedRef.current) return;
-        setErrorMessage(message);
-        setErrorType("error");
-        setShowErrorPopup(true);
-        return;
-      }
-
-      safeLocalStorageSet("token", token);
-      if (remember) {
-        safeLocalStorageSet("rememberEmail", email);
-      } else {
-        safeLocalStorageRemove("rememberEmail");
-      }
+      await login(email, password, remember);
 
       // success UI, then redirect (preserve 600ms)
       if (!mountedRef.current) return;
       setSuccess(true);
       setTimeout(() => {
-        if (mountedRef.current) router.push("/");
+        if (mountedRef.current) router.replace("/");
       }, 600);
     } catch (err: any) {
       if (!mountedRef.current) return;
@@ -226,7 +184,21 @@ export default function LoginPage() {
     } finally {
       if (mountedRef.current) setSubmitting(false);
     }
-  }, [email, password, remember, router, safeLocalStorageSet, safeLocalStorageRemove]);
+  }, [email, password, remember, router, login]);
+
+  // Show loading while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen gradient-bg flex items-center justify-center px-4 py-12">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Redirect if already authenticated
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen gradient-bg flex items-center justify-center px-4 py-12">

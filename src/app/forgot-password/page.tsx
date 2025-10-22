@@ -4,6 +4,7 @@ import { forgotPassword } from "@/services/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { mapErrorToUserMessage, getErrorType } from "@/utils/errorMapper";
+import { useAuth } from "@/hooks/useAuth";
 
 
 type ApiForgotResponse = {
@@ -13,6 +14,7 @@ type ApiForgotResponse = {
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
+  const { isAuthenticated, isLoading } = useAuth();
 
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -29,6 +31,13 @@ export default function ForgotPasswordPage() {
       mountedRef.current = false;
     };
   }, []);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace("/");
+    }
+  }, [isAuthenticated, router]);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -72,6 +81,20 @@ export default function ForgotPasswordPage() {
     },
     [email]
   );
+
+  // Show loading while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen gradient-bg flex items-center justify-center px-4 py-12">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Redirect if already authenticated
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen gradient-bg from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center px-4 py-12">

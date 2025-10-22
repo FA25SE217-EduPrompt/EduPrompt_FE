@@ -1,17 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { registerUser } from "@/services/auth";
+import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ErrorPopup from "@/components/ui/ErrorPopup";
 import { mapErrorToUserMessage, getErrorType } from "@/utils/errorMapper";
-import { BaseResponse } from "@/types/api";
-
-type ApiRegisterResponse = BaseResponse<{ message: string }>;
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { register, isAuthenticated, isLoading } = useAuth();
 
   // form state (kept as-is to preserve behavior)
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -51,6 +49,13 @@ export default function RegisterPage() {
     }
   }, []);
 
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace("/");
+    }
+  }, [isAuthenticated, router]);
+
   // handle submit (extracted, typed, and stable identity)
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -71,30 +76,21 @@ export default function RegisterPage() {
 
       setSubmitting(true);
       try {
-        const res = (await registerUser({
+        await register({
           email,
           password,
           firstName,
           lastName,
           phoneNumber,
-        })) as ApiRegisterResponse;
-
-        if (res?.error) {
-          const userFriendlyMessage = mapErrorToUserMessage(res.error);
-          if (!mountedRef.current) return;
-          setErrorMessage(userFriendlyMessage);
-          setErrorType(getErrorType(res.error));
-          setShowErrorPopup(true);
-          return;
-        }
+        });
 
         // preserve original success message + routing behavior (1000ms)
-        const message = res?.data?.message || "Đăng ký thành công! Vui lòng kiểm tra email để xác minh.";
+        const message = "Đăng ký thành công! Vui lòng kiểm tra email để xác minh.";
         if (!mountedRef.current) return;
         setSuccessMessage(message);
 
         setTimeout(() => {
-          if (mountedRef.current) router.push("/login");
+          if (mountedRef.current) router.replace("/verify-email");
         }, 1000);
       } catch (err: any) {
         if (!mountedRef.current) return;
@@ -106,8 +102,22 @@ export default function RegisterPage() {
         if (mountedRef.current) setSubmitting(false);
       }
     },
-    [email, password, rePassword, firstName, lastName, phoneNumber, router]
+    [email, password, rePassword, firstName, lastName, phoneNumber, router, register]
   );
+
+  // Show loading while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen gradient-bg flex items-center justify-center px-4 py-12">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Redirect if already authenticated
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen gradient-bg from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center px-4 py-12">

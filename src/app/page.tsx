@@ -4,8 +4,14 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Link from "next/link";
 import { useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const { isAuthenticated, isLoading, user } = useAuth();
+  const router = useRouter();
+
+  // Don't redirect authenticated users, show them personalized content
   useEffect(() => {
     // Smooth scrolling for navigation links
     const handleClick = (e: Event) => {
@@ -42,22 +48,45 @@ export default function Home() {
         <section className="gradient-bg py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-              <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
-                AI-Powered Teaching<br />
-                <span className="text-sky-200">Made Simple</span>
-              </h1>
-              <p className="text-xl text-sky-100 mb-8 max-w-3xl mx-auto">
-                Streamline your lesson planning with our intelligent prompt management system. 
-                Create, share, and personalize AI prompts tailored to your teaching style and curriculum.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/register" className="btn-primary text-white px-8 py-4 rounded-lg text-lg font-semibold">
-                  Start Free Trial
-                </Link>
-                <button className="bg-white text-blue-800 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-50 transition-colors">
-                  Watch Demo
-                </button>
-              </div>
+              {isAuthenticated ? (
+                <>
+                  <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+                    Welcome back, {user?.firstName || 'Teacher'}!<br />
+                    <span className="text-sky-200">Ready to create amazing lessons?</span>
+                  </h1>
+                  <p className="text-xl text-sky-100 mb-8 max-w-3xl mx-auto">
+                    Continue your journey with AI-powered teaching tools. Access your saved prompts, 
+                    create new ones, and discover fresh ideas for your classroom.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <Link href="/dashboard" className="btn-primary text-white px-8 py-4 rounded-lg text-lg font-semibold">
+                      Go to Dashboard
+                    </Link>
+                    <Link href="/profile" className="bg-white text-blue-800 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-50 transition-colors">
+                      View Profile
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+                    AI-Powered Teaching<br />
+                    <span className="text-sky-200">Made Simple</span>
+                  </h1>
+                  <p className="text-xl text-sky-100 mb-8 max-w-3xl mx-auto">
+                    Streamline your lesson planning with our intelligent prompt management system. 
+                    Create, share, and personalize AI prompts tailored to your teaching style and curriculum.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <Link href="/register" className="btn-primary text-white px-8 py-4 rounded-lg text-lg font-semibold">
+                      Start Free Trial
+                    </Link>
+                    <button className="bg-white text-blue-800 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-50 transition-colors">
+                      Watch Demo
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </section>
