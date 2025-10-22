@@ -1,12 +1,12 @@
 "use client";
 
+import type { ReactNode as Node } from 'react';
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
-
+import { useRouter } from 'next/navigation';      
+import { useRequireAuth } from '@/hooks/useAuth';
 interface ProtectedRouteProps {
-  children: React.ReactNode;
-  fallback?: React.ReactNode;
+  children: Node;
+  fallback?: Node;
   redirectTo?: string;
   requireAuth?: boolean;
   adminOnly?: boolean;
@@ -19,18 +19,18 @@ export default function ProtectedRoute({
   requireAuth = true,
   adminOnly = false,
 }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, isLoading, user } = useRequireAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (!isLoading) {
       if (requireAuth && !isAuthenticated) {
-        router.push(redirectTo);
+        router.replace(redirectTo);
         return;
       }
 
       if (adminOnly && (!isAuthenticated || !user?.isSystemAdmin)) {
-        router.push('/unauthorized');
+        router.replace('/unauthorized');
         return;
       }
     }
