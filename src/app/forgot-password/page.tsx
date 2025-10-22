@@ -49,7 +49,7 @@ export default function ForgotPasswordPage() {
       setSubmitting(true);
 
       try {
-        const res = (await forgotPassword({ email })) as ApiForgotResponse;
+        const res = (await forgotPassword({ email: email.trim().toLowerCase() })) as ApiForgotResponse;
 
         // Explicitly check for `error !== null` per API envelope contract
         if (res?.error !== null) {
@@ -86,14 +86,22 @@ export default function ForgotPasswordPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen gradient-bg flex items-center justify-center px-4 py-12">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+        <div
+          className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"
+          role="status"
+          aria-live="polite"
+          aria-busy="true"
+          aria-label="Checking authentication"
+        >
+          <span className="sr-only">Checking authentication…</span>
+        </div>
       </div>
     );
   }
 
   // Redirect if already authenticated
   if (isAuthenticated) {
-    return null;
+    return <p className="sr-only">Redirecting…</p>;
   }
 
   return (
@@ -127,6 +135,9 @@ export default function ForgotPasswordPage() {
               <input
                 type="email"
                 id="email"
+                name="email"
+                autoComplete="email"
+                inputMode="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 onFocus={() => setFocusedId("email")}
