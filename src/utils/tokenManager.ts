@@ -4,6 +4,8 @@ import { decodeJWT, isTokenExpired as jwtIsTokenExpired } from '@/utils/jwt';
 export class TokenManager {
   private static readonly TOKEN_KEY = 'eduprompt.access_token';
 
+  //Laterwe will use httpOnly, Secure, SameSite cookies (access short‑lived; refresh rotating) and read them in middleware/server.
+
   // Get token from localStorage
   static getToken(): string | null {
     try {
