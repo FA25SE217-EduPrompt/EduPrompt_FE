@@ -17,6 +17,7 @@ export default function VerifyEmailPage() {
   const [email, setEmail] = useState("");
 
   const mountedRef = useRef(true);
+  const verifiedForTokenRef = useRef<string | null>(null);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -26,20 +27,25 @@ export default function VerifyEmailPage() {
   }, []);
 
   useEffect(() => {
-    // Redirect if already authenticated
-    if (isAuthenticated) {
-      router.replace("/");
-      return;
-    }
-
-    const token = searchParams.get('token');
-    if (token) {
-      handleVerification(token);
-    } else {
-      setVerificationStatus('error');
-      setMessage('Invalid verification link. Please check your email and try again.');
-    }
-  }, [searchParams, isAuthenticated, router]);
+        if (isLoading) return;
+        // Redirect if already authenticated
+        if (isAuthenticated) {
+          router.replace("/");
+          return;
+        }
+        const token = searchParams.get('token');
+        if (token) {
+          if (verifiedForTokenRef.current === token) return;
+          verifiedForTokenRef.current = token;
+          handleVerification(token);
+        } else {
+          if (mountedRef.current) {
+            setVerificationStatus('error');
+            setMessage('Invalid verification link. Please check your email and try again.');
+          }
+          setMessage('Invalid verification link. Please check your email and try again.');
+        }
+      }, [searchParams, isAuthenticated, isLoading, router]);
 
   const handleVerification = async (token: string) => {
     if (!mountedRef.current) return;
@@ -53,11 +59,17 @@ export default function VerifyEmailPage() {
       if (mountedRef.current) {
         setVerificationStatus('success');
         setMessage('Email verified successfully! You can now log in to your account.');
+        setTimeout(() => {
+          if (mountedRef.current) router.replace("/login");
+        }, 1000);
       }
     } catch (error: any) {
       if (mountedRef.current) {
         setVerificationStatus('error');
         setMessage(error.message || 'Verification failed. Please try again.');
+        setTimeout(() => {
+          if (mountedRef.current) router.replace("/login");
+        }, 1000);
       }
     } finally {
       if (mountedRef.current) {
@@ -67,15 +79,27 @@ export default function VerifyEmailPage() {
   };
 
   const handleResendVerification = async () => {
-    if (!email.trim()) {
-      setMessage('Please enter your email address.');
-      return;
+    const trimmed = email.trim();
+    if (!trimmed) {
+      if (mountedRef.current) {
+        setMessage('Please enter your email address.');
+      }
+     return;
+   }
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailPattern.test(trimmed)) {
+    if (mountedRef.current) {
+      setMessage('Please enter a valid email address.');
     }
+    return;
+  }
 
     if (!mountedRef.current) return;
     
     setIsResending(true);
-    setMessage("");
+    if (mountedRef.current) {
+      setMessage("");
+    }
 
     try {
       await resendVerification(email);
