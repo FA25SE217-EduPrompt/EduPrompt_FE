@@ -15,10 +15,11 @@ export default function Home() {
   useEffect(() => {
     // Smooth scrolling for navigation links
     const handleClick = (e: Event) => {
-      const target = e.target as HTMLAnchorElement;
-      if (target.getAttribute('href')?.startsWith('#')) {
+            const target = e.currentTarget as HTMLAnchorElement;
+            const href = target.getAttribute('href');
+            if (href?.startsWith('#')) {
         e.preventDefault();
-        const element = document.querySelector(target.getAttribute('href')!);
+        const element = document.querySelector(href!);
         if (element) {
           element.scrollIntoView({
             behavior: 'smooth',
@@ -48,7 +49,19 @@ export default function Home() {
         <section className="gradient-bg py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-              {isAuthenticated ? (
+              {isLoading ? (
+                <>
+                  <div className="animate-pulse">
+                    <div className="h-16 bg-sky-200 rounded mb-6 max-w-4xl mx-auto"></div>
+                    <div className="h-6 bg-sky-100 rounded mb-8 max-w-3xl mx-auto"></div>
+                    <div className="h-6 bg-sky-100 rounded mb-8 max-w-2xl mx-auto"></div>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                      <div className="h-12 bg-sky-200 rounded-lg w-48 mx-auto"></div>
+                      <div className="h-12 bg-sky-200 rounded-lg w-48 mx-auto"></div>
+                    </div>
+                  </div>
+                </>
+              ) : isAuthenticated ? (
                 <>
                   <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
                     Welcome back, {user?.firstName || 'Teacher'}!<br />

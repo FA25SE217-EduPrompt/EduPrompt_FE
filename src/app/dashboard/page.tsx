@@ -10,13 +10,14 @@ export default function DashboardPage() {
   const router = useRouter();
 
   // Debug authentication state
-  useEffect(() => {
-    console.log('Dashboard - Auth State:', { isAuthenticated, isLoading, user });
-  }, [isAuthenticated, isLoading, user]);
+  // useEffect(() => {
+  //   console.log('Dashboard - Auth State:', { isAuthenticated, isLoading, user });
+  // }, [isAuthenticated, isLoading, user]);
 
-  const handleLogout = () => {
-    logout();
-  };
+  const handleLogout = async () => {
+        await logout();
+        router.replace('/login');
+     };
 
   // Show loading while checking authentication
   if (isLoading) {
@@ -28,10 +29,12 @@ export default function DashboardPage() {
   }
 
   // Redirect if not authenticated
-  if (!isAuthenticated) {
-    router.push('/login');
-    return null;
-  }
+  useEffect(() => {
+        if (!isLoading && !isAuthenticated) {
+          router.replace('/login');
+        }
+      }, [isAuthenticated, isLoading, router]);
+      if (!isAuthenticated) return null;
 
   return (
     <div className="min-h-screen bg-gray-50">
