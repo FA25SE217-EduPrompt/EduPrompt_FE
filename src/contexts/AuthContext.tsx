@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { decodeJWT, isTokenExpired, shouldRefreshToken } from '@/utils/jwt';
+import { decodeJWT, isTokenExpired, shouldRefreshToken, JWTPayload } from '@/utils/jwt';
 
 const SYSTEM_ADMIN_ROLE = 'ADMIN';
 const SCHOOL_ADMIN_ROLE = 'SCHOOL_ADMIN';
@@ -22,13 +22,6 @@ export interface User {
   isTeacher?: boolean;
 }
 
-export interface JWTPayload {
-  sub: string; // email
-  role: string; // USER_ROLE
-  jti: string; // unique token ID
-  iat: number; // issued at
-  exp: number; // expiration
-}
 
 export interface AuthState {
   user: User | null;

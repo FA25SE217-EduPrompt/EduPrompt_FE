@@ -13,7 +13,7 @@ export function decodeJWT(token: string): JWTPayload | null {
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
     const jsonPayload = decodeURIComponent(
-      atob(base64)
+      typeof atob === 'function' ? atob(base64) : Buffer.from(base64, 'base64').toString('utf-8')
         .split('')
         .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
         .join('')
