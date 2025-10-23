@@ -9,24 +9,7 @@ import { BaseResponse, ErrorPayload } from "@/types/api";
 
 // Helper function to safely extract error message
 function getErrorMessage(error: unknown): string {
-  // First try the error mapper (cast to ErrorInput for compatibility)
-  const mappedMessage = mapErrorToUserMessage(error as ErrorInput);
-  if (mappedMessage) return mappedMessage;
-  
-  // Check if it's a standard Error object
-  if (error instanceof Error) {
-    return error.message;
-  }
-  
-  // Check for axios-like error structure
-  if (error && typeof error === 'object' && 'response' in error) {
-    const response = (error as { response?: { data?: BaseResponse<unknown> } }).response;
-    if (response?.data?.error?.messages?.[0]) {
-      return response.data.error.messages[0];
-    }
-  }
-  
-  return "Đặt lại mật khẩu thất bại";
+  return mapErrorToUserMessage(error as ErrorInput);
 }
 
 /**
