@@ -87,8 +87,7 @@ apiClient.interceptors.response.use(
           return apiClient(originalRequest);
         }
       } catch (refreshError) {
-        // Refresh failed, notify all queued requests and redirect to login
-        refreshSubscribers.forEach(callback => callback(''));
+        // Refresh failed, clear queue
         refreshSubscribers = [];
         
         TokenManager.clearTokens();
