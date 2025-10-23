@@ -2,8 +2,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { resetPassword } from "@/services/auth";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { mapErrorToUserMessage } from "@/utils/errorMapper";
+import { useAuth } from "@/hooks/useAuth";
 
 /**
  * Local response type matching your API envelope (only the fields this page uses).
@@ -15,6 +16,7 @@ type ApiResetResponse = {
 
 export default function ResetPasswordPage() {
   const router = useRouter();
+  const { isAuthenticated, isLoading } = useAuth();
 
   const [token, setToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -37,9 +39,17 @@ export default function ResetPasswordPage() {
     };
   }, []);
 
-  // Read token from query string on mount 
+  // Redirect if already authenticated
   useEffect(() => {
-    const queryToken = new URLSearchParams(window.location.search).get("token");
+    if (isAuthenticated) {
+      router.replace("/");
+    }
+  }, [isAuthenticated, router]);
+
+  // Read token from query string on mount 
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const queryToken = searchParams?.get("token");
     if (queryToken) {
       if (mountedRef.current) setToken(queryToken);
     } else {
@@ -87,7 +97,7 @@ export default function ResetPasswordPage() {
 
         // preserve original 2000ms redirect timing
         setTimeout(() => {
-          if (mountedRef.current) router.push("/login");
+          if (mountedRef.current) router.replace("/login");
         }, 2000);
       } catch (err: any) {
         if (!mountedRef.current) return;
@@ -103,6 +113,28 @@ export default function ResetPasswordPage() {
     },
     [token, newPassword, confirmPassword, router]
   );
+
+  // Show loading while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen gradient-bg flex items-center justify-center px-4 py-12">
+        <div
+          className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"
+          role="status"
+          aria-live="polite"
+          aria-busy="true"
+          aria-label="Checking authentication"
+        >
+          <span className="sr-only">Checking authentication…</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect if already authenticated
+  if (isAuthenticated) {
+    return <p className="sr-only">Redirecting…</p>;
+  }
 
   return (
     <div className="min-h-screen gradient-bg from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center px-4 py-12">
@@ -135,6 +167,8 @@ export default function ResetPasswordPage() {
               <input
                 type={showPassword ? "text" : "password"}
                 id="newPassword"
+                name="newPassword"
+                autoComplete="new-password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 onFocus={() => setFocusedId("newPassword")}
@@ -153,6 +187,8 @@ export default function ResetPasswordPage() {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
+                aria-pressed={showPassword}
+                aria-label={showPassword ? "Hide password" : "Show password"}
                 disabled={submitting}
               >
                 {showPassword ? (
@@ -204,6 +240,8 @@ export default function ResetPasswordPage() {
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
+                aria-pressed={showConfirmPassword}
+                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
                 disabled={submitting}
               >
                 {showConfirmPassword ? (

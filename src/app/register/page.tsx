@@ -1,17 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { registerUser } from "@/services/auth";
+import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ErrorPopup from "@/components/ui/ErrorPopup";
 import { mapErrorToUserMessage, getErrorType } from "@/utils/errorMapper";
-import { BaseResponse } from "@/types/api";
-
-type ApiRegisterResponse = BaseResponse<{ message: string }>;
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { register, isAuthenticated, isLoading } = useAuth();
 
   // form state (kept as-is to preserve behavior)
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -41,15 +39,12 @@ export default function RegisterPage() {
     };
   }, []);
 
-  // Safe wrapper for potential future localStorage usage (keeps pattern consistent)
-  const safeLocalStorageSet = useCallback((k: string, v: string) => {
-    try {
-      localStorage.setItem(k, v);
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.warn(`localStorage.setItem failed for ${k}`, e);
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace("/");
     }
-  }, []);
+  }, [isAuthenticated, router]);
 
   // handle submit (extracted, typed, and stable identity)
   const handleSubmit = useCallback(
@@ -71,30 +66,21 @@ export default function RegisterPage() {
 
       setSubmitting(true);
       try {
-        const res = (await registerUser({
+        await register({
           email,
           password,
           firstName,
           lastName,
           phoneNumber,
-        })) as ApiRegisterResponse;
-
-        if (res?.error) {
-          const userFriendlyMessage = mapErrorToUserMessage(res.error);
-          if (!mountedRef.current) return;
-          setErrorMessage(userFriendlyMessage);
-          setErrorType(getErrorType(res.error));
-          setShowErrorPopup(true);
-          return;
-        }
+        });
 
         // preserve original success message + routing behavior (1000ms)
-        const message = res?.data?.message || "Đăng ký thành công! Vui lòng kiểm tra email để xác minh.";
+        const message = "Đăng ký thành công! Vui lòng kiểm tra email để xác minh.";
         if (!mountedRef.current) return;
         setSuccessMessage(message);
 
         setTimeout(() => {
-          if (mountedRef.current) router.push("/login");
+          if (mountedRef.current) router.replace("/verify-email");
         }, 1000);
       } catch (err: any) {
         if (!mountedRef.current) return;
@@ -106,8 +92,22 @@ export default function RegisterPage() {
         if (mountedRef.current) setSubmitting(false);
       }
     },
-    [email, password, rePassword, firstName, lastName, phoneNumber, router]
+    [email, password, rePassword, firstName, lastName, phoneNumber, router, register]
   );
+
+  // Show loading while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen gradient-bg flex items-center justify-center px-4 py-12">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Redirect if already authenticated
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen gradient-bg from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center px-4 py-12">
@@ -153,6 +153,7 @@ export default function RegisterPage() {
                            hover:border-gray-300 hover:bg-white/95
                            ${focusedId === "firstName" ? "transform scale-[1.02] shadow-lg shadow-blue-100/50" : ""}`}
                   required
+                  autoComplete="given-name"
                   placeholder="Enter first name"
                 />
                 <div
@@ -186,6 +187,7 @@ export default function RegisterPage() {
                            hover:border-gray-300 hover:bg-white/95
                            ${focusedId === "lastName" ? "transform scale-[1.02] shadow-lg shadow-blue-100/50" : ""}`}
                   required
+                  autoComplete="family-name"
                   placeholder="Enter last name"
                 />
                 <div
@@ -220,6 +222,7 @@ export default function RegisterPage() {
                          hover:border-gray-300 hover:bg-white/95
                          ${focusedId === "email" ? "transform scale-[1.02] shadow-lg shadow-blue-100/50" : ""}`}
                 required
+                autoComplete="email"
                 placeholder="Enter your email address"
               />
               <div
@@ -253,6 +256,7 @@ export default function RegisterPage() {
                          hover:border-gray-300 hover:bg-white/95
                          ${focusedId === "phoneNumber" ? "transform scale-[1.02] shadow-lg shadow-blue-100/50" : ""}`}
                 required
+                autoComplete="tel"
                 placeholder="Enter your phone number"
               />
               <div
@@ -288,10 +292,13 @@ export default function RegisterPage() {
                            hover:border-gray-300 hover:bg-white/95
                            ${focusedId === "password" ? "transform scale-[1.02] shadow-lg shadow-blue-100/50" : ""}`}
                   required
+                  autoComplete="new-password"
                   placeholder="Enter password"
                 />
                 <button
                   type="button"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  title={showPassword ? "Hide password" : "Show password"}
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
                 >
@@ -337,10 +344,13 @@ export default function RegisterPage() {
                            hover:border-gray-300 hover:bg-white/95
                            ${focusedId === "rePassword" ? "transform scale-[1.02] shadow-lg shadow-blue-100/50" : ""}`}
                   required
+                  autoComplete="new-password"
                   placeholder="Confirm password"
                 />
                 <button
                   type="button"
+                  aria-label={showRePassword ? "Hide password" : "Show password"}
+                  title={showRePassword ? "Hide password" : "Show password"}
                   onClick={() => setShowRePassword(!showRePassword)}
                   className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
                 >

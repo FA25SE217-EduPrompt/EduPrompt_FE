@@ -4,6 +4,7 @@ import { forgotPassword } from "@/services/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { mapErrorToUserMessage, getErrorType } from "@/utils/errorMapper";
+import { useAuth } from "@/hooks/useAuth";
 
 
 type ApiForgotResponse = {
@@ -13,6 +14,7 @@ type ApiForgotResponse = {
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
+  const { isAuthenticated, isLoading } = useAuth();
 
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -30,6 +32,12 @@ export default function ForgotPasswordPage() {
     };
   }, []);
 
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.replace("/");
+    }
+  }, [isAuthenticated, isLoading, router]);
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
@@ -40,7 +48,7 @@ export default function ForgotPasswordPage() {
       setSubmitting(true);
 
       try {
-        const res = (await forgotPassword({ email })) as ApiForgotResponse;
+        const res = (await forgotPassword({ email: email.trim().toLowerCase() })) as ApiForgotResponse;
 
         // Explicitly check for `error !== null` per API envelope contract
         if (res?.error !== null) {
@@ -73,6 +81,28 @@ export default function ForgotPasswordPage() {
     [email]
   );
 
+  // Show loading while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen gradient-bg flex items-center justify-center px-4 py-12">
+        <div
+          className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"
+          role="status"
+          aria-live="polite"
+          aria-busy="true"
+          aria-label="Checking authentication"
+        >
+          <span className="sr-only">Checking authentication…</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect if already authenticated
+  if (isAuthenticated) {
+    return <p className="sr-only">Redirecting…</p>;
+  }
+
   return (
     <div className="min-h-screen gradient-bg from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-lg bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden p-12 md:p-16 border border-white/30">
@@ -104,6 +134,9 @@ export default function ForgotPasswordPage() {
               <input
                 type="email"
                 id="email"
+                name="email"
+                autoComplete="email"
+                inputMode="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 onFocus={() => setFocusedId("email")}

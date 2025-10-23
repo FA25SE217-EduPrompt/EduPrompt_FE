@@ -1,17 +1,15 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { loginUser, loginWithGoogle } from "@/services/auth";
+import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ErrorPopup from "@/components/ui/ErrorPopup";
 import { mapErrorToUserMessage, getErrorType } from "@/utils/errorMapper";
-import { BaseResponse } from "@/types/api";
-
-type ApiLoginResponse = BaseResponse<{ token: string }>;
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login, loginWithGoogle, isAuthenticated, isLoading } = useAuth();
 
   // form state (kept as-is to preserve behavior)
   const [email, setEmail] = useState("");
@@ -34,24 +32,6 @@ export default function LoginPage() {
     };
   }, []);
 
-  const safeLocalStorageSet = useCallback((key: string, value: string) => {
-    try {
-      localStorage.setItem(key, value);
-    } catch (e) {
-      // log to avoid silent failures
-      console.warn(`localStorage.setItem failed for ${key}:`, e);
-    }
-  }, []);
-
-  const safeLocalStorageRemove = useCallback((key: string) => {
-    try {
-      localStorage.removeItem(key);
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.warn(`localStorage.removeItem failed for ${key}:`, e);
-    }
-  }, []);
-
   useEffect(() => {
     try {
       const rememberEmail = localStorage.getItem("rememberEmail");
@@ -65,66 +45,12 @@ export default function LoginPage() {
     }
   }, []);
 
-  // Google Identity Services - use ref for button and safer script handling
+  // Google Identity Services - improved script loading and initialization
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
   const googleBtnRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    if (!googleClientId) return;
+  const [googleScriptLoaded, setGoogleScriptLoaded] = useState(false);
 
-    const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
-    script.async = true;
-    script.defer = true;
-
-    const handleLoad = () => {
-      try {
-        // @ts-ignore
-        window.google?.accounts.id.initialize({
-          client_id: googleClientId,
-          callback: (response: any) => {
-            const credential = response?.credential;
-            if (credential) {
-              // only call if component still mounted
-              if (mountedRef.current) {
-                handleGoogleCredential(credential);
-              }
-            }
-          },
-        });
-        // @ts-ignore
-        window.google?.accounts.id.renderButton(
-          googleBtnRef.current ?? document.getElementById("googleSignInBtn"),
-          { theme: "outline", size: "large", width: 320 }
-        );
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.warn("Google Identity init error:", e);
-      }
-    };
-
-    script.addEventListener("load", handleLoad);
-    document.body.appendChild(script);
-
-    return () => {
-      script.removeEventListener("load", handleLoad);
-      if (script.parentNode) {
-        script.parentNode.removeChild(script);
-      }
-      try {
-        // @ts-ignore
-        if (window.google?.accounts?.id?.cancel) {
-          // @ts-ignore
-          window.google.accounts.id.cancel();
-        }
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.debug("Google cleanup no-op:", e);
-      }
-    };
-    // Intentionally only depends on googleClientId
-  }, [googleClientId]);
-
-  // handle Google credential (extracted and typed)
+  // handle Google credential (moved up to be available for initializeGoogleAuth)
   const handleGoogleCredential = useCallback(async (credential: string) => {
     // preserve original UI flow and timings
     if (!mountedRef.current) return;
@@ -133,34 +59,13 @@ export default function LoginPage() {
     setSubmitting(true);
 
     try {
-      const res = (await loginWithGoogle({ tokenId: credential })) as ApiLoginResponse;
-
-      if (res?.error) {
-        const userFriendlyMessage = mapErrorToUserMessage(res.error);
-        if (!mountedRef.current) return;
-        setErrorMessage(userFriendlyMessage);
-        setErrorType(getErrorType(res.error));
-        setShowErrorPopup(true);
-        return;
-      }
-
-      const token = res?.data?.token;
-      if (!token) {
-        const message = "Phản hồi không hợp lệ từ máy chủ";
-        if (!mountedRef.current) return;
-        setErrorMessage(message);
-        setErrorType("error");
-        setShowErrorPopup(true);
-        return;
-      }
-
-      safeLocalStorageSet("token", token);
+      await loginWithGoogle(credential);
 
       if (!mountedRef.current) return;
       setSuccess(true);
       setTimeout(() => {
         // ensure navigation only when mounted
-        if (mountedRef.current) router.push("/");
+        if (mountedRef.current) router.replace("/");
       }, 400);
     } catch (err: any) {
       if (!mountedRef.current) return;
@@ -171,7 +76,89 @@ export default function LoginPage() {
     } finally {
       if (mountedRef.current) setSubmitting(false);
     }
-  }, [router, safeLocalStorageSet]);
+  }, [router, loginWithGoogle]);
+
+  // Initialize Google Identity Services
+  const initializeGoogleAuth = useCallback(() => {
+    if (!googleClientId || !googleScriptLoaded) return;
+    
+    try {
+      // @ts-ignore
+      window.google?.accounts?.id?.initialize({
+        client_id: googleClientId,
+        callback: (response: any) => {
+          const credential = response?.credential;
+          if (credential && mountedRef.current) {
+            handleGoogleCredential(credential);
+          }
+        },
+      });
+      
+      // Render the button
+      const buttonElement = googleBtnRef.current || document.getElementById("googleSignInBtn");
+      if (buttonElement) {
+        // @ts-ignore
+        window.google?.accounts?.id?.renderButton(buttonElement, {
+          theme: "outline",
+          size: "large",
+          width: 320
+        });
+      }
+    } catch (e) {
+      console.warn("Google Identity init error:", e);
+    }
+  }, [googleClientId, googleScriptLoaded, handleGoogleCredential]);
+
+  // Load Google script
+  useEffect(() => {
+    if (!googleClientId) return;
+
+    // Check if script is already loaded
+    // @ts-ignore
+    if (window.google?.accounts?.id) {
+      setGoogleScriptLoaded(true);
+      return;
+    }
+
+    // Check if script is already in DOM
+    const existingScript = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+    if (existingScript) {
+      existingScript.addEventListener('load', () => setGoogleScriptLoaded(true));
+      return;
+    }
+
+    // Create and load new script
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+
+    const handleLoad = () => {
+      setGoogleScriptLoaded(true);
+    };
+
+    script.addEventListener("load", handleLoad);
+    document.head.appendChild(script);
+
+    return () => {
+      script.removeEventListener("load", handleLoad);
+    };
+  }, [googleClientId]);
+
+  // Initialize Google Auth when script is loaded
+  useEffect(() => {
+    if (googleScriptLoaded && googleClientId) {
+      initializeGoogleAuth();
+    }
+  }, [googleScriptLoaded, googleClientId, initializeGoogleAuth]);
+
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace("/");
+    }
+  }, [isAuthenticated, router]);
 
   // handle submit (login)
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
@@ -183,39 +170,13 @@ export default function LoginPage() {
     setSubmitting(true);
 
     try {
-      const res = await loginUser({ email, password }) as ApiLoginResponse;
-
-      if (res?.error) {
-        const userFriendlyMessage = mapErrorToUserMessage(res.error);
-        if (!mountedRef.current) return;
-        setErrorMessage(userFriendlyMessage);
-        setErrorType(getErrorType(res.error));
-        setShowErrorPopup(true);
-        return;
-      }
-
-      const token = res?.data?.token;
-      if (!token) {
-        const message = "Phản hồi không hợp lệ từ máy chủ";
-        if (!mountedRef.current) return;
-        setErrorMessage(message);
-        setErrorType("error");
-        setShowErrorPopup(true);
-        return;
-      }
-
-      safeLocalStorageSet("token", token);
-      if (remember) {
-        safeLocalStorageSet("rememberEmail", email);
-      } else {
-        safeLocalStorageRemove("rememberEmail");
-      }
+      await login(email, password, remember);
 
       // success UI, then redirect (preserve 600ms)
       if (!mountedRef.current) return;
       setSuccess(true);
       setTimeout(() => {
-        if (mountedRef.current) router.push("/");
+        if (mountedRef.current) router.replace("/");
       }, 600);
     } catch (err: any) {
       if (!mountedRef.current) return;
@@ -226,7 +187,21 @@ export default function LoginPage() {
     } finally {
       if (mountedRef.current) setSubmitting(false);
     }
-  }, [email, password, remember, router, safeLocalStorageSet, safeLocalStorageRemove]);
+  }, [email, password, remember, router, login]);
+
+  // Show loading while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen gradient-bg flex items-center justify-center px-4 py-12">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Redirect if already authenticated
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen gradient-bg flex items-center justify-center px-4 py-12">
