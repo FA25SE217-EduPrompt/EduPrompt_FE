@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { resetPassword } from "@/services/auth";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -34,7 +34,7 @@ function getErrorMessage(error: unknown): string {
  */
 type ResetPasswordResponse = BaseResponse<{ message?: string }>;
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -347,5 +347,25 @@ export default function ResetPasswordPage() {
         </footer>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen gradient-bg flex items-center justify-center px-4 py-12">
+        <div
+          className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"
+          role="status"
+          aria-live="polite"
+          aria-busy="true"
+          aria-label="Loading reset password form"
+        >
+          <span className="sr-only">Loading reset password form…</span>
+        </div>
+      </div>
+    }>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }
