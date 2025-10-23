@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { useRouter } from 'next/navigation';
 import { decodeJWT, JWTPayload } from '@/utils/jwt';
 import { TokenManager } from '@/utils/tokenManager';
-import { BaseResponse } from '@/types/api';
+import { BaseResponse, ErrorPayload } from '@/types/api';
 
 const SYSTEM_ADMIN_ROLE = 'ADMIN';
 const SCHOOL_ADMIN_ROLE = 'SCHOOL_ADMIN';
@@ -405,7 +405,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error(response.error.messages?.[0] || 'Token refresh failed');
       }
 
-      const { token: newToken } = response.data;
+      const newToken = response.data?.token;
       if (!newToken) {
         throw new Error('No new token received');
       }

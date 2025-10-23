@@ -190,9 +190,9 @@ export async function refreshToken() {
   if (response.data?.data?.token) {
     const newToken = response.data.data.token;
     TokenManager.setToken(newToken);
-    return { token: newToken };
+    return { data: { token: newToken }, error: null };
   } else if (response.data?.error) {
-    throw new Error(response.data.error.messages?.[0] || 'Token refresh failed');
+    return { data: null, error: response.data.error };
   } else {
     throw new Error('Invalid refresh token response');
   }
