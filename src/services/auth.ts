@@ -5,7 +5,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 // Refresh stampede protection
 let isRefreshing = false;
-let refreshSubscribers: Array<(token: string) => void> = [];
+let refreshSubscribers: Array<(token: string | null, error?: Error) => void> = [];
 
 // Create axios instance with default config
 const apiClient = axios.create({
@@ -55,10 +55,14 @@ apiClient.interceptors.response.use(
 
       if (isRefreshing) {
         // If already refreshing, queue this request
-        return new Promise((resolve) => {
-          refreshSubscribers.push((token: string) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            resolve(apiClient(originalRequest));
+        return new Promise((resolve, reject) => {
+          refreshSubscribers.push((token: string | null, error?: Error) => {
+            if (token) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+              resolve(apiClient(originalRequest));
+            } else {
+              reject(error || new Error('Token refresh failed'));
+            }
           });
         });
       }
@@ -73,21 +77,31 @@ apiClient.interceptors.response.use(
             Authorization: `Bearer ${token}`,
           },
         });
-        
-        if (refreshResponse.data.data?.token) {
-          const { token: newToken } = refreshResponse.data.data;
+        console.log(refreshResponse.data);
+        // Handle API response envelope structure
+        if (refreshResponse.data?.data?.token) {
+          const newToken = refreshResponse.data.data.token;
           TokenManager.setToken(newToken);
 
-          // Notify all queued requests
+          // Notify all queued requests with success
           refreshSubscribers.forEach(callback => callback(newToken));
           refreshSubscribers = [];
 
           // Retry the original request
           originalRequest.headers.Authorization = `Bearer ${newToken}`;
           return apiClient(originalRequest);
+        } else if (refreshResponse.data?.error) {
+          // Handle API error envelope
+          console.error('Refresh token failed:', refreshResponse.data.error);
+          throw new Error(refreshResponse.data.error.messages?.[0] || 'Token refresh failed');
+        } else {
+          throw new Error('Invalid refresh token response');
         }
       } catch (refreshError) {
-        // Refresh failed, clear queue
+        // Refresh failed, reject all queued requests
+        refreshSubscribers.forEach(callback => {
+          callback(null, refreshError as Error);
+        });
         refreshSubscribers = [];
         
         TokenManager.clearTokens();
@@ -165,8 +179,23 @@ export async function logout() {
 
 // Refresh token
 export async function refreshToken() {
-  const response = await apiClient.post('/api/auth/refresh-token');
-  return response.data;
+  const token = TokenManager.getToken();
+  const response = await refreshClient.post('/api/auth/refresh-token', {}, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  
+  // Handle API response envelope structure
+  if (response.data?.data?.token) {
+    const newToken = response.data.data.token;
+    TokenManager.setToken(newToken);
+    return { token: newToken };
+  } else if (response.data?.error) {
+    throw new Error(response.data.error.messages?.[0] || 'Token refresh failed');
+  } else {
+    throw new Error('Invalid refresh token response');
+  }
 }
 
 // Verify email
