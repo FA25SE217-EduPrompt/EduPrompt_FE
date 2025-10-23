@@ -1,5 +1,23 @@
+import { ErrorPayload, BaseResponse } from '../types/api';
+
+// Define possible error response structures using standardized types
+interface AxiosErrorResponse {
+  response?: {
+    data?: BaseResponse<unknown> | { message?: string };
+    status?: number;
+  };
+  message?: string;
+}
+
+interface GenericErrorResponse {
+  error?: ErrorPayload;
+  message?: string;
+}
+
+export type ErrorInput = string | AxiosErrorResponse | GenericErrorResponse | Error;
+
 // Error mapping utility to convert server errors to user-friendly messages
-export function mapErrorToUserMessage(error: any): string {
+export function mapErrorToUserMessage(error: ErrorInput): string {
   
   if (typeof error === 'string') {
     return error;
@@ -8,16 +26,19 @@ export function mapErrorToUserMessage(error: any): string {
   // extract error message from response 
   let message = '';
   
-  if (error?.response?.data?.error?.messages?.[0]) {
-    message = error.response.data.error.messages[0];
-  } else if (error?.response?.data?.message) {
-    message = error.response.data.message;
-  } else if (error?.message) {
+  // Handle AxiosErrorResponse structure (from auth API)
+  if ('response' in error && error.response?.data) {
+    const data = error.response.data;
+    // Check if it's a BaseResponse with error
+    if ('error' in data && data.error?.messages?.[0]) {
+      message = data.error.messages[0];
+    } else if ('message' in data && data.message) {
+      message = data.message;
+    }
+  } else if ('message' in error && error.message) {
     message = error.message;
-  } else if (error?.error?.messages?.[0]) {
+  } else if ('error' in error && error.error?.messages?.[0]) {
     message = error.error.messages[0];
-  } else if (error?.error?.message) {
-    message = error.error.message;
   }
 
   // map common server errors to user-friendly messages
@@ -78,7 +99,7 @@ export function mapErrorToUserMessage(error: any): string {
   }
 
   // check for HTTP status codes
-  if (error?.response?.status) {
+  if ('response' in error && error.response?.status) {
     const status = error.response.status;
     switch (status) {
       case 400:
@@ -115,8 +136,9 @@ export function mapErrorToUserMessage(error: any): string {
 }
 
 // Helper function to determine error type based on the error
-export function getErrorType(error: any): "error" | "warning" | "info" {
-  if (error?.response?.status) {
+export function getErrorType(error: ErrorInput): "error" | "warning" | "info" {
+  // Only check for response status if error is an object (not a string)
+  if (typeof error === 'object' && error !== null && 'response' in error && error.response?.status) {
     const status = error.response.status;
     if (status >= 400 && status < 500) {
       return "warning"; // Client errors are warnings

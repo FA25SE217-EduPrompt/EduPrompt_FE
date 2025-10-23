@@ -3,16 +3,36 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { resetPassword } from "@/services/auth";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { mapErrorToUserMessage } from "@/utils/errorMapper";
+import { mapErrorToUserMessage, ErrorInput } from "@/utils/errorMapper";
 import { useAuth } from "@/hooks/useAuth";
+import { BaseResponse, ErrorPayload } from "@/types/api";
+
+// Helper function to safely extract error message
+function getErrorMessage(error: unknown): string {
+  // First try the error mapper (cast to ErrorInput for compatibility)
+  const mappedMessage = mapErrorToUserMessage(error as ErrorInput);
+  if (mappedMessage) return mappedMessage;
+  
+  // Check if it's a standard Error object
+  if (error instanceof Error) {
+    return error.message;
+  }
+  
+  // Check for axios-like error structure
+  if (error && typeof error === 'object' && 'response' in error) {
+    const response = (error as { response?: { data?: BaseResponse<unknown> } }).response;
+    if (response?.data?.error?.messages?.[0]) {
+      return response.data.error.messages[0];
+    }
+  }
+  
+  return "Đặt lại mật khẩu thất bại";
+}
 
 /**
- * Local response type matching your API envelope (only the fields this page uses).
+ * Response type for reset password API using standardized BaseResponse
  */
-type ApiResetResponse = {
-  data: { message?: string } | null;
-  error: { code?: string; messages?: string[]; status?: string } | null;
-};
+type ResetPasswordResponse = BaseResponse<{ message?: string }>;
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -56,7 +76,7 @@ export default function ResetPasswordPage() {
       if (mountedRef.current)
         setErrorMessage("Invalid or missing reset token. Please request a new reset link.");
     }
-  }, []);
+  }, [searchParams]);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -78,14 +98,14 @@ export default function ResetPasswordPage() {
 
       setSubmitting(true);
       try {
-        const res = (await resetPassword({ token, newPassword })) as ApiResetResponse;
+        const res = (await resetPassword({ token, newPassword })) as ResetPasswordResponse;
 
         // Follow the API envelope contract: `error` is null on success
         if (res?.error !== null) {
           const firstMessage =
             Array.isArray(res.error?.messages) && res.error!.messages!.length > 0
               ? res.error!.messages![0]
-              : mapErrorToUserMessage(res.error) || "Đặt lại mật khẩu thất bại";
+              : getErrorMessage(res.error) || "Đặt lại mật khẩu thất bại";
           if (!mountedRef.current) return;
           setErrorMessage(firstMessage);
           return;
@@ -99,14 +119,10 @@ export default function ResetPasswordPage() {
         setTimeout(() => {
           if (mountedRef.current) router.replace("/login");
         }, 2000);
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (!mountedRef.current) return;
-        const fallback =
-          mapErrorToUserMessage(err) ||
-          err?.response?.data?.error?.messages?.[0] ||
-          err?.message ||
-          "Đặt lại mật khẩu thất bại";
-        setErrorMessage(fallback);
+        const errorMessage = getErrorMessage(err);
+        setErrorMessage(errorMessage);
       } finally {
         if (mountedRef.current) setSubmitting(false);
       }

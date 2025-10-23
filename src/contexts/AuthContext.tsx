@@ -2,9 +2,9 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { decodeJWT, JWTPayload } from '@/utils/jwt';
+import { decodeJWT } from '@/utils/jwt';
 import { TokenManager } from '@/utils/tokenManager';
-import { BaseResponse, ErrorPayload } from '@/types/api';
+import { BaseResponse } from '@/types/api';
 
 const SYSTEM_ADMIN_ROLE = 'ADMIN';
 const SCHOOL_ADMIN_ROLE = 'SCHOOL_ADMIN';
@@ -103,79 +103,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const router = useRouter();
 
-
-  // Initialize auth state from TokenManager
-  useEffect(() => {
-    const initializeAuth = () => {
-      const token = TokenManager.getToken();
-      
-      if (process.env.NODE_ENV === 'development') {
-        console.log('AuthContext - Initializing auth with token:', token ? 'Present' : 'Not found');
-      }
-      
-      if (token && TokenManager.isAuthenticated()) {
-        // Decode JWT to get user info
-        const payload = decodeJWT(token);
-        
-        if (process.env.NODE_ENV === 'development') {
-          console.log('AuthContext - JWT payload:', payload);
-        }
-        
-        if (payload) {
-          const user: User = {
-            email: payload.sub,
-            firstName: '', // Will be fetched from API
-            lastName: '', // Will be fetched from API
-            phoneNumber: '', // Will be fetched from API
-            isVerified: true, // Assume verified if token is valid
-            isActive: true,
-            isSystemAdmin: payload.role === SYSTEM_ADMIN_ROLE,
-            isSchoolAdmin: payload.role === SCHOOL_ADMIN_ROLE,
-            isTeacher: payload.role === TEACHER_ROLE,
-          };
-
-          if (process.env.NODE_ENV === 'development') {
-            console.log('AuthContext - Setting authenticated state');
-          }
-          
-          setAuthState({
-            user,
-            token,
-            isAuthenticated: true,
-            isLoading: false,
-          });
-
-          // Fetch full user data
-          fetchUserData();
-        } else {
-          if (process.env.NODE_ENV === 'development') {
-            console.warn('AuthContext - Invalid token, clearing auth state');
-          }
-          TokenManager.clearTokens();
-          setAuthState({
-            user: null,
-            token: null,
-            isAuthenticated: false,
-            isLoading: false,
-          });
-        }
-      } else {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('AuthContext - No valid token found, setting unauthenticated state');
-        }
-        TokenManager.clearTokens();
-        setAuthState({
-          user: null,
-          token: null,
-          isAuthenticated: false,
-          isLoading: false,
-        });
-      }
-    };
-
-    initializeAuth();
-  }, []);
-
   // Fetch user data from API
   const fetchUserData = useCallback(async () => {
     try {
@@ -199,12 +126,68 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           },
         }));
       }
-    } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.warn('Failed to fetch user data:', error);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new Error(error.message);
       }
+      throw new Error('Failed to fetch user data');
     }
   }, []);
+
+  useEffect(() => {
+    const initializeAuth = () => {
+      const token = TokenManager.getToken();
+      
+      
+      if (token && TokenManager.isAuthenticated()) {
+        // Decode JWT to get user info
+        const payload = decodeJWT(token);
+        
+        if (payload) {
+          const user: User = {
+            email: payload.sub,
+            firstName: '', // Will be fetched from API
+            lastName: '', // Will be fetched from API
+            phoneNumber: '', // Will be fetched from API
+            isVerified: true, // Assume verified if token is valid
+            isActive: true,
+            isSystemAdmin: payload.role === SYSTEM_ADMIN_ROLE,
+            isSchoolAdmin: payload.role === SCHOOL_ADMIN_ROLE,
+            isTeacher: payload.role === TEACHER_ROLE,
+          };
+
+          setAuthState({
+            user,
+            token,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+
+          // Fetch full user data
+          fetchUserData();
+        } else {
+          TokenManager.clearTokens();
+          setAuthState({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+            isLoading: false,
+          });
+        }
+      } else {
+        TokenManager.clearTokens();
+        setAuthState({
+          user: null,
+          token: null,
+          isAuthenticated: false,
+          isLoading: false,
+        });
+      }
+    };
+
+    initializeAuth();
+  }, [fetchUserData]);
+
 
   // Login function
   const login = useCallback(async (email: string, password: string, remember = false) => {

@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ErrorPopup from "@/components/ui/ErrorPopup";
-import { mapErrorToUserMessage, getErrorType } from "@/utils/errorMapper";
+import { mapErrorToUserMessage, getErrorType, ErrorInput } from "@/utils/errorMapper";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -40,7 +40,6 @@ export default function LoginPage() {
         setRemember(true);
       }
     } catch (e) {
-      // eslint-disable-next-line no-console
       console.warn("Reading rememberEmail failed:", e);
     }
   }, []);
@@ -67,11 +66,11 @@ export default function LoginPage() {
         // ensure navigation only when mounted
         if (mountedRef.current) router.replace("/");
       }, 400);
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (!mountedRef.current) return;
-      const userFriendlyMessage = mapErrorToUserMessage(err);
+      const userFriendlyMessage = mapErrorToUserMessage(err as ErrorInput);
       setErrorMessage(userFriendlyMessage);
-      setErrorType(getErrorType(err));
+      setErrorType(getErrorType(err as ErrorInput));
       setShowErrorPopup(true);
     } finally {
       if (mountedRef.current) setSubmitting(false);
@@ -83,10 +82,10 @@ export default function LoginPage() {
     if (!googleClientId || !googleScriptLoaded) return;
     
     try {
-      // @ts-ignore
+      // @ts-expect-error - Google Identity Services types not available
       window.google?.accounts?.id?.initialize({
         client_id: googleClientId,
-        callback: (response: any) => {
+        callback: (response: { credential?: string }) => {
           const credential = response?.credential;
           if (credential && mountedRef.current) {
             handleGoogleCredential(credential);
@@ -97,7 +96,7 @@ export default function LoginPage() {
       // Render the button
       const buttonElement = googleBtnRef.current || document.getElementById("googleSignInBtn");
       if (buttonElement) {
-        // @ts-ignore
+        // @ts-expect-error - Google Identity Services types not available
         window.google?.accounts?.id?.renderButton(buttonElement, {
           theme: "outline",
           size: "large",
@@ -114,7 +113,7 @@ export default function LoginPage() {
     if (!googleClientId) return;
 
     // Check if script is already loaded
-    // @ts-ignore
+    // @ts-expect-error - Google Identity Services types not available
     if (window.google?.accounts?.id) {
       setGoogleScriptLoaded(true);
       return;
@@ -178,11 +177,11 @@ export default function LoginPage() {
       setTimeout(() => {
         if (mountedRef.current) router.replace("/");
       }, 600);
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (!mountedRef.current) return;
-      const userFriendlyMessage = mapErrorToUserMessage(err);
+      const userFriendlyMessage = mapErrorToUserMessage(err as ErrorInput);
       setErrorMessage(userFriendlyMessage);
-      setErrorType(getErrorType(err));
+      setErrorType(getErrorType(err as ErrorInput));
       setShowErrorPopup(true);
     } finally {
       if (mountedRef.current) setSubmitting(false);
@@ -379,7 +378,7 @@ export default function LoginPage() {
         {/* Sign Up Link */}
         <footer className="mt-8 text-center">
           <p className="text-gray-600">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link
               href="/register"
               className="text-blue-600 font-semibold hover:text-blue-800 transition-colors duration-200 

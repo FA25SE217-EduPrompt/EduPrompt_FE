@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from 'axios';
+import axios from 'axios';
 import { TokenManager } from '@/utils/tokenManager';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
