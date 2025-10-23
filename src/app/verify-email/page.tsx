@@ -38,13 +38,11 @@ export default function VerifyEmailPage() {
           if (verifiedForTokenRef.current === token) return;
           verifiedForTokenRef.current = token;
           handleVerification(token);
-        } else {
+        } else 
           if (mountedRef.current) {
             setVerificationStatus('error');
             setMessage('Invalid verification link. Please check your email and try again.');
           }
-          setMessage('Invalid verification link. Please check your email and try again.');
-        }
       }, [searchParams, isAuthenticated, isLoading, router]);
 
   const handleVerification = async (token: string) => {
