@@ -37,7 +37,7 @@ export function withAuth<P extends object>(
           return;
         }
       }
-    }, [isAuthenticated, isLoading, requireAuth, adminOnly, user, router, redirectTo]);
+    }, [isAuthenticated, isLoading, user, router]);
 
     // Show loading state
     if (isLoading) {

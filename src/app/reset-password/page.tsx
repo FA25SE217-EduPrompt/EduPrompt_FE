@@ -1,20 +1,23 @@
 "use client";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { resetPassword } from "@/services/auth";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { mapErrorToUserMessage } from "@/utils/errorMapper";
+import { mapErrorToUserMessage, ErrorInput } from "@/utils/errorMapper";
 import { useAuth } from "@/hooks/useAuth";
+import { BaseResponse, ErrorPayload } from "@/types/api";
+
+// Helper function to safely extract error message
+function getErrorMessage(error: unknown): string {
+  return mapErrorToUserMessage(error as ErrorInput);
+}
 
 /**
- * Local response type matching your API envelope (only the fields this page uses).
+ * Response type for reset password API using standardized BaseResponse
  */
-type ApiResetResponse = {
-  data: { message?: string } | null;
-  error: { code?: string; messages?: string[]; status?: string } | null;
-};
+type ResetPasswordResponse = BaseResponse<{ message?: string }>;
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -56,7 +59,7 @@ export default function ResetPasswordPage() {
       if (mountedRef.current)
         setErrorMessage("Invalid or missing reset token. Please request a new reset link.");
     }
-  }, []);
+  }, [searchParams]);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -78,14 +81,14 @@ export default function ResetPasswordPage() {
 
       setSubmitting(true);
       try {
-        const res = (await resetPassword({ token, newPassword })) as ApiResetResponse;
+        const res = (await resetPassword({ token, newPassword })) as ResetPasswordResponse;
 
         // Follow the API envelope contract: `error` is null on success
         if (res?.error !== null) {
           const firstMessage =
             Array.isArray(res.error?.messages) && res.error!.messages!.length > 0
               ? res.error!.messages![0]
-              : mapErrorToUserMessage(res.error) || "Đặt lại mật khẩu thất bại";
+              : getErrorMessage(res.error) || "Đặt lại mật khẩu thất bại";
           if (!mountedRef.current) return;
           setErrorMessage(firstMessage);
           return;
@@ -99,14 +102,10 @@ export default function ResetPasswordPage() {
         setTimeout(() => {
           if (mountedRef.current) router.replace("/login");
         }, 2000);
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (!mountedRef.current) return;
-        const fallback =
-          mapErrorToUserMessage(err) ||
-          err?.response?.data?.error?.messages?.[0] ||
-          err?.message ||
-          "Đặt lại mật khẩu thất bại";
-        setErrorMessage(fallback);
+        const errorMessage = getErrorMessage(err);
+        setErrorMessage(errorMessage);
       } finally {
         if (mountedRef.current) setSubmitting(false);
       }
@@ -331,5 +330,25 @@ export default function ResetPasswordPage() {
         </footer>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen gradient-bg flex items-center justify-center px-4 py-12">
+        <div
+          className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"
+          role="status"
+          aria-live="polite"
+          aria-busy="true"
+          aria-label="Loading reset password form"
+        >
+          <span className="sr-only">Loading reset password form…</span>
+        </div>
+      </div>
+    }>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }

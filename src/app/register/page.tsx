@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ErrorPopup from "@/components/ui/ErrorPopup";
-import { mapErrorToUserMessage, getErrorType } from "@/utils/errorMapper";
+import { mapErrorToUserMessage, getErrorType, ErrorInput } from "@/utils/errorMapper";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -82,11 +82,11 @@ export default function RegisterPage() {
         setTimeout(() => {
           if (mountedRef.current) router.replace("/verify-email");
         }, 1000);
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (!mountedRef.current) return;
-        const userFriendlyMessage = mapErrorToUserMessage(err);
+        const userFriendlyMessage = mapErrorToUserMessage(err as ErrorInput);
         setErrorMessage(userFriendlyMessage);
-        setErrorType(getErrorType(err));
+        setErrorType(getErrorType(err as ErrorInput));
         setShowErrorPopup(true);
       } finally {
         if (mountedRef.current) setSubmitting(false);

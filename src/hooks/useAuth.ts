@@ -1,5 +1,5 @@
 import { useAuth as useAuthContext, User } from '@/contexts/AuthContext';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 
 type AuthGuardResult = {
   isAuthenticated: boolean;

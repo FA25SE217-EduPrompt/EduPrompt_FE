@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface ErrorPopupProps {
   message: string;
@@ -19,6 +19,14 @@ export default function ErrorPopup({
 }: ErrorPopupProps) {
   const [isAnimating, setIsAnimating] = useState(false);
 
+  const handleClose = useCallback(() => {
+    setIsAnimating(false);
+    setTimeout(() => {
+      onClose();
+    }, 300);
+  }, [onClose]);
+  
+
   useEffect(() => {
     if (isVisible) {
       setIsAnimating(true);
@@ -28,14 +36,7 @@ export default function ErrorPopup({
 
       return () => clearTimeout(timer);
     }
-  }, [isVisible, duration]);
-
-  const handleClose = () => {
-    setIsAnimating(false);
-    setTimeout(() => {
-      onClose();
-    }, 300);
-  };
+  }, [isVisible, duration, handleClose]);
 
   if (!isVisible) return null;
 

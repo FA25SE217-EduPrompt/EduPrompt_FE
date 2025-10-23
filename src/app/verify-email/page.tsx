@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback, Suspense } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-export default function VerifyEmailPage() {
+function VerifyEmailForm() {
   const { verifyEmail, resendVerification, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -26,26 +26,7 @@ export default function VerifyEmailPage() {
     };
   }, []);
 
-  useEffect(() => {
-        if (isLoading) return;
-        // Redirect if already authenticated
-        if (isAuthenticated) {
-          router.replace("/");
-          return;
-        }
-        const token = searchParams.get('token');
-        if (token) {
-          if (verifiedForTokenRef.current === token) return;
-          verifiedForTokenRef.current = token;
-          handleVerification(token);
-        } else 
-          if (mountedRef.current) {
-            setVerificationStatus('error');
-            setMessage('Invalid verification link. Please check your email and try again.');
-          }
-      }, [searchParams, isAuthenticated, isLoading, router]);
-
-  const handleVerification = async (token: string) => {
+  const handleVerification = useCallback(async (token: string) => {
     if (!mountedRef.current) return;
     
     setIsVerifying(true);
@@ -61,10 +42,11 @@ export default function VerifyEmailPage() {
           if (mountedRef.current) router.replace("/login");
         }, 1000);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (mountedRef.current) {
         setVerificationStatus('error');
-        setMessage(error.message || 'Verification failed. Please try again.');
+        const errorMessage = error instanceof Error ? error.message : 'Verification failed. Please try again.';
+        setMessage(errorMessage);
         setTimeout(() => {
           if (mountedRef.current) router.replace("/login");
         }, 1000);
@@ -74,7 +56,26 @@ export default function VerifyEmailPage() {
         setIsVerifying(false);
       }
     }
-  };
+  }, [verifyEmail, router]);
+
+  useEffect(() => {
+    if (isLoading) return;
+    // Redirect if already authenticated
+    if (isAuthenticated) {
+      router.replace("/");
+      return;
+    }
+    const token = searchParams.get('token');
+    if (token) {
+      if (verifiedForTokenRef.current === token) return;
+      verifiedForTokenRef.current = token;
+      handleVerification(token);
+    } else 
+      if (mountedRef.current) {
+        setVerificationStatus('error');
+        setMessage('Invalid verification link. Please check your email and try again.');
+      }
+  }, [searchParams, isAuthenticated, isLoading, router, handleVerification]);
 
   const handleResendVerification = async () => {
     const trimmed = email.trim();
@@ -105,9 +106,10 @@ export default function VerifyEmailPage() {
       if (mountedRef.current) {
         setMessage('Verification email sent! Please check your inbox.');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (mountedRef.current) {
-        setMessage(error.message || 'Failed to resend verification email.');
+        const errorMessage = error instanceof Error ? error.message : 'Failed to resend verification email.';
+        setMessage(errorMessage);
       }
     } finally {
       if (mountedRef.current) {
@@ -235,7 +237,7 @@ export default function VerifyEmailPage() {
               </Link>
             </p>
             <p className="text-gray-600">
-              Don't have an account?{" "}
+              {"Don't have an account?"}{" "}
               <Link href="/register" className="text-blue-600 font-semibold hover:text-blue-800 transition-colors">
                 Create one
               </Link>
@@ -244,5 +246,17 @@ export default function VerifyEmailPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen gradient-bg flex items-center justify-center px-4 py-12">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <VerifyEmailForm />
+    </Suspense>
   );
 }
