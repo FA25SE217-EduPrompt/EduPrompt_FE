@@ -1,7 +1,6 @@
 "use client";
 
 import { useAuth } from '@/hooks/useAuth';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 

@@ -3,14 +3,11 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { forgotPassword } from "@/services/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { mapErrorToUserMessage, getErrorType } from "@/utils/errorMapper";
+import { mapErrorToUserMessage, ErrorInput } from "@/utils/errorMapper";
 import { useAuth } from "@/hooks/useAuth";
+import { BaseResponse } from "@/types/api";
 
-
-type ApiForgotResponse = {
-  data: { message?: string } | null;
-  error: { code?: string; messages?: string[]; status?: string } | null;
-};
+type ApiForgotResponse = BaseResponse<{ message?: string }>;
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -55,7 +52,7 @@ export default function ForgotPasswordPage() {
           const firstMessage =
             Array.isArray(res.error?.messages) && res.error!.messages!.length > 0
               ? res.error!.messages![0]
-              : mapErrorToUserMessage(res.error) || "Có lỗi xảy ra khi gửi email";
+              : mapErrorToUserMessage(res.error as ErrorInput) || "Có lỗi xảy ra khi gửi email";
           if (!mountedRef.current) return;
           setErrorMessage(firstMessage);
           return;
@@ -65,15 +62,11 @@ export default function ForgotPasswordPage() {
         const success = res?.data?.message || "Vui lòng kiểm tra email để đặt lại mật khẩu!";
         if (!mountedRef.current) return;
         setSuccessMessage(success);
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (!mountedRef.current) return;
-        // Prefer mapErrorToUserMessage (handles many shapes), fallback to sensible strings
-        const fallback =
-          mapErrorToUserMessage(err) ||
-          err?.response?.data?.error?.messages?.[0] ||
-          err?.message ||
-          "Có lỗi xảy ra. Vui lòng thử lại.";
-        setErrorMessage(fallback);
+        // Use error mapper for consistent error handling
+        const errorMessage = mapErrorToUserMessage(err as ErrorInput) || "Có lỗi xảy ra. Vui lòng thử lại.";
+        setErrorMessage(errorMessage);
       } finally {
         if (mountedRef.current) setSubmitting(false);
       }
@@ -225,7 +218,7 @@ export default function ForgotPasswordPage() {
         {/* Navigation Links */}
         <footer className="mt-8 text-center">
           <p className="text-gray-600">
-            Remember your password?{" "}
+            {"Remember your password?"}
             <Link
               href="/login"
               className="text-blue-600 font-semibold hover:text-blue-800 transition-colors duration-200 hover:underline underline-offset-2"
@@ -234,7 +227,7 @@ export default function ForgotPasswordPage() {
             </Link>
           </p>
           <p className="text-gray-600 mt-2">
-            Don't have an account?{" "}
+            {"Don't have an account?"}
             <Link
               href="/register"
               className="text-blue-600 font-semibold hover:text-blue-800 transition-colors duration-200 hover:underline underline-offset-2"
