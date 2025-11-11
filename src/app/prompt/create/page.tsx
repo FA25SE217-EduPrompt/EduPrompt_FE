@@ -6,6 +6,7 @@ import {useCreateTagsBatch} from '@/hooks/queries/tag';
 import {
     useCreatePrompt,
     useCreatePromptWithCollection,
+    useGetOptimizationStatus,
     useGetTestUsage,
     useRequestOptimization,
     useRunPromptTest
@@ -14,7 +15,8 @@ import {
 import type {
     OptimizationQueueEntry,
     PromptAiModel,
-    PromptCreateRequest, PromptCreateWithCollectionRequest,
+    PromptCreateRequest,
+    PromptCreateWithCollectionRequest,
     PromptFormModel,
     PromptTestResponse,
     UploadedFile as PromptUploadedFile,
@@ -134,22 +136,29 @@ export default function CreatePromptPage() {
     const [temperature, setTemperature] = useState(0.4);
     const [maxTokens, setMaxTokens] = useState(8126);
     const [saveFeedback, setSaveFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
     const [testResponse, setTestResponse] = useState<PromptTestResponse | null>(null);
     const [testError, setTestError] = useState<string | null>(null);
+    const [pollingUsageId, setPollingUsageId] = useState<string | null>(null);
+
     const [optimizationQueue, setOptimizationQueue] = useState<OptimizationQueueEntry | null>(null);
     const [optimizationError, setOptimizationError] = useState<string | null>(null);
-    const [pollingUsageId, setPollingUsageId] = useState<string | null>(null);
+    const [pollingOptimizeId, setPollingOptimizeId] = useState<string | null>(null);
+
     const [customCollectionName, setCustomCollectionName] = useState('');
 
     // Initialize all the mutation hooks
     const {mutateAsync: createTagsBatch, isPending: isSavingTags} = useCreateTagsBatch();
     const {mutateAsync: createPromptMutation, isPending: isSavingStandalone} = useCreatePrompt();
-    const { mutateAsync: createPromptWithCollectionMutation, isPending: isSavingToCollection } = useCreatePromptWithCollection();
-    const { mutateAsync: createCollectionMutation, isPending: isCreatingCollection } = useCreateCollection();
+    const {
+        mutateAsync: createPromptWithCollectionMutation,
+        isPending: isSavingToCollection
+    } = useCreatePromptWithCollection();
+    const {mutateAsync: createCollectionMutation, isPending: isCreatingCollection} = useCreateCollection();
     const {mutateAsync: runTestMutation, isPending: isSubmittingTest} = useRunPromptTest();
-    const {mutateAsync: requestOptimizationMutation, isPending: isOptimizing} = useRequestOptimization();
+    const {mutateAsync: requestOptimizationMutation, isPending: isSubmittingOptimize} = useRequestOptimization();
 
-    const { data: myCollections, isLoading: isLoadingCollections } =
+    const {data: myCollections, isLoading: isLoadingCollections} =
         useGetMyCollections(0, 20);
 
     const isSaving =
@@ -179,6 +188,59 @@ export default function CreatePromptPage() {
     );
 
     const isTesting = isSubmittingTest || isPollingTest;
+
+    const {data: pollingOptimizeResult, isLoading: isPollingOptimize} = useGetOptimizationStatus(
+        pollingOptimizeId!,
+        undefined,
+        {
+            // Only poll if we have an ID
+            enabled: !!pollingOptimizeId,
+
+            // Stop polling once we get a final status
+            refetchInterval: (query) => {
+                const data = query.state.data;
+                if (!data || !data.data) return 3000; // Poll every 3s
+
+                const status = data.data.status;
+                if (status === 'COMPLETED' || status === 'FAILED') {
+                    return false; // Stop polling
+                }
+                return 3000;
+            },
+            refetchOnWindowFocus: false,
+        }
+    );
+
+    const isOptimizing = isSubmittingOptimize || isPollingOptimize;
+
+    useEffect(() => {
+        if (!pollingOptimizeResult || !pollingOptimizeResult.data) return;
+
+        const {status, errorMessage, output} = pollingOptimizeResult.data;
+
+        if (status === 'COMPLETED') {
+            console.log("Polling: Optimization COMPLETED");
+            setOptimizationQueue(pollingOptimizeResult.data);
+            setOptimizationError(null);
+            setPollingOptimizeId(null);
+
+            // if (output) {
+            //   setForm(prev => ({ ...prev, instruction: output }));
+            // }
+
+        } else if (status === 'FAILED') {
+            console.error("Polling: Optimization FAILED");
+            setOptimizationError(errorMessage || "Optimization failed during processing.");
+            setOptimizationQueue(pollingOptimizeResult.data);
+            setPollingOptimizeId(null);
+        }
+            // If PENDING or PROCESSING, just update the queue state
+        // so the user sees the status change, i will update for better UI later
+        else {
+            setOptimizationQueue(pollingOptimizeResult.data);
+        }
+
+    }, [pollingOptimizeResult]);
 
     useEffect(() => {
         // We only care about updates from the poller
@@ -355,15 +417,15 @@ export default function CreatePromptPage() {
 
     const savePrompt = async (): Promise<string | undefined> => {
         if (!form.title.trim()) {
-            setSaveFeedback({ type: 'error', message: 'Title is required.' });
+            setSaveFeedback({type: 'error', message: 'Title is required.'});
             return undefined;
         }
         if (form.instruction.trim().length < 20) {
-            setSaveFeedback({ type: 'error', message: 'Instruction must be at least 20 characters long.' });
+            setSaveFeedback({type: 'error', message: 'Instruction must be at least 20 characters long.'});
             return undefined;
         }
         if (form.collection === COLLECTION_NEW && !customCollectionName.trim()) {
-            setSaveFeedback({ type: 'error', message: 'Please enter a name for your new collection.' });
+            setSaveFeedback({type: 'error', message: 'Please enter a name for your new collection.'});
             return undefined;
         }
 
@@ -371,20 +433,23 @@ export default function CreatePromptPage() {
 
         try {
             const sanitizedForm = sanitizeForm();
-            const { tags, attachments, id, ...restOfForm } = sanitizedForm;
+            const {tags, attachments, id, collection, ...restOfForm} = sanitizedForm;
 
             //create tags
             let tagIds: string[] = [];
             if (sanitizedForm.tags.length > 0) {
-                const tagResult = await createTagsBatch({ tags: sanitizedForm.tags });
+                const tagResult = await createTagsBatch({tags: sanitizedForm.tags});
                 if (tagResult.error || !tagResult.data) {
-                    setSaveFeedback({ type: 'error', message: tagResult.error?.messages.join(', ') || 'Failed to create tags.' });
+                    setSaveFeedback({
+                        type: 'error',
+                        message: tagResult.error?.messages.join(', ') || 'Failed to create tags.'
+                    });
                     return undefined;
                 }
                 tagIds = tagResult.data.map((tag) => tag.id);
             }
 
-            const collectionChoice = sanitizedForm.collection;
+            const collectionChoice = collection;
             let promptResult;
             let finalCollectionId: string | null = '';
 
@@ -394,7 +459,7 @@ export default function CreatePromptPage() {
                     ...restOfForm,
                     tagIds: tagIds,
                 };
-                promptResult = await createPromptMutation({ payload });
+                promptResult = await createPromptMutation({payload});
             } else {
                 // user choose to create collection, either auto or custom
                 if (collectionChoice === COLLECTION_AUTO || collectionChoice === COLLECTION_NEW) {
@@ -409,10 +474,13 @@ export default function CreatePromptPage() {
                         tags: tagIds, // use the same tag as the prompt
                     };
 
-                    const collectionResult = await createCollectionMutation({ payload: collectionPayload });
+                    const collectionResult = await createCollectionMutation({payload: collectionPayload});
 
                     if (collectionResult.error || !collectionResult.data) {
-                        setSaveFeedback({ type: 'error', message: collectionResult.error?.messages.join(', ') || 'Failed to create collection.' });
+                        setSaveFeedback({
+                            type: 'error',
+                            message: collectionResult.error?.messages.join(', ') || 'Failed to create collection.'
+                        });
                         return undefined;
                     }
                     finalCollectionId = collectionResult.data.id;
@@ -429,11 +497,11 @@ export default function CreatePromptPage() {
                     tagIds: tagIds,
                     collectionId: finalCollectionId,
                 };
-                promptResult = await createPromptWithCollectionMutation({ payload });
+                promptResult = await createPromptWithCollectionMutation({payload});
             }
 
             if (promptResult.error) {
-                setSaveFeedback({ type: 'error', message: promptResult.error.messages.join(', ') });
+                setSaveFeedback({type: 'error', message: promptResult.error.messages.join(', ')});
                 return undefined;
             }
 
@@ -473,15 +541,18 @@ export default function CreatePromptPage() {
                     setCustomCollectionName('');
                 }
 
-                setSaveFeedback({ type: 'success', message: 'Prompt saved successfully.' });
+                setSaveFeedback({type: 'success', message: 'Prompt saved successfully.'});
                 return saved.id;
             }
 
-            setSaveFeedback({ type: 'error', message: 'Unexpected response from server.' });
+            setSaveFeedback({type: 'error', message: 'Unexpected response from server.'});
             return undefined;
 
         } catch (error) {
-            setSaveFeedback({ type: 'error', message: error instanceof Error ? error.message : 'Failed to save prompt.' });
+            setSaveFeedback({
+                type: 'error',
+                message: error instanceof Error ? error.message : 'Failed to save prompt.'
+            });
             return undefined;
         }
     };
@@ -559,6 +630,7 @@ export default function CreatePromptPage() {
     const handleOptimize = async () => {
         setOptimizationError(null);
         setOptimizationQueue(null);
+        setPollingOptimizeId(null); // Clear previous polling
 
         let promptId = form.id;
         if (!promptId) {
@@ -569,24 +641,50 @@ export default function CreatePromptPage() {
             }
         }
 
+        // isOptimizing is handled by hook
         try {
-            const result = await requestOptimizationMutation({
+            const optimizationPayload = {
                 request: {
                     promptId,
+                    aiModel: model,
                     optimizationInput: buildOptimizationInput(),
                     temperature,
                     maxTokens,
                 }
-            });
+            };
 
-            if (result.error) {
-                setOptimizationError(result.error.messages.join(', '));
+            console.log("handleOptimize: Calling requestOptimizationMutation", optimizationPayload);
+            const result = await requestOptimizationMutation(optimizationPayload);
+
+            console.log("handleOptimize: Initial response:", result);
+
+            if (result.error || !result.data) {
+                console.error("handleOptimize: Initial POST failed", result.error);
+                setOptimizationError(result.error?.messages.join(', ') || 'Failed to start optimization.');
                 setOptimizationQueue(null);
                 return;
             }
 
-            setOptimizationQueue(result.data ?? null);
+            const queueEntry = result.data;
+            setOptimizationQueue(queueEntry); // Set the initial response (e.g., PENDING)
+
+            // --- ASYNC LOGIC ---
+            if (queueEntry.status === 'PENDING' || queueEntry.status === 'PROCESSING') {
+                // It's async. Start polling.
+                console.log(`handleOptimize: Optimization is ${queueEntry.status}. Starting polling with queueId: ${queueEntry.id}`);
+                setPollingOptimizeId(queueEntry.id);
+            } else if (queueEntry.status === 'COMPLETED') {
+                // It finished synchronously (unlikely, but good to handle)
+                console.log("handleOptimize: Optimization was synchronous, COMPLETED immediately.");
+                setOptimizationError(null);
+            } else if (queueEntry.status === 'FAILED') {
+                // It failed immediately
+                console.error("handleOptimize: Optimization FAILED immediately.", queueEntry.errorMessage);
+                setOptimizationError(queueEntry.errorMessage || "Optimization failed immediately.");
+            }
+
         } catch (error) {
+            console.error("handleOptimize: A critical exception was caught:", error);
             setOptimizationError(error instanceof Error ? error.message : 'Failed to request optimization.');
             setOptimizationQueue(null);
         }
@@ -883,7 +981,8 @@ export default function CreatePromptPage() {
                                                 <option value={COLLECTION_NEW}>Create new collection...</option>
 
                                                 {/* --- THIS IS THE CRITICAL JSX FIX --- */}
-                                                {isLoadingCollections && <option disabled>Loading collections...</option>}
+                                                {isLoadingCollections &&
+                                                    <option disabled>Loading collections...</option>}
                                                 {myCollections?.data?.content.map(coll => (
                                                     <option key={coll.id} value={coll.id}> {/* <-- VALUE IS ID */}
                                                         {coll.name}
@@ -894,7 +993,8 @@ export default function CreatePromptPage() {
                                             {/* --- (Conditional Input, unchanged) --- */}
                                             {form.collection === COLLECTION_NEW && (
                                                 <div className="pl-2">
-                                                    <label htmlFor="custom-collection-name" className="block text-sm font-medium text-gray-700 mb-1">
+                                                    <label htmlFor="custom-collection-name"
+                                                           className="block text-sm font-medium text-gray-700 mb-1">
                                                         New Collection Name
                                                     </label>
                                                     <input
@@ -995,10 +1095,25 @@ export default function CreatePromptPage() {
                                         <p className="text-xs text-purple-600 mt-2">Get AI suggestions to improve your
                                             prompt&#39;s effectiveness</p>
                                         {optimizationQueue && (
-                                            <p className="text-xs text-purple-600 mt-2">
-                                                Optimization queued (status: {optimizationQueue.status}). Queue
-                                                ID: {optimizationQueue.id}
-                                            </p>
+                                            <div className="text-xs text-purple-600 mt-2">
+                                                <p>
+                                                    Status: <span
+                                                    className="font-medium">{optimizationQueue.status}</span>
+                                                </p>
+                                                {/* Optionally show the new output once completed */}
+                                                {optimizationQueue.status === 'COMPLETED' && optimizationQueue.output && (
+                                                    <div className="mt-2 p-2 bg-white rounded border border-purple-100">
+                                                        <p className="font-medium text-purple-800">Suggestion:</p>
+                                                        <p className="whitespace-pre-wrap">{optimizationQueue.output}</p>
+                                                        <button
+                                                            // onClick={() => setForm(prev => ({ ...prev, instruction: optimizationQueue.output! }))}
+                                                            className="text-xs text-blue-600 hover:text-blue-700 mt-1"
+                                                        >
+                                                            Apply to Instruction
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
                                         )}
                                         {optimizationError && (
                                             <p className="text-xs text-red-600 mt-2">{optimizationError}</p>

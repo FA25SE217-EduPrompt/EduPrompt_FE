@@ -6,8 +6,8 @@ import {
     ApiRequestOptions,
     OptimizationQueueEntry,
     PendingOptimizationItem,
-    PromptCreateRequest, PromptCreateWithCollectionRequest,
-    PromptFormModel,
+    PromptCreateRequest,
+    PromptCreateWithCollectionRequest,
     PromptOptimizationRequest,
     PromptResponse,
     PromptTestRequest,
@@ -17,7 +17,10 @@ import {
 const BASE = "/api/prompts";
 
 // Helper to attach optional headers (idempotency, request id) to axios config
-export function buildRequestConfig(opts?: ApiRequestOptions): { headers?: Record<string, string>; signal?: AbortSignal } {
+export function buildRequestConfig(opts?: ApiRequestOptions): {
+    headers?: Record<string, string>;
+    signal?: AbortSignal
+} {
     const headers: Record<string, string> = {};
     if (opts?.idempotencyKey) headers['X-Idempotency-Key'] = opts.idempotencyKey;
     if (opts?.requestId) headers['X-Request-Id'] = opts.requestId;
@@ -41,24 +44,6 @@ export function buildRequestConfig(opts?: ApiRequestOptions): { headers?: Record
 // ]
 // }
 
-/**
- * map from prompt form to prompt request , need to manually handle tags creation
- * @param form
- */
-function formToRequest(form: PromptFormModel): Partial<PromptCreateRequest> {
-    return {
-        title: form.title,
-        description: form.description,
-        instruction: form.instruction,
-        context: form.context,
-        inputExample: form.inputExample,
-        outputFormat: form.outputFormat,
-        constraints: form.constraints,
-        visibility: form.visibility,
-        collection: form.collection
-    };
-}
-
 function toPromptTestPayload(request: PromptTestRequest) {
     const payload: Record<string, unknown> = {promptId: request.promptId};
     if (request.aiModel) payload.aiModel = request.aiModel;
@@ -72,6 +57,7 @@ function toPromptTestPayload(request: PromptTestRequest) {
 function toPromptOptimizationPayload(request: PromptOptimizationRequest) {
     const payload: Record<string, unknown> = {
         promptId: request.promptId,
+        aiModel: request.aiModel,
         optimizationInput: request.optimizationInput,
     };
     if (typeof request.temperature !== 'undefined') payload.temperature = request.temperature;

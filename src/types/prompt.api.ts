@@ -1,5 +1,4 @@
 // src/types/prompt.api.ts
-import {BaseResponse} from "@/types/api";
 import {CreateTagRequest, TagResponse} from "./tag.api";
 
 
@@ -57,7 +56,6 @@ export type PromptCreateRequest = {
     outputFormat?: string;
     constraints?: string;
     visibility: "private" | "group" | "public";
-    collection?: string;
     tagIds: string[];
 };
 
@@ -99,7 +97,7 @@ export type PromptResponse = {
  */
 export type PromptTestRequest = {
     promptId: string;
-    aiModel?: PromptAiModel;
+    aiModel: PromptAiModel;
     inputText?: string;
     temperature?: number;
     maxTokens?: number;
@@ -145,6 +143,7 @@ export type OptimizationQueueEntry = {
  */
 export type PromptOptimizationRequest = {
     promptId: string;
+    aiModel: PromptAiModel;
     optimizationInput: string;
     temperature?: number;
     maxTokens?: number;
@@ -167,6 +166,3 @@ export type ApiRequestOptions = {
     requestId?: string;
     signal?: AbortSignal;
 };
-
-// Re-export BaseResponse for convenience (not adding fields)
-export type ApiBaseResponse<T> = BaseResponse<T>;

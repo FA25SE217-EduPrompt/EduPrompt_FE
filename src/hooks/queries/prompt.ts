@@ -3,7 +3,9 @@ import {keepPreviousData, useMutation, useQuery, useQueryClient, UseQueryOptions
 import {promptsService} from '@/services/resources/prompts';
 import {
     ApiRequestOptions,
-    PromptCreateRequest, PromptCreateWithCollectionRequest,
+    OptimizationQueueEntry,
+    PromptCreateRequest,
+    PromptCreateWithCollectionRequest,
     PromptOptimizationRequest,
     PromptTestRequest,
     PromptTestResponse,
@@ -104,7 +106,7 @@ export const useRunPromptTest = () => {
     return useMutation({
         mutationFn: ({request, opts}: { request: PromptTestRequest; opts?: ApiRequestOptions }) =>
             promptsService.runTest(request, opts),
-        onSuccess: async (data, variables) => {
+        onSuccess: async (_data, variables) => {
             // Invalidate test histories for the user and this specific prompt
             await queryClient.invalidateQueries({queryKey: promptKeys.testHistoryUser(0, 0).slice(0, 3)}); // Invalidate all user history pages
             if (variables.request.promptId) {
@@ -175,7 +177,7 @@ export const useGetPromptTestHistory = (promptId: string, page = 0, size = 20, o
         queryKey: promptKeys.testHistoryPrompt(promptId, page, size, opts),
         queryFn: () => promptsService.getPromptTestHistory(promptId, page, size, opts),
         enabled: !!promptId && queryOptions?.enabled !== false,
-        placeholderData: keepPreviousData, // v5 syntax
+        placeholderData: keepPreviousData,
     });
 };
 
@@ -187,9 +189,9 @@ export const useDeleteTestResult = () => {
     return useMutation({
         mutationFn: ({usageId, opts}: { usageId: string; opts?: ApiRequestOptions }) =>
             promptsService.deleteTestResult(usageId, opts),
-        onSuccess: () => {
+        onSuccess: async () => {
             // Invalidate all test-related queries
-            queryClient.invalidateQueries({queryKey: promptKeys.tests()});
+            await queryClient.invalidateQueries({queryKey: promptKeys.tests()});
         },
     });
 };
@@ -197,6 +199,15 @@ export const useDeleteTestResult = () => {
 /* ----------------------------
    Optimization Queries & Mutations
    ---------------------------- */
+type GetOptimizationStatusQueryOptions = Omit<
+    UseQueryOptions<
+        BaseResponse<OptimizationQueueEntry>,
+        Error,
+        BaseResponse<OptimizationQueueEntry>,
+        ReturnType<typeof promptKeys.optimizationStatus>
+    >,
+    'queryKey' | 'queryFn'
+>;
 
 /**
  * Mutation to request an asynchronous prompt optimization
@@ -206,12 +217,12 @@ export const useRequestOptimization = () => {
     return useMutation({
         mutationFn: ({request, opts}: { request: PromptOptimizationRequest; opts?: ApiRequestOptions }) =>
             promptsService.requestOptimization(request, opts),
-        onSuccess: (data, variables) => {
+        onSuccess: async (_data, variables) => {
             // Invalidate pending list and all history lists
-            queryClient.invalidateQueries({queryKey: promptKeys.optimizationsPending()});
-            queryClient.invalidateQueries({queryKey: promptKeys.optimizationHistoryUser(0, 0).slice(0, 3)});
+            await queryClient.invalidateQueries({queryKey: promptKeys.optimizationsPending()});
+            await queryClient.invalidateQueries({queryKey: promptKeys.optimizationHistoryUser(0, 0).slice(0, 3)});
             if (variables.request.promptId) {
-                queryClient.invalidateQueries({queryKey: promptKeys.optimizationHistoryPrompt(variables.request.promptId, 0, 0).slice(0, 3)});
+                await queryClient.invalidateQueries({queryKey: promptKeys.optimizationHistoryPrompt(variables.request.promptId, 0, 0).slice(0, 3)});
             }
         },
     });
@@ -223,13 +234,13 @@ export const useRequestOptimization = () => {
 export const useGetOptimizationStatus = (
     queueId: string,
     opts?: ApiRequestOptions,
-    queryOptions?: { enabled?: boolean; refetchInterval?: number | false }
+    queryOptions?: GetOptimizationStatusQueryOptions
 ) => {
     return useQuery({
         queryKey: promptKeys.optimizationStatus(queueId, opts),
         queryFn: () => promptsService.getOptimizationStatus(queueId, opts),
-        enabled: !!queueId && queryOptions?.enabled !== false,
-        refetchInterval: queryOptions?.refetchInterval, // Enable polling by setting this
+        enabled: queryOptions?.enabled !== false && !!queueId,
+        ...queryOptions,
     });
 };
 
@@ -240,7 +251,7 @@ export const useGetUserOptimizationHistory = (page = 0, size = 20, opts?: ApiReq
     return useQuery({
         queryKey: promptKeys.optimizationHistoryUser(page, size, opts),
         queryFn: () => promptsService.getUserOptimizationHistory(page, size, opts),
-        placeholderData: keepPreviousData, // v5 syntax
+        placeholderData: keepPreviousData,
     });
 };
 
@@ -254,7 +265,7 @@ export const useGetPromptOptimizationHistory = (promptId: string, page = 0, size
         queryKey: promptKeys.optimizationHistoryPrompt(promptId, page, size, opts),
         queryFn: () => promptsService.getPromptOptimizationHistory(promptId, page, size, opts),
         enabled: !!promptId && queryOptions?.enabled !== false,
-        placeholderData: keepPreviousData, // v5 syntax
+        placeholderData: keepPreviousData,
     });
 };
 
@@ -276,11 +287,11 @@ export const useRetryOptimization = () => {
     return useMutation({
         mutationFn: ({queueId, opts}: { queueId: string; opts?: ApiRequestOptions }) =>
             promptsService.retryOptimization(queueId, opts),
-        onSuccess: (data, variables) => {
+        onSuccess: async (_data, variables) => {
             // Invalidate the specific item's status and all history/pending lists
-            queryClient.invalidateQueries({queryKey: promptKeys.optimizationStatus(variables.queueId)});
-            queryClient.invalidateQueries({queryKey: promptKeys.optimizationsPending()});
-            queryClient.invalidateQueries({queryKey: promptKeys.optimizationHistoryUser(0, 0).slice(0, 3)});
+            await queryClient.invalidateQueries({queryKey: promptKeys.optimizationStatus(variables.queueId)});
+            await queryClient.invalidateQueries({queryKey: promptKeys.optimizationsPending()});
+            await queryClient.invalidateQueries({queryKey: promptKeys.optimizationHistoryUser(0, 0).slice(0, 3)});
         },
     });
 };
@@ -293,12 +304,12 @@ export const useCancelOptimization = () => {
     return useMutation({
         mutationFn: ({queueId, opts}: { queueId: string; opts?: ApiRequestOptions }) =>
             promptsService.cancelOptimization(queueId, opts),
-        onSuccess: (data, variables) => {
+        onSuccess: async (_data, variables) => {
             queryClient.removeQueries({queryKey: promptKeys.optimizationStatus(variables.queueId)});
             // Invalidate history and pending lists
-            queryClient.invalidateQueries({queryKey: promptKeys.optimizationsPending()});
-            queryClient.invalidateQueries({queryKey: promptKeys.optimizationHistoryUser(0, 0).slice(0, 3)});
-            queryClient.invalidateQueries({queryKey: promptKeys.optimizationHistoryPrompt('', 0, 0).slice(0, 2)});
+            await queryClient.invalidateQueries({queryKey: promptKeys.optimizationsPending()});
+            await queryClient.invalidateQueries({queryKey: promptKeys.optimizationHistoryUser(0, 0).slice(0, 3)});
+            await queryClient.invalidateQueries({queryKey: promptKeys.optimizationHistoryPrompt('', 0, 0).slice(0, 2)});
         },
     });
 };
