@@ -23,6 +23,11 @@ import type {
 } from '@/types/prompt.api';
 import {useCreateCollection, useGetMyCollections} from "@/hooks/queries/collection";
 import {CreateCollectionRequest} from "@/types/collection.api";
+import {ApplySuggestion} from "@/components/ui/ApplySuggestion";
+import {SkeletonLoader} from "@/components/ui/SkeletonLoader";
+import {toast, Toaster} from "sonner";
+import {CopyButton} from "@/components/ui/CopyButtonProps";
+import {PulsingDotsLoader} from "@/components/ui/PulsingDotsLoaderProps";
 
 interface Template {
     title: string;
@@ -113,6 +118,44 @@ const COLLECTION_NONE = '_NONE_';
 const COLLECTION_AUTO = '_AUTO_';
 const COLLECTION_NEW = '_NEW_';
 
+export type OptimizedPromptFields = {
+    title?: string;
+    description?: string;
+    instruction?: string;
+    context?: string;
+    inputExample?: string;
+    outputFormat?: string;
+    constraints?: string;
+    tags?: string;
+};
+
+const fieldMap: Record<string, keyof OptimizedPromptFields> = {
+    'Title': 'title',
+    'Description': 'description',
+    'Instruction': 'instruction',
+    'Context': 'context',
+    'Input Example': 'inputExample',
+    'Output Format': 'outputFormat',
+    'Constraints': 'constraints',
+    'Tags': 'tags',
+};
+
+function parseOptimizationOutput(rawOutput: string): OptimizedPromptFields {
+    const suggestions: OptimizedPromptFields = {};
+    const regex = /\*\*(.*?):\*\*\s*([\s\S]*?)(?=\n\n\*\*|$)/g;
+    let match;
+    while ((match = regex.exec(rawOutput)) !== null) {
+        const apiLabel = match[1].trim();
+        const content = match[2].trim();
+        const stateKey = fieldMap[apiLabel];
+        if (stateKey && content) {
+            suggestions[stateKey] = content;
+        }
+    }
+    return suggestions;
+}
+
+
 export default function CreatePromptPage() {
     const [form, setForm] = useState<PromptFormModel & { id?: string }>({
         id: undefined,
@@ -135,7 +178,7 @@ export default function CreatePromptPage() {
     const [model, setModel] = useState<PromptAiModel>('GPT_4O_MINI');
     const [temperature, setTemperature] = useState(0.4);
     const [maxTokens, setMaxTokens] = useState(8126);
-    const [saveFeedback, setSaveFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
 
     const [testResponse, setTestResponse] = useState<PromptTestResponse | null>(null);
     const [testError, setTestError] = useState<string | null>(null);
@@ -144,10 +187,11 @@ export default function CreatePromptPage() {
     const [optimizationQueue, setOptimizationQueue] = useState<OptimizationQueueEntry | null>(null);
     const [optimizationError, setOptimizationError] = useState<string | null>(null);
     const [pollingOptimizeId, setPollingOptimizeId] = useState<string | null>(null);
+    const [optimizedSuggestions, setOptimizedSuggestions] = useState<OptimizedPromptFields | null>(null);
 
     const [customCollectionName, setCustomCollectionName] = useState('');
 
-    // Initialize all the mutation hooks
+    // Mutation hooks
     const {mutateAsync: createTagsBatch, isPending: isSavingTags} = useCreateTagsBatch();
     const {mutateAsync: createPromptMutation, isPending: isSavingStandalone} = useCreatePrompt();
     const {
@@ -175,7 +219,7 @@ export default function CreatePromptPage() {
             refetchInterval: (query) => {
                 const data = query.state.data;
                 if (!data || !data.data) {
-                    return 2000; // continue polling with interval 2s
+                    return 2000;
                 }
                 const status = data.data.status;
                 if (status === 'COMPLETED' || status === 'FAILED') {
@@ -193,17 +237,13 @@ export default function CreatePromptPage() {
         pollingOptimizeId!,
         undefined,
         {
-            // Only poll if we have an ID
             enabled: !!pollingOptimizeId,
-
-            // Stop polling once we get a final status
             refetchInterval: (query) => {
                 const data = query.state.data;
-                if (!data || !data.data) return 3000; // Poll every 3s
-
+                if (!data || !data.data) return 3000;
                 const status = data.data.status;
                 if (status === 'COMPLETED' || status === 'FAILED') {
-                    return false; // Stop polling
+                    return false;
                 }
                 return 3000;
             },
@@ -216,34 +256,33 @@ export default function CreatePromptPage() {
     useEffect(() => {
         if (!pollingOptimizeResult || !pollingOptimizeResult.data) return;
 
-        const {status, errorMessage, output} = pollingOptimizeResult.data;
+        const queueEntry = pollingOptimizeResult.data;
+        const {status, errorMessage, output} = queueEntry;
 
-        if (status === 'COMPLETED') {
+        setOptimizationQueue(queueEntry);
+
+        if (status === 'COMPLETED' && output) {
             console.log("Polling: Optimization COMPLETED");
-            setOptimizationQueue(pollingOptimizeResult.data);
+            const parsedSuggestions = parseOptimizationOutput(output);
+            setOptimizedSuggestions(parsedSuggestions);
             setOptimizationError(null);
             setPollingOptimizeId(null);
-
-            // if (output) {
-            //   setForm(prev => ({ ...prev, instruction: output }));
-            // }
-
+            toast.success('Optimization complete - review suggestions below');
+        } else if (status === 'COMPLETED') {
+            console.log("Polling: Optimization COMPLETED but no output received.");
+            setOptimizedSuggestions(null);
+            setOptimizationError(null);
+            setPollingOptimizeId(null);
         } else if (status === 'FAILED') {
             console.error("Polling: Optimization FAILED");
-            setOptimizationError(errorMessage || "Optimization failed during processing.");
-            setOptimizationQueue(pollingOptimizeResult.data);
+            setOptimizationError(errorMessage || "Optimization failed.");
+            setOptimizedSuggestions(null);
             setPollingOptimizeId(null);
+            toast.error(errorMessage || "Optimization failed.");
         }
-            // If PENDING or PROCESSING, just update the queue state
-        // so the user sees the status change, i will update for better UI later
-        else {
-            setOptimizationQueue(pollingOptimizeResult.data);
-        }
-
     }, [pollingOptimizeResult]);
 
     useEffect(() => {
-        // We only care about updates from the poller
         if (!pollingResult || !pollingResult.data) return;
 
         const {status, errorMessage} = pollingResult.data;
@@ -253,6 +292,7 @@ export default function CreatePromptPage() {
             setTestResponse(pollingResult.data);
             setTestError(null);
             setPollingUsageId(null);
+            toast.success('Test completed successfully'); // <-- ADDED
         }
 
         if (status === 'FAILED') {
@@ -260,8 +300,8 @@ export default function CreatePromptPage() {
             setTestError(errorMessage || "Test failed during processing.");
             setTestResponse(null);
             setPollingUsageId(null);
+            toast.error(errorMessage || "Test failed."); // Added error toast
         }
-
     }, [pollingResult]);
 
     const handleFieldChange = <K extends keyof (PromptFormModel & { id?: string })>(
@@ -304,10 +344,9 @@ export default function CreatePromptPage() {
         const additions: LocalUploadedFile[] = [];
         Array.from(files).forEach(file => {
             if (file.size > 10 * 1024 * 1024) {
-                alert('File size must be less than 10MB');
+                toast.error('File size must be less than 10MB'); // Use toast
                 return;
             }
-
             const id = typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${file.name}`;
             additions.push({
                 id,
@@ -317,9 +356,7 @@ export default function CreatePromptPage() {
                 file,
             });
         });
-
         if (!additions.length) return;
-
         setLocalFiles(prev => [...prev, ...additions]);
         const normalizedAttachments = additions.map(({file, ...rest}) => rest as PromptUploadedFile);
         setForm(prev => ({
@@ -349,44 +386,23 @@ export default function CreatePromptPage() {
             outputFormat: template.outputFormat,
             constraints: template.constraints,
         }));
+
+        toast.success(`Template "${template.title}" applied`); // <-- ADDED
     };
 
     const generatePromptReview = () => {
         const review: string[] = [];
-
-        if (form.title) {
-            review.push(`**Title:**\n${form.title}`);
-        }
-
-        if (form.description) {
-            review.push(`**Description:**\n${form.description}`);
-        }
-
-        if (form.instruction) {
-            review.push(`**Instruction:**\n${form.instruction}`);
-        }
-
-        if (form.context) {
-            review.push(`**Context:**\n${form.context}`);
-        }
-
-        if (form.inputExample) {
-            review.push(`**Input Example:**\n${form.inputExample}`);
-        }
-
-        if (form.outputFormat) {
-            review.push(`**Output Format:**\n${form.outputFormat}`);
-        }
-
-        if (form.constraints) {
-            review.push(`**Constraints:**\n${form.constraints}`);
-        }
-
+        if (form.title) review.push(`**Title:**\n${form.title}`);
+        if (form.description) review.push(`**Description:**\n${form.description}`);
+        if (form.instruction) review.push(`**Instruction:**\n${form.instruction}`);
+        if (form.context) review.push(`**Context:**\n${form.context}`);
+        if (form.inputExample) review.push(`**Input Example:**\n${form.inputExample}`);
+        if (form.outputFormat) review.push(`**Output Format:**\n${form.outputFormat}`);
+        if (form.constraints) review.push(`**Constraints:**\n${form.constraints}`);
         if (form.tags.length) {
             const tagsSummary = form.tags.map(tag => `${tag.type}: ${tag.value}`).join(', ');
             review.push(`**Tags:**\n${tagsSummary}`);
         }
-
         return review.join('\n\n');
     };
 
@@ -403,7 +419,6 @@ export default function CreatePromptPage() {
             const trimmed = value?.trim();
             return trimmed ? trimmed : undefined;
         };
-
         return {
             ...form,
             description: sanitize(form.description),
@@ -417,19 +432,19 @@ export default function CreatePromptPage() {
 
     const savePrompt = async (): Promise<string | undefined> => {
         if (!form.title.trim()) {
-            setSaveFeedback({type: 'error', message: 'Title is required.'});
-            return undefined;
-        }
-        if (form.instruction.trim().length < 20) {
-            setSaveFeedback({type: 'error', message: 'Instruction must be at least 20 characters long.'});
-            return undefined;
-        }
-        if (form.collection === COLLECTION_NEW && !customCollectionName.trim()) {
-            setSaveFeedback({type: 'error', message: 'Please enter a name for your new collection.'});
-            return undefined;
+            toast.error('Title is required');
+            return;
         }
 
-        setSaveFeedback(null);
+        if (form.instruction.trim().length < 20) {
+            toast.error('Instruction must be at least 20 characters long.');
+            return;
+        }
+
+        if (form.collection === COLLECTION_NEW && !customCollectionName.trim()) {
+            toast.error('Please enter a name for your new collection.');
+            return;
+        }
 
         try {
             const sanitizedForm = sanitizeForm();
@@ -440,10 +455,7 @@ export default function CreatePromptPage() {
             if (sanitizedForm.tags.length > 0) {
                 const tagResult = await createTagsBatch({tags: sanitizedForm.tags});
                 if (tagResult.error || !tagResult.data) {
-                    setSaveFeedback({
-                        type: 'error',
-                        message: tagResult.error?.messages.join(', ') || 'Failed to create tags.'
-                    });
+                    toast.error(tagResult.error?.messages.join(', ') || 'Failed to create tags.');
                     return undefined;
                 }
                 tagIds = tagResult.data.map((tag) => tag.id);
@@ -454,7 +466,7 @@ export default function CreatePromptPage() {
             let finalCollectionId: string | null = '';
 
             // standalone prompt
-            if (collectionChoice === COLLECTION_NONE) {
+            if (!collectionChoice || collectionChoice === COLLECTION_NONE) {
                 const payload: PromptCreateRequest = {
                     ...restOfForm,
                     tagIds: tagIds,
@@ -477,10 +489,7 @@ export default function CreatePromptPage() {
                     const collectionResult = await createCollectionMutation({payload: collectionPayload});
 
                     if (collectionResult.error || !collectionResult.data) {
-                        setSaveFeedback({
-                            type: 'error',
-                            message: collectionResult.error?.messages.join(', ') || 'Failed to create collection.'
-                        });
+                        toast.error(collectionResult.error?.messages.join(', ') || 'Failed to create collection.');
                         return undefined;
                     }
                     finalCollectionId = collectionResult.data.id;
@@ -501,7 +510,7 @@ export default function CreatePromptPage() {
             }
 
             if (promptResult.error) {
-                setSaveFeedback({type: 'error', message: promptResult.error.messages.join(', ')});
+                toast.error(promptResult.error.messages.join(', '));
                 return undefined;
             }
 
@@ -541,18 +550,15 @@ export default function CreatePromptPage() {
                     setCustomCollectionName('');
                 }
 
-                setSaveFeedback({type: 'success', message: 'Prompt saved successfully.'});
+                toast.success('Prompt saved successfully.');
                 return saved.id;
             }
 
-            setSaveFeedback({type: 'error', message: 'Unexpected response from server.'});
+            toast.error('Unexpected response from server.');
             return undefined;
 
         } catch (error) {
-            setSaveFeedback({
-                type: 'error',
-                message: error instanceof Error ? error.message : 'Failed to save prompt.'
-            });
+            toast.error(error instanceof Error ? error.message : 'Failed to save prompt.');
             return undefined;
         }
     };
@@ -573,7 +579,7 @@ export default function CreatePromptPage() {
             promptId = await savePrompt();
             if (!promptId) {
                 console.error("handleTest: Save failed.");
-                setTestError('Please save the prompt before running a test.');
+                toast.error('Please save the prompt before running a test.');
                 return;
             }
         }
@@ -589,23 +595,17 @@ export default function CreatePromptPage() {
                     topP: 0.8
                 }
             };
-
             console.log("handleTest: Calling runTestMutation (POST /prompts/test)", testPayload);
             const result = await runTestMutation(testPayload);
-
             console.log("handleTest: Initial response:", result);
-
             if (result.error || !result.data) {
                 console.error("handleTest: Initial POST failed", result.error);
                 setTestError(result.error?.messages.join(', ') || "Failed to start test.");
                 setTestResponse(null);
                 return;
             }
-
             const testData = result.data;
             console.log(testData);
-
-            // handle async logic from backend
             if (testData.status === 'COMPLETED') {
                 console.log("handleTest: Test was synchronous, COMPLETED immediately.");
                 setTestResponse(testData);
@@ -619,7 +619,6 @@ export default function CreatePromptPage() {
                 setTestError(testData.errorMessage || "Test failed immediately.");
                 setTestResponse(null);
             }
-
         } catch (error) {
             console.error("handleTest: A critical exception was caught:", error);
             setTestError(error instanceof Error ? error.message : 'Failed to run test.');
@@ -630,18 +629,17 @@ export default function CreatePromptPage() {
     const handleOptimize = async () => {
         setOptimizationError(null);
         setOptimizationQueue(null);
-        setPollingOptimizeId(null); // Clear previous polling
+        setPollingOptimizeId(null);
 
         let promptId = form.id;
         if (!promptId) {
             promptId = await savePrompt();
             if (!promptId) {
-                setOptimizationError('Please save the prompt before requesting optimization.');
+                toast.error('Please save the prompt before requesting optimization.');
                 return;
             }
         }
 
-        // isOptimizing is handled by hook
         try {
             const optimizationPayload = {
                 request: {
@@ -652,37 +650,27 @@ export default function CreatePromptPage() {
                     maxTokens,
                 }
             };
-
             console.log("handleOptimize: Calling requestOptimizationMutation", optimizationPayload);
             const result = await requestOptimizationMutation(optimizationPayload);
-
             console.log("handleOptimize: Initial response:", result);
-
             if (result.error || !result.data) {
                 console.error("handleOptimize: Initial POST failed", result.error);
                 setOptimizationError(result.error?.messages.join(', ') || 'Failed to start optimization.');
                 setOptimizationQueue(null);
                 return;
             }
-
             const queueEntry = result.data;
-            setOptimizationQueue(queueEntry); // Set the initial response (e.g., PENDING)
-
-            // --- ASYNC LOGIC ---
+            setOptimizationQueue(queueEntry);
             if (queueEntry.status === 'PENDING' || queueEntry.status === 'PROCESSING') {
-                // It's async. Start polling.
                 console.log(`handleOptimize: Optimization is ${queueEntry.status}. Starting polling with queueId: ${queueEntry.id}`);
                 setPollingOptimizeId(queueEntry.id);
             } else if (queueEntry.status === 'COMPLETED') {
-                // It finished synchronously (unlikely, but good to handle)
                 console.log("handleOptimize: Optimization was synchronous, COMPLETED immediately.");
                 setOptimizationError(null);
             } else if (queueEntry.status === 'FAILED') {
-                // It failed immediately
                 console.error("handleOptimize: Optimization FAILED immediately.", queueEntry.errorMessage);
                 setOptimizationError(queueEntry.errorMessage || "Optimization failed immediately.");
             }
-
         } catch (error) {
             console.error("handleOptimize: A critical exception was caught:", error);
             setOptimizationError(error instanceof Error ? error.message : 'Failed to request optimization.');
@@ -692,12 +680,12 @@ export default function CreatePromptPage() {
 
     return (
         <ProtectedRoute>
+            <Toaster position="top-right" richColors/>
             <div className="min-h-full bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-                {/* Header */}
+                {/* ... (Header) ... */}
                 <header className="backdrop-blur-sm bg-white/90 border-b border-gray-200 sticky top-0 z-40">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex justify-between items-center h-16">
-                            {/* ... (Breadcrumb) ... */}
                             <nav className="flex items-center space-x-2 text-sm">
                                 <a href="#" className="text-gray-500 hover:text-gray-700">Dashboard</a>
                                 <span className="text-gray-400">/</span>
@@ -705,8 +693,6 @@ export default function CreatePromptPage() {
                                 <span className="text-gray-400">/</span>
                                 <span className="text-gray-900 font-medium">Create New</span>
                             </nav>
-
-                            {/* ... (Teacher Info) ... */}
                             <div className="flex items-center space-x-4">
                                 <div className="flex items-center space-x-3">
                                     <img
@@ -736,28 +722,26 @@ export default function CreatePromptPage() {
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                        {/* Main Content */}
                         <main className="lg:col-span-3">
                             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                                 <h1 className="text-2xl font-bold text-gray-900 mb-6">Create New Prompt</h1>
-                                {/* ... (SaveFeedback) ... */}
-                                {saveFeedback && (
-                                    <div
-                                        className={`mb-6 rounded-lg border px-4 py-3 text-sm ${
-                                            saveFeedback.type === 'success'
-                                                ? 'border-green-200 bg-green-50 text-green-700'
-                                                : 'border-red-200 bg-red-50 text-red-700'
-                                        }`}
-                                    >
-                                        {saveFeedback.message}
-                                    </div>
-                                )}
-
                                 <form className="space-y-6" onSubmit={(event) => event.preventDefault()}>
-                                    {/* ... (Title) ... */}
                                     <div>
-                                        <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">Title
-                                            *</label>
+                                        <div className="flex items-center justify-between mb-2">
+                                            <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                                                Title *
+                                            </label>
+                                            <CopyButton text={form.title} label="Title"/>
+                                        </div>
+                                        <ApplySuggestion
+                                            suggestion={optimizedSuggestions?.title}
+                                            onApply={() => {
+                                                if (optimizedSuggestions?.title) {
+                                                    handleFieldChange('title', optimizedSuggestions.title);
+                                                    setOptimizedSuggestions(s => ({...s, title: undefined}));
+                                                }
+                                            }}
+                                        />
                                         <input
                                             type="text"
                                             id="title"
@@ -771,10 +755,23 @@ export default function CreatePromptPage() {
                                         <p className="text-xs text-gray-500 mt-1">Maximum 255 characters</p>
                                     </div>
 
-                                    {/* ... (Description) ... */}
                                     <div>
-                                        <label htmlFor="description"
-                                               className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                                        <div className="flex items-center justify-between mb-2">
+                                            <label htmlFor="description"
+                                                   className="block text-sm font-medium text-gray-700">
+                                                Description
+                                            </label>
+                                            <CopyButton text={form.description || ''} label="Description"/>
+                                        </div>
+                                        <ApplySuggestion
+                                            suggestion={optimizedSuggestions?.description}
+                                            onApply={() => {
+                                                if (optimizedSuggestions?.description) {
+                                                    handleFieldChange('description', optimizedSuggestions.description);
+                                                    setOptimizedSuggestions(s => ({...s, description: undefined}));
+                                                }
+                                            }}
+                                        />
                                         <textarea
                                             id="description"
                                             value={form.description ?? ''}
@@ -785,26 +782,39 @@ export default function CreatePromptPage() {
                                         />
                                     </div>
 
-                                    {/* ... (Instruction) ... */}
                                     <div>
                                         <div className="flex items-center justify-between mb-2">
                                             <label htmlFor="instruction"
-                                                   className="block text-sm font-medium text-gray-700">Instruction
-                                                *</label>
-                                            <button
-                                                type="button"
-                                                onClick={handleOptimize}
-                                                disabled={isOptimizing}
-                                                className="inline-flex items-center px-2 py-1 text-xs font-medium text-purple-600 bg-purple-50 rounded-md hover:bg-purple-100 border border-purple-200 disabled:opacity-50"
-                                            >
-                                                <svg className="w-3 h3 mr-1" fill="none" stroke="currentColor"
-                                                     viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                                          d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-                                                </svg>
-                                                {isOptimizing ? 'Analyzing...' : 'Optimize'}
-                                            </button>
+                                                   className="block text-sm font-medium text-gray-700">
+                                                Instruction *
+                                            </label>
+                                            <div className='flex items-center space-x-1'>
+                                                <CopyButton text={form.instruction} label="Instruction"/>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleOptimize}
+                                                    disabled={isOptimizing}
+                                                    className="inline-flex items-center px-2 py-1 text-xs font-medium text-purple-600 bg-purple-50 rounded-md hover:bg-purple-100 border border-purple-200 disabled:opacity-50"
+                                                >
+                                                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor"
+                                                         viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round"
+                                                              strokeWidth="2"
+                                                              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                                    </svg>
+                                                    {isOptimizing ? 'Analyzing...' : 'Optimize'}
+                                                </button>
+                                            </div>
                                         </div>
+                                        <ApplySuggestion
+                                            suggestion={optimizedSuggestions?.instruction}
+                                            onApply={() => {
+                                                if (optimizedSuggestions?.instruction) {
+                                                    handleFieldChange('instruction', optimizedSuggestions.instruction);
+                                                    setOptimizedSuggestions(s => ({...s, instruction: undefined}));
+                                                }
+                                            }}
+                                        />
                                         <textarea
                                             id="instruction"
                                             value={form.instruction}
@@ -817,10 +827,23 @@ export default function CreatePromptPage() {
                                         <p className="text-xs text-gray-500 mt-1">Minimum 20 characters required</p>
                                     </div>
 
-                                    {/* ... (Context, Input Example, Output Format, Constraints) ... */}
                                     <div>
-                                        <label htmlFor="context"
-                                               className="block text-sm font-medium text-gray-700 mb-2">Context</label>
+                                        <div className="flex items-center justify-between mb-2">
+                                            <label htmlFor="context"
+                                                   className="block text-sm font-medium text-gray-700">
+                                                Context
+                                            </label>
+                                            <CopyButton text={form.context || ''} label="Context"/>
+                                        </div>
+                                        <ApplySuggestion
+                                            suggestion={optimizedSuggestions?.context}
+                                            onApply={() => {
+                                                if (optimizedSuggestions?.context) {
+                                                    handleFieldChange('context', optimizedSuggestions.context);
+                                                    setOptimizedSuggestions(s => ({...s, context: undefined}));
+                                                }
+                                            }}
+                                        />
                                         <textarea
                                             id="context"
                                             value={form.context ?? ''}
@@ -831,9 +854,22 @@ export default function CreatePromptPage() {
                                         />
                                     </div>
                                     <div>
-                                        <label htmlFor="inputExample"
-                                               className="block text-sm font-medium text-gray-700 mb-2">Input
-                                            Example</label>
+                                        <div className="flex items-center justify-between mb-2">
+                                            <label htmlFor="inputExample"
+                                                   className="block text-sm font-medium text-gray-700">
+                                                Input Example
+                                            </label>
+                                            <CopyButton text={form.inputExample || ''} label="Input Example"/>
+                                        </div>
+                                        <ApplySuggestion
+                                            suggestion={optimizedSuggestions?.inputExample}
+                                            onApply={() => {
+                                                if (optimizedSuggestions?.inputExample) {
+                                                    handleFieldChange('inputExample', optimizedSuggestions.inputExample);
+                                                    setOptimizedSuggestions(s => ({...s, inputExample: undefined}));
+                                                }
+                                            }}
+                                        />
                                         <textarea
                                             id="inputExample"
                                             value={form.inputExample ?? ''}
@@ -844,9 +880,22 @@ export default function CreatePromptPage() {
                                         />
                                     </div>
                                     <div>
-                                        <label htmlFor="outputFormat"
-                                               className="block text-sm font-medium text-gray-700 mb-2">Output
-                                            Format</label>
+                                        <div className="flex items-center justify-between mb-2">
+                                            <label htmlFor="outputFormat"
+                                                   className="block text-sm font-medium text-gray-700">
+                                                Output Format
+                                            </label>
+                                            <CopyButton text={form.outputFormat || ''} label="Output Format"/>
+                                        </div>
+                                        <ApplySuggestion
+                                            suggestion={optimizedSuggestions?.outputFormat}
+                                            onApply={() => {
+                                                if (optimizedSuggestions?.outputFormat) {
+                                                    handleFieldChange('outputFormat', optimizedSuggestions.outputFormat);
+                                                    setOptimizedSuggestions(s => ({...s, outputFormat: undefined}));
+                                                }
+                                            }}
+                                        />
                                         <textarea
                                             id="outputFormat"
                                             value={form.outputFormat ?? ''}
@@ -857,8 +906,22 @@ export default function CreatePromptPage() {
                                         />
                                     </div>
                                     <div>
-                                        <label htmlFor="constraints"
-                                               className="block text-sm font-medium text-gray-700 mb-2">Constraints</label>
+                                        <div className="flex items-center justify-between mb-2">
+                                            <label htmlFor="constraints"
+                                                   className="block text-sm font-medium text-gray-700">
+                                                Constraints
+                                            </label>
+                                            <CopyButton text={form.constraints || ''} label="Constraints"/>
+                                        </div>
+                                        <ApplySuggestion
+                                            suggestion={optimizedSuggestions?.constraints}
+                                            onApply={() => {
+                                                if (optimizedSuggestions?.constraints) {
+                                                    handleFieldChange('constraints', optimizedSuggestions.constraints);
+                                                    setOptimizedSuggestions(s => ({...s, constraints: undefined}));
+                                                }
+                                            }}
+                                        />
                                         <textarea
                                             id="constraints"
                                             value={form.constraints ?? ''}
@@ -877,19 +940,21 @@ export default function CreatePromptPage() {
                                                 {form.tags.map((tag, index) => (
                                                     <span key={`${tag.type}-${tag.value}-${index}`}
                                                           className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          <span className="text-blue-600 mr-1">{tag.type}:</span>
+                                                        <span className="text-blue-600 mr-1">{tag.type}:</span>
                                                         {tag.value}
                                                         <button
                                                             type="button"
                                                             onClick={() => removeTag(index)}
                                                             className="ml-2 text-blue-600 hover:text-blue-800"
                                                         >
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                    d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                          </button>
-                        </span>
+                                                            <svg className="w-3 h-3" fill="none" stroke="currentColor"
+                                                                 viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round"
+                                                                      strokeWidth="2"
+                                                                      d="M6 18L18 6M6 6l12 12"></path>
+                                                            </svg>
+                                                        </button>
+                                                    </span>
                                                 ))}
                                             </div>
                                             <div className="flex space-x-2">
@@ -946,17 +1011,6 @@ export default function CreatePromptPage() {
                                                     />
                                                     <span className="ml-2 text-sm text-gray-700">Private</span>
                                                 </label>
-                                                {/*<label className="flex items-center">*/}
-                                                {/*    <input*/}
-                                                {/*        type="radio"*/}
-                                                {/*        name="visibility"*/}
-                                                {/*        value="group"*/}
-                                                {/*        checked={form.visibility === 'group'}*/}
-                                                {/*        onChange={(e) => handleFieldChange('visibility', e.target.value as PromptFormModel['visibility'])}*/}
-                                                {/*        className="text-blue-600 focus:ring-blue-500"*/}
-                                                {/*    />*/}
-                                                {/*    <span className="ml-2 text-sm text-gray-700">Group</span>*/}
-                                                {/*</label>*/}
                                                 <label className="flex items-center">
                                                     <input
                                                         type="radio"
@@ -979,18 +1033,14 @@ export default function CreatePromptPage() {
                                                 <option value={COLLECTION_NONE}>Do not add to collection</option>
                                                 <option value={COLLECTION_AUTO}>Auto-create new collection</option>
                                                 <option value={COLLECTION_NEW}>Create new collection...</option>
-
-                                                {/* --- THIS IS THE CRITICAL JSX FIX --- */}
                                                 {isLoadingCollections &&
                                                     <option disabled>Loading collections...</option>}
                                                 {myCollections?.data?.content.map(coll => (
-                                                    <option key={coll.id} value={coll.id}> {/* <-- VALUE IS ID */}
+                                                    <option key={coll.id} value={coll.id}>
                                                         {coll.name}
                                                     </option>
                                                 ))}
                                             </select>
-
-                                            {/* --- (Conditional Input, unchanged) --- */}
                                             {form.collection === COLLECTION_NEW && (
                                                 <div className="pl-2">
                                                     <label htmlFor="custom-collection-name"
@@ -1070,7 +1120,7 @@ export default function CreatePromptPage() {
                                         </div>
                                     </div>
 
-                                    {/* ... (AI Suggestions) ... */}
+                                    {/* PulsingDotsLoader */}
                                     <div
                                         className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-200">
                                         <div className="flex items-center justify-between">
@@ -1094,36 +1144,28 @@ export default function CreatePromptPage() {
                                         </div>
                                         <p className="text-xs text-purple-600 mt-2">Get AI suggestions to improve your
                                             prompt&#39;s effectiveness</p>
-                                        {optimizationQueue && (
-                                            <div className="text-xs text-purple-600 mt-2">
-                                                <p>
-                                                    Status: <span
-                                                    className="font-medium">{optimizationQueue.status}</span>
-                                                </p>
-                                                {/* Optionally show the new output once completed */}
-                                                {optimizationQueue.status === 'COMPLETED' && optimizationQueue.output && (
-                                                    <div className="mt-2 p-2 bg-white rounded border border-purple-100">
-                                                        <p className="font-medium text-purple-800">Suggestion:</p>
-                                                        <p className="whitespace-pre-wrap">{optimizationQueue.output}</p>
-                                                        <button
-                                                            // onClick={() => setForm(prev => ({ ...prev, instruction: optimizationQueue.output! }))}
-                                                            className="text-xs text-blue-600 hover:text-blue-700 mt-1"
-                                                        >
-                                                            Apply to Instruction
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                        {optimizationError && (
-                                            <p className="text-xs text-red-600 mt-2">{optimizationError}</p>
-                                        )}
+                                        <div className="mt-2">
+                                            {isOptimizing && !optimizationQueue ? (
+                                                <PulsingDotsLoader text="Optimizing prompt"/>
+                                            ) : (
+                                                <>
+                                                    {optimizationQueue && (
+                                                        <p className="text-xs text-purple-600">
+                                                            Status: <span
+                                                            className="font-medium">{optimizationQueue.status}</span>
+                                                        </p>
+                                                    )}
+                                                    {optimizationError && (
+                                                        <p className="text-xs text-red-600 mt-2">{optimizationError}</p>
+                                                    )}
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
                                 </form>
                             </div>
                         </main>
 
-                        {/* ... (Sidebar) ... */}
                         <aside className="lg:col-span-1">
                             <div
                                 className="bg-white rounded-xl shadow-sm border border-gray-200 h-[calc(100vh-200px)] flex flex-col sticky top-24 transition-all duration-500 ease-in-out hover:shadow-lg">
@@ -1133,8 +1175,11 @@ export default function CreatePromptPage() {
                                 </div>
                                 <div className="flex-1 overflow-y-auto p-4 space-y-3 scroll-smooth">
                                     {Object.entries(TEMPLATES).map(([key, template]) => (
-                                        <div key={key}
-                                             className="p-3 border border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 hover:shadow-md hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300 ease-out group">
+                                        <div
+                                            key={key}
+                                            onClick={() => applyTemplate(key)}
+                                            className="p-3 border border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 hover:shadow-md hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300 ease-out group"
+                                        >
                                             <h4 className="text-sm font-medium text-gray-900 group-hover:text-blue-700 transition-colors duration-200">{template.title}</h4>
                                             <p className="text-xs text-gray-500 mt-1 group-hover:text-gray-600 transition-colors duration-200">
                                                 {key === 'essay' && 'Structure for academic essays'}
@@ -1146,12 +1191,6 @@ export default function CreatePromptPage() {
                                                 {key === 'history' && 'Historical event analysis'}
                                                 {key === 'business' && 'Business problem analysis'}
                                             </p>
-                                            <button
-                                                onClick={() => applyTemplate(key)}
-                                                className="mt-2 text-xs text-blue-600 hover:text-blue-700 hover:font-medium transition-all duration-200 opacity-0 group-hover:opacity-100 transform translate-y-1 group-hover:translate-y-0"
-                                            >
-                                                Apply
-                                            </button>
                                         </div>
                                     ))}
                                 </div>
@@ -1186,7 +1225,6 @@ export default function CreatePromptPage() {
                         <div className="flex items-center justify-center min-h-screen p-4">
                             <div
                                 className="bg-white rounded-xl shadow-xl max-w-6xl w-full max-h-[95vh] overflow-hidden">
-                                {/* ... (Modal Header) ... */}
                                 <div className="flex items-center justify-between p-6 border-b border-gray-200">
                                     <h2 className="text-xl font-semibold text-gray-900">Test Prompt</h2>
                                     <button
@@ -1201,45 +1239,69 @@ export default function CreatePromptPage() {
                                 </div>
                                 <div className="p-6 overflow-y-auto max-h-[calc(95vh-120px)]">
                                     <div className="space-y-6">
-                                        {/* ... (Prompt Review) ... */}
+
+                                        {/* CopyButton */}
                                         <div>
-                                            <h3 className="text-lg font-medium text-gray-900 mb-4">Prompt Review</h3>
+                                            <div className="flex items-center justify-between mb-4">
+                                                <h3 className="text-lg font-medium text-gray-900">Prompt Review</h3>
+                                                <CopyButton text={generatePromptReview()} label="Prompt Review"/>
+                                            </div>
                                             <div
                                                 className="bg-gray-50 rounded-lg p-4 min-h-[300px] max-h-[500px] overflow-y-auto border border-gray-200">
-                      <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">
-                        {generatePromptReview() || 'No prompt content to review yet. Fill in the instruction, context, input example, output format, and constraints fields to see the complete prompt review.'}
-                      </pre>
+                                                <pre
+                                                    className="text-sm text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">
+                                                    {generatePromptReview() || 'No prompt content to review yet. Fill in the instruction, context, input example, output format, and constraints fields to see the complete prompt review.'}
+                                                </pre>
                                             </div>
                                             <p className="text-xs text-gray-500 mt-2">This shows how your complete
                                                 prompt will be structured</p>
                                         </div>
 
-                                        {/* Test Settings and Results */}
                                         <div className="grid grid-cols-1 lg:grid-cols-6 gap-6">
-                                            {/* Results */}
                                             <div className="lg:col-span-4">
                                                 <h3 className="text-lg font-medium text-gray-900 mb-4">Results</h3>
                                                 <div
                                                     className="bg-gray-50 rounded-lg p-4 min-h-[400px] max-h-[600px] overflow-y-auto border border-gray-200">
                                                     {isTesting ? (
-                                                        <div className="text-gray-500 text-center">
-                                                            <p>Running test...</p>
-                                                            {isPollingTest && <p>(Polling for results...)</p>}
-                                                        </div>
+                                                        <SkeletonLoader lines={5} hasHeading={true}/>
                                                     ) : testError ? (
                                                         <p className="text-sm text-red-600 text-center">{testError}</p>
-                                                    ) : testResponse && testResponse.status === 'COMPLETED' ? ( // <-- Only show if COMPLETED
+                                                    ) : testResponse && (testResponse.status === 'PENDING' || testResponse.status === 'PROCESSING') ? (
+                                                        <PulsingDotsLoader
+                                                            text={`Test is ${testResponse.status.toLowerCase()}`}
+                                                            variant="blue"
+                                                        />
+                                                    ) : testResponse && testResponse.status === 'COMPLETED' ? (
                                                         <div className="space-y-3">
-                                                            {/* ... (success message) ... */}
+                                                            <div
+                                                                className="flex flex-wrap items-center gap-2 text-green-700">
+                                                                <svg className="w-5 h-5" fill="none"
+                                                                     stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round"
+                                                                          strokeWidth="2" d="M5 13l4 4L19 7"/>
+                                                                </svg>
+                                                                <span className="text-sm font-medium">Test completed successfully</span>
+                                                                <span
+                                                                    className="text-xs text-green-600">Model: {testResponse.aiModel}</span>
+                                                            </div>
                                                             <div
                                                                 className="bg-white rounded-lg p-4 border border-gray-200 space-y-2">
-                                                                <h4 className="text-sm font-medium text-gray-900">AI
-                                                                    Response</h4>
+                                                                <div className="flex items-center justify-between">
+                                                                    <h4 className="text-sm font-medium text-gray-900">AI
+                                                                        Response</h4>
+                                                                    <CopyButton text={testResponse.output || ''}
+                                                                                label="AI Response"/>
+                                                                </div>
                                                                 <p className="text-sm text-gray-700 whitespace-pre-wrap">
                                                                     {testResponse.output}
                                                                 </p>
                                                             </div>
-                                                            {/* ... (tokens, time) ... */}
+                                                            <div className="text-xs text-gray-500 space-y-1">
+                                                                <p>Tokens
+                                                                    used: {testResponse.tokensUsed.toLocaleString()} / {(testResponse.maxTokens ?? maxTokens).toLocaleString()}</p>
+                                                                <p>Response
+                                                                    time: {(testResponse.executionTimeMs / 1000).toFixed(2)}s</p>
+                                                            </div>
                                                         </div>
                                                     ) : testResponse && (testResponse.status === 'PENDING' || testResponse.status === 'PROCESSING') ? (
                                                         <p className="text-gray-500 text-center">
@@ -1252,12 +1314,11 @@ export default function CreatePromptPage() {
                                                 </div>
                                             </div>
 
-                                            {/* Settings */}
+                                            {/* ... (Settings) ... */}
                                             <div className="lg:col-span-2">
                                                 <h3 className="text-lg font-medium text-gray-900 mb-4">Test
                                                     Settings</h3>
                                                 <div className="space-y-3">
-                                                    {/* ... (Model select) ... */}
                                                     <div>
                                                         <label htmlFor="model"
                                                                className="block text-sm font-medium text-gray-700 mb-1">Model</label>
@@ -1272,7 +1333,6 @@ export default function CreatePromptPage() {
                                                             ))}
                                                         </select>
                                                     </div>
-                                                    {/* ... (Temperature) ... */}
                                                     <div>
                                                         <label htmlFor="temperature"
                                                                className="block text-sm font-medium text-gray-700 mb-1">
@@ -1288,7 +1348,6 @@ export default function CreatePromptPage() {
                                                             className="w-full"
                                                         />
                                                     </div>
-                                                    {/* ... (Max Tokens) ... */}
                                                     <div>
                                                         <label htmlFor="maxTokens"
                                                                className="block text-sm font-medium text-gray-700 mb-1">Max
@@ -1302,10 +1361,10 @@ export default function CreatePromptPage() {
                                                                     setMaxTokens(1);
                                                                     return;
                                                                 }
-                                                                setMaxTokens(Math.min(4000, Math.max(1, value)));
+                                                                setMaxTokens(Math.min(8192, Math.max(1, value))); // Increased max
                                                             }}
                                                             min="1"
-                                                            max="4000"
+                                                            max="8192"
                                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 hover:border-blue-400 hover:shadow-sm transition-all duration-200"
                                                         />
                                                     </div>
