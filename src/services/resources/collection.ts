@@ -1,13 +1,9 @@
 // src/services/resources/collection.ts
-import { apiClient } from '@/services/auth';
-import {
-    CreateCollectionRequest,
-    CreateCollectionResponse,
-    GetMyCollectionsResponse,
-} from '@/types/collection.api';
+import {apiClient} from '@/services/auth';
+import {CreateCollectionRequest, CreateCollectionResponse, GetMyCollectionsResponse,} from '@/types/collection.api';
 import ApiCall from '@/utils/apiCall';
-import { buildRequestConfig } from '@/services/resources/prompts';
-import { ApiRequestOptions } from '@/types/prompt.api';
+import {buildRequestConfig} from '@/services/resources/prompts';
+import {ApiRequestOptions} from '@/types/prompt.api';
 
 const BASE = '/api/collections';
 

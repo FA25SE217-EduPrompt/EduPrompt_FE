@@ -1,13 +1,8 @@
 // hooks/queries/collection.ts
-import {
-    useQuery,
-    useMutation,
-    useQueryClient,
-    keepPreviousData,
-} from '@tanstack/react-query';
-import { collectionService } from '@/services/resources/collection';
-import { CreateCollectionRequest } from '@/types/collection.api';
-import { ApiRequestOptions } from '@/types/prompt.api';
+import {keepPreviousData, useMutation, useQuery, useQueryClient,} from '@tanstack/react-query';
+import {collectionService} from '@/services/resources/collection';
+import {CreateCollectionRequest} from '@/types/collection.api';
+import {ApiRequestOptions} from '@/types/prompt.api';
 
 /* ----------------------------
    Query Keys
@@ -16,7 +11,7 @@ export const collectionKeys = {
     all: ['collections'] as const,
     lists: () => [...collectionKeys.all, 'list'] as const,
     myCollections: (page: number, size: number) =>
-        [...collectionKeys.lists(), 'my', { page, size }] as const,
+        [...collectionKeys.lists(), 'my', {page, size}] as const,
 };
 
 /* ----------------------------

@@ -10,8 +10,8 @@
 // }
 
 // src/types/collection.api.ts
-import { PaginatedResponse, BaseResponse } from '@/types/api';
-import { TagResponse } from '@/types/tag.api';
+import {BaseResponse, PaginatedResponse} from '@/types/api';
+import {TagResponse} from '@/types/tag.api';
 
 export type CollectionResponse = {
     id: string; // it should have an ID
