@@ -3,16 +3,24 @@
 import {useEffect, useState} from 'react';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import {useCreateTagsBatch} from '@/hooks/queries/tag';
-import {useCreatePrompt, useGetTestUsage, useRequestOptimization, useRunPromptTest} from '@/hooks/queries/prompt';
+import {
+    useCreatePrompt,
+    useCreatePromptWithCollection,
+    useGetTestUsage,
+    useRequestOptimization,
+    useRunPromptTest
+} from '@/hooks/queries/prompt';
 
 import type {
     OptimizationQueueEntry,
     PromptAiModel,
-    PromptCreateRequest,
+    PromptCreateRequest, PromptCreateWithCollectionRequest,
     PromptFormModel,
     PromptTestResponse,
     UploadedFile as PromptUploadedFile,
 } from '@/types/prompt.api';
+import {useCreateCollection, useGetMyCollections} from "@/hooks/queries/collection";
+import {CreateCollectionRequest} from "@/types/collection.api";
 
 interface Template {
     title: string;
@@ -99,6 +107,10 @@ const MODEL_OPTIONS: { label: string; value: PromptAiModel }[] = [
     {label: 'Gemini 2.5 Flash', value: 'GEMINI_2_5_FLASH'},
 ];
 
+const COLLECTION_NONE = '_NONE_';
+const COLLECTION_AUTO = '_AUTO_';
+const COLLECTION_NEW = '_NEW_';
+
 export default function CreatePromptPage() {
     const [form, setForm] = useState<PromptFormModel & { id?: string }>({
         id: undefined,
@@ -127,14 +139,24 @@ export default function CreatePromptPage() {
     const [optimizationQueue, setOptimizationQueue] = useState<OptimizationQueueEntry | null>(null);
     const [optimizationError, setOptimizationError] = useState<string | null>(null);
     const [pollingUsageId, setPollingUsageId] = useState<string | null>(null);
+    const [customCollectionName, setCustomCollectionName] = useState('');
 
     // Initialize all the mutation hooks
     const {mutateAsync: createTagsBatch, isPending: isSavingTags} = useCreateTagsBatch();
-    const {mutateAsync: createPromptMutation, isPending: isSavingPrompt} = useCreatePrompt();
+    const {mutateAsync: createPromptMutation, isPending: isSavingStandalone} = useCreatePrompt();
+    const { mutateAsync: createPromptWithCollectionMutation, isPending: isSavingToCollection } = useCreatePromptWithCollection();
+    const { mutateAsync: createCollectionMutation, isPending: isCreatingCollection } = useCreateCollection();
     const {mutateAsync: runTestMutation, isPending: isSubmittingTest} = useRunPromptTest();
     const {mutateAsync: requestOptimizationMutation, isPending: isOptimizing} = useRequestOptimization();
 
-    const isSaving = isSavingTags || isSavingPrompt;
+    const { data: myCollections, isLoading: isLoadingCollections } =
+        useGetMyCollections(0, 20);
+
+    const isSaving =
+        isSavingTags ||
+        isSavingStandalone ||
+        isSavingToCollection ||
+        isCreatingCollection;
 
     const {data: pollingResult, isLoading: isPollingTest} = useGetTestUsage(
         pollingUsageId!,
@@ -333,11 +355,15 @@ export default function CreatePromptPage() {
 
     const savePrompt = async (): Promise<string | undefined> => {
         if (!form.title.trim()) {
-            setSaveFeedback({type: 'error', message: 'Title is required.'});
+            setSaveFeedback({ type: 'error', message: 'Title is required.' });
             return undefined;
         }
         if (form.instruction.trim().length < 20) {
-            setSaveFeedback({type: 'error', message: 'Instruction must be at least 20 characters long.'});
+            setSaveFeedback({ type: 'error', message: 'Instruction must be at least 20 characters long.' });
+            return undefined;
+        }
+        if (form.collection === COLLECTION_NEW && !customCollectionName.trim()) {
+            setSaveFeedback({ type: 'error', message: 'Please enter a name for your new collection.' });
             return undefined;
         }
 
@@ -345,32 +371,69 @@ export default function CreatePromptPage() {
 
         try {
             const sanitizedForm = sanitizeForm();
+            const { tags, attachments, id, ...restOfForm } = sanitizedForm;
 
+            //create tags
             let tagIds: string[] = [];
             if (sanitizedForm.tags.length > 0) {
-                const tagResult = await createTagsBatch({tags: sanitizedForm.tags});
-
+                const tagResult = await createTagsBatch({ tags: sanitizedForm.tags });
                 if (tagResult.error || !tagResult.data) {
-                    const errorMsg = tagResult.error?.messages.join(', ') || 'Failed to create tags.';
-                    setSaveFeedback({type: 'error', message: errorMsg});
+                    setSaveFeedback({ type: 'error', message: tagResult.error?.messages.join(', ') || 'Failed to create tags.' });
                     return undefined;
                 }
-
-                tagIds = tagResult.data.map(tag => tag.id);
+                tagIds = tagResult.data.map((tag) => tag.id);
             }
 
-            // exclude 'tags', 'attachments', 'id' out of prompt payload
-            const {tags, attachments, id, ...restOfForm} = sanitizedForm;
+            const collectionChoice = sanitizedForm.collection;
+            let promptResult;
+            let finalCollectionId: string | null = '';
 
-            const createPromptPayload: PromptCreateRequest = {
-                ...restOfForm,
-                tagIds: tagIds,
-            };
+            // standalone prompt
+            if (collectionChoice === COLLECTION_NONE) {
+                const payload: PromptCreateRequest = {
+                    ...restOfForm,
+                    tagIds: tagIds,
+                };
+                promptResult = await createPromptMutation({ payload });
+            } else {
+                // user choose to create collection, either auto or custom
+                if (collectionChoice === COLLECTION_AUTO || collectionChoice === COLLECTION_NEW) {
+                    const collectionName =
+                        collectionChoice === COLLECTION_AUTO
+                            ? 'New Collection' // default name
+                            : customCollectionName.trim();
 
-            const promptResult = await createPromptMutation({req: createPromptPayload});
+                    const collectionPayload: CreateCollectionRequest = {
+                        name: collectionName,
+                        visibility: sanitizedForm.visibility,
+                        tags: tagIds, // use the same tag as the prompt
+                    };
+
+                    const collectionResult = await createCollectionMutation({ payload: collectionPayload });
+
+                    if (collectionResult.error || !collectionResult.data) {
+                        setSaveFeedback({ type: 'error', message: collectionResult.error?.messages.join(', ') || 'Failed to create collection.' });
+                        return undefined;
+                    }
+                    finalCollectionId = collectionResult.data.id;
+
+                } else {
+                    // user choose to add prompt to their existed collections
+                    if (collectionChoice != null) {
+                        finalCollectionId = collectionChoice;
+                    }
+                }
+
+                const payload: PromptCreateWithCollectionRequest = {
+                    ...restOfForm,
+                    tagIds: tagIds,
+                    collectionId: finalCollectionId,
+                };
+                promptResult = await createPromptWithCollectionMutation({ payload });
+            }
 
             if (promptResult.error) {
-                setSaveFeedback({type: 'error', message: promptResult.error.messages.join(', ')});
+                setSaveFeedback({ type: 'error', message: promptResult.error.messages.join(', ') });
                 return undefined;
             }
 
@@ -387,20 +450,38 @@ export default function CreatePromptPage() {
                     outputFormat: saved.outputFormat ?? '',
                     constraints: saved.constraints ?? '',
                     visibility: saved.visibility,
-                    collection: saved.collectionName ?? '',
+                    collection: saved.collectionName ? saved.collectionName : COLLECTION_NONE,
                     tags: saved.tags ?? [],
                 }));
-                setSaveFeedback({type: 'success', message: 'Prompt saved successfully.'});
+
+                setForm(prev => ({
+                    ...prev,
+                    id: saved.id,
+                    title: saved.title,
+                    description: saved.description ?? '',
+                    instruction: saved.instruction,
+                    context: saved.context ?? '',
+                    inputExample: saved.inputExample ?? '',
+                    outputFormat: saved.outputFormat ?? '',
+                    constraints: saved.constraints ?? '',
+                    visibility: saved.visibility,
+                    collection: promptResult?.data?.collectionName ? finalCollectionId : COLLECTION_NONE,
+                    tags: saved.tags ?? [],
+                }));
+
+                if (collectionChoice === COLLECTION_NEW) {
+                    setCustomCollectionName('');
+                }
+
+                setSaveFeedback({ type: 'success', message: 'Prompt saved successfully.' });
                 return saved.id;
             }
 
-            setSaveFeedback({type: 'error', message: 'Unexpected response from server.'});
+            setSaveFeedback({ type: 'error', message: 'Unexpected response from server.' });
             return undefined;
+
         } catch (error) {
-            setSaveFeedback({
-                type: 'error',
-                message: error instanceof Error ? error.message : 'Failed to save prompt.'
-            });
+            setSaveFeedback({ type: 'error', message: error instanceof Error ? error.message : 'Failed to save prompt.' });
             return undefined;
         }
     };
@@ -408,7 +489,6 @@ export default function CreatePromptPage() {
     const handleSave = async () => {
         await savePrompt();
     };
-
 
     const handleTest = async () => {
         console.log("handleTest: Starting test...");
@@ -512,7 +592,6 @@ export default function CreatePromptPage() {
         }
     };
 
-
     return (
         <ProtectedRoute>
             <div className="min-h-full bg-gradient-to-br from-blue-50 via-white to-indigo-50">
@@ -540,7 +619,7 @@ export default function CreatePromptPage() {
                                 <div className="flex items-center space-x-2">
                                     <button
                                         onClick={handleSave}
-                                        disabled={isSaving} // <-- Uses combined hook state
+                                        disabled={isSaving}
                                         className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60 disabled:cursor-not-allowed"
                                     >
                                         {isSaving ? 'Saving...' : 'Save Draft'}
@@ -617,10 +696,10 @@ export default function CreatePromptPage() {
                                             <button
                                                 type="button"
                                                 onClick={handleOptimize}
-                                                disabled={isOptimizing} // <-- Uses hook state
+                                                disabled={isOptimizing}
                                                 className="inline-flex items-center px-2 py-1 text-xs font-medium text-purple-600 bg-purple-50 rounded-md hover:bg-purple-100 border border-purple-200 disabled:opacity-50"
                                             >
-                                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor"
+                                                <svg className="w-3 h3 mr-1" fill="none" stroke="currentColor"
                                                      viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
                                                           d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
@@ -725,6 +804,8 @@ export default function CreatePromptPage() {
                                                     <option value="subject">Subject</option>
                                                     <option value="difficulty">Difficulty</option>
                                                     <option value="language">Language</option>
+                                                    <option value="grade">Grade</option>
+                                                    <option value="chapter">Chapter</option>
                                                 </select>
                                                 <input
                                                     type="text"
@@ -767,17 +848,17 @@ export default function CreatePromptPage() {
                                                     />
                                                     <span className="ml-2 text-sm text-gray-700">Private</span>
                                                 </label>
-                                                <label className="flex items-center">
-                                                    <input
-                                                        type="radio"
-                                                        name="visibility"
-                                                        value="group"
-                                                        checked={form.visibility === 'group'}
-                                                        onChange={(e) => handleFieldChange('visibility', e.target.value as PromptFormModel['visibility'])}
-                                                        className="text-blue-600 focus:ring-blue-500"
-                                                    />
-                                                    <span className="ml-2 text-sm text-gray-700">Group</span>
-                                                </label>
+                                                {/*<label className="flex items-center">*/}
+                                                {/*    <input*/}
+                                                {/*        type="radio"*/}
+                                                {/*        name="visibility"*/}
+                                                {/*        value="group"*/}
+                                                {/*        checked={form.visibility === 'group'}*/}
+                                                {/*        onChange={(e) => handleFieldChange('visibility', e.target.value as PromptFormModel['visibility'])}*/}
+                                                {/*        className="text-blue-600 focus:ring-blue-500"*/}
+                                                {/*    />*/}
+                                                {/*    <span className="ml-2 text-sm text-gray-700">Group</span>*/}
+                                                {/*</label>*/}
                                                 <label className="flex items-center">
                                                     <input
                                                         type="radio"
@@ -790,16 +871,42 @@ export default function CreatePromptPage() {
                                                     <span className="ml-2 text-sm text-gray-700">Public</span>
                                                 </label>
                                             </div>
+                                            <label htmlFor="collection-select" className="sr-only">Collection</label>
                                             <select
-                                                value={form.collection ?? ''}
+                                                id="collection-select"
+                                                value={form.collection ?? COLLECTION_NONE}
                                                 onChange={(e) => handleFieldChange('collection', e.target.value)}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400 hover:shadow-sm transition-all duration-200"
                                             >
-                                                <option value="">Auto-create private collection</option>
-                                                <option value="math-prompts">Math Prompts</option>
-                                                <option value="writing-exercises">Writing Exercises</option>
-                                                <option value="science-labs">Science Labs</option>
+                                                <option value={COLLECTION_NONE}>Do not add to collection</option>
+                                                <option value={COLLECTION_AUTO}>Auto-create new collection</option>
+                                                <option value={COLLECTION_NEW}>Create new collection...</option>
+
+                                                {/* --- THIS IS THE CRITICAL JSX FIX --- */}
+                                                {isLoadingCollections && <option disabled>Loading collections...</option>}
+                                                {myCollections?.data?.content.map(coll => (
+                                                    <option key={coll.id} value={coll.id}> {/* <-- VALUE IS ID */}
+                                                        {coll.name}
+                                                    </option>
+                                                ))}
                                             </select>
+
+                                            {/* --- (Conditional Input, unchanged) --- */}
+                                            {form.collection === COLLECTION_NEW && (
+                                                <div className="pl-2">
+                                                    <label htmlFor="custom-collection-name" className="block text-sm font-medium text-gray-700 mb-1">
+                                                        New Collection Name
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        id="custom-collection-name"
+                                                        value={customCollectionName}
+                                                        onChange={(e) => setCustomCollectionName(e.target.value)}
+                                                        placeholder="e.g., 'My Biology Prompts'"
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                    />
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 
@@ -879,7 +986,7 @@ export default function CreatePromptPage() {
                                             <button
                                                 type="button"
                                                 onClick={handleOptimize}
-                                                disabled={isOptimizing} // <-- Uses hook state
+                                                disabled={isOptimizing}
                                                 className="px-3 py-1 text-xs font-medium text-purple-600 bg-white rounded-md hover:bg-purple-50 border border-purple-200 disabled:opacity-60 disabled:cursor-not-allowed"
                                             >
                                                 {isOptimizing ? 'Submitting...' : 'Optimize Prompt'}
@@ -1089,7 +1196,7 @@ export default function CreatePromptPage() {
                                                     </div>
                                                     <button
                                                         type="button"
-                                                        disabled={isTesting || isSaving} // <-- Uses hook state
+                                                        disabled={isTesting || isSaving}
                                                         onClick={handleTest}
                                                         className="w-full px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60 disabled:cursor-not-allowed"
                                                     >
