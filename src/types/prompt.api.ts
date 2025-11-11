@@ -61,6 +61,19 @@ export type PromptCreateRequest = {
     tagIds: string[];
 };
 
+export type PromptCreateWithCollectionRequest = {
+    title: string;
+    description?: string;
+    instruction: string;
+    context?: string;
+    inputExample?: string;
+    outputFormat?: string;
+    constraints?: string;
+    visibility: "private" | "group" | "public";
+    collectionId: string;
+    tagIds: string[];
+};
+
 export type PromptResponse = {
     id: string;
     title: string;
@@ -72,6 +85,7 @@ export type PromptResponse = {
     constraints?: string;
     visibility: "private" | "group" | "public";
     collectionName?: string;
+    fullName?: string;
     tags: TagResponse[];
     // attachments: UploadedFile[];
     ownerName?: string;

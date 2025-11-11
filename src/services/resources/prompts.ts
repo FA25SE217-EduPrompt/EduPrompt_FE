@@ -6,7 +6,7 @@ import {
     ApiRequestOptions,
     OptimizationQueueEntry,
     PendingOptimizationItem,
-    PromptCreateRequest,
+    PromptCreateRequest, PromptCreateWithCollectionRequest,
     PromptFormModel,
     PromptOptimizationRequest,
     PromptResponse,
@@ -17,7 +17,7 @@ import {
 const BASE = "/api/prompts";
 
 // Helper to attach optional headers (idempotency, request id) to axios config
-function buildRequestConfig(opts?: ApiRequestOptions): { headers?: Record<string, string>; signal?: AbortSignal } {
+export function buildRequestConfig(opts?: ApiRequestOptions): { headers?: Record<string, string>; signal?: AbortSignal } {
     const headers: Record<string, string> = {};
     if (opts?.idempotencyKey) headers['X-Idempotency-Key'] = opts.idempotencyKey;
     if (opts?.requestId) headers['X-Request-Id'] = opts.requestId;
@@ -94,6 +94,22 @@ export const promptsService = {
                 data: payload,
                 ...buildRequestConfig(opts),
             })
+        );
+    },
+
+    async createPromptWithCollection(
+        payload: PromptCreateWithCollectionRequest,
+        opts?: ApiRequestOptions,
+    ): Promise<BaseResponse<PromptResponse>> {
+        const url = `${BASE}/collection`;
+        const method = 'post';
+        return ApiCall<PromptResponse>(() =>
+            apiClient.request({
+                url,
+                method,
+                data: payload,
+                ...buildRequestConfig(opts),
+            }),
         );
     },
 

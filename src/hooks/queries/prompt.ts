@@ -3,7 +3,7 @@ import {keepPreviousData, useMutation, useQuery, useQueryClient, UseQueryOptions
 import {promptsService} from '@/services/resources/prompts';
 import {
     ApiRequestOptions,
-    PromptCreateRequest,
+    PromptCreateRequest, PromptCreateWithCollectionRequest,
     PromptOptimizationRequest,
     PromptTestRequest,
     PromptTestResponse,
@@ -55,8 +55,26 @@ export const promptKeys = {
 export const useCreatePrompt = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({req, opts}: { req: PromptCreateRequest; opts?: ApiRequestOptions }) =>
-            promptsService.createPrompt(req, opts),
+        mutationFn: ({payload, opts,}: {
+            payload: PromptCreateRequest;
+            opts?: ApiRequestOptions;
+        }) => promptsService.createPrompt(payload, opts),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({queryKey: promptKeys.all});
+        },
+    });
+};
+
+/**
+ * Mutation to create a new prompt with a collection ID
+ */
+export const useCreatePromptWithCollection = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({payload, opts,}: {
+            payload: PromptCreateWithCollectionRequest;
+            opts?: ApiRequestOptions;
+        }) => promptsService.createPromptWithCollection(payload, opts),
         onSuccess: async () => {
             await queryClient.invalidateQueries({queryKey: promptKeys.all});
         },
