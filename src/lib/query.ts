@@ -2,7 +2,6 @@
 
 import {QueryClient} from "@tanstack/query-core";
 import {toast} from "sonner";
-import {ApiError} from "next/dist/server/api-utils";
 
 export const queryClient = new QueryClient({
     defaultOptions: {
@@ -35,6 +34,17 @@ export const queryClient = new QueryClient({
         },
     },
 });
+
+/**
+ * Custom error class for API errors
+ */
+export class ApiError extends Error {
+    constructor(public status: number, public data: unknown, message?: string) {
+        super(message || "API Error");
+        this.name = "ApiError";
+    }
+}
+
 /**
  * Global error handler for queries
  */
@@ -43,7 +53,7 @@ export const handleQueryError = (error: unknown) => {
 
     if (error instanceof ApiError) {
         // Handle specific API errors
-        switch (error.statusCode) {
+        switch (error.status) {
             case 401:
                 toast.error("Authentication required", {
                     description: "Please log in to continue",
