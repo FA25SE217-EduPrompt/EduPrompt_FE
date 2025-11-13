@@ -1,5 +1,5 @@
 import React from 'react';
-import Button, { ButtonProps } from '@/components/ui/Button';
+import Button, {ButtonProps} from '@/components/ui/Button';
 
 interface PricingCardProps {
     title: string;
@@ -53,7 +53,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
             <ul className="space-y-3 mb-8">
                 {features.map((feature, index) => (
                     <li key={index} className="flex items-center text-text-secondary">
-                        <CheckIcon />
+                        <CheckIcon/>
                         {feature}
                     </li>
                 ))}

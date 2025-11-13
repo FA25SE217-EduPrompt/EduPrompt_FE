@@ -1,9 +1,5 @@
-import Link, { LinkProps } from 'next/link';
-import React, {
-    AnchorHTMLAttributes,
-    ButtonHTMLAttributes,
-    ReactNode,
-} from 'react';
+import Link, {LinkProps} from 'next/link';
+import React, {AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode,} from 'react';
 
 // Define the variant types
 type ButtonVariant =
@@ -80,8 +76,7 @@ const Button: React.FC<ButtonProps> = ({
     const combinedClasses = `${baseClasses} ${variantClasses} ${className}`;
 
     if ('href' in props && props.href !== undefined) {
-        // TypeScript now correctly narrows 'props' to 'ButtonAsLink'
-        const { href, ...rest } = props;
+        const {href, ...rest} = props;
         return (
             <Link href={href} className={combinedClasses} {...rest}>
                 {children}

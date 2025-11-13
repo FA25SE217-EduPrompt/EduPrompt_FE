@@ -6,7 +6,7 @@ interface SectionHeaderProps {
     subtitle: string;
 }
 
-const SectionHeader: React.FC<SectionHeaderProps> = ({ title, subtitle }) => {
+const SectionHeader: React.FC<SectionHeaderProps> = ({title, subtitle}) => {
     return (
         <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-brand-primary mb-4">
