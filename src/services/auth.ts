@@ -1,7 +1,13 @@
 import axios from 'axios';
 import {TokenManager} from '@/utils/tokenManager';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+// Use fallback to deployed backend if env var is not configured to avoid silent 404s.
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://eduprompt.up.railway.app/BE';
+
+if (!process.env.NEXT_PUBLIC_API_BASE_URL) {
+    // eslint-disable-next-line no-console
+    console.warn('[apiClient] NEXT_PUBLIC_API_BASE_URL is not set. Using fallback:', API_BASE_URL);
+}
 
 // Refresh stampede protection
 let isRefreshing = false;
@@ -28,6 +34,17 @@ const refreshClient = axios.create({
 // Request interceptor to add auth token
 apiClient.interceptors.request.use(
     (config) => {
+        // Development-only logging to help diagnose 404 / wrong-base-url issues
+        if (process.env.NODE_ENV === 'development') {
+            try {
+                const fullUrl = `${config.baseURL ?? ''}${config.url ?? ''}`;
+                // eslint-disable-next-line no-console
+                console.debug('[apiClient] Request ->', (config.method ?? 'GET').toUpperCase(), fullUrl);
+            } catch (e) {
+                // ignore logging errors
+            }
+        }
+
         const token = TokenManager.getToken();
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
@@ -41,8 +58,28 @@ apiClient.interceptors.request.use(
 
 // Response interceptor to handle token refresh with stampede protection
 apiClient.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        if (process.env.NODE_ENV === 'development') {
+            try {
+                const fullUrl = `${response.config.baseURL ?? ''}${response.config.url ?? ''}`;
+                // eslint-disable-next-line no-console
+                console.debug('[apiClient] Response <-', response.status, fullUrl);
+            } catch (e) {}
+        }
+        return response;
+    },
     async (error) => {
+        if (process.env.NODE_ENV === 'development') {
+            try {
+                const cfg = error.config || {};
+                const fullUrl = `${cfg.baseURL ?? ''}${cfg.url ?? ''}`;
+                const status = error.response?.status;
+                let body = undefined;
+                try { body = JSON.stringify(error.response?.data); } catch (e) { body = String(error.response?.data); }
+                // eslint-disable-next-line no-console
+                console.error('[apiClient] Response error <-', status, fullUrl, body);
+            } catch (e) {}
+        }
         const originalRequest = error.config;
 
         // Guard against refresh endpoint to prevent infinite loops

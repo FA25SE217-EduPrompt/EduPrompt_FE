@@ -27,18 +27,28 @@ export function mapErrorToUserMessage(error: ErrorInput): string {
     let message = '';
 
     // Handle AxiosErrorResponse structure (from auth API)
-    if ('response' in error && error.response?.data) {
+    // Be defensive: 'in' operator only works on objects. Sometimes the server returns HTML or a string
+    // (e.g. an HTML error page), which causes "Cannot use 'in' operator" at runtime.
+    if (typeof error === 'object' && error !== null && 'response' in error && error.response?.data) {
         const data = error.response.data;
-        // Check if it's a BaseResponse with error
-        if ('error' in data && data.error?.messages?.[0]) {
-            message = data.error.messages[0];
-        } else if ('message' in data && data.message) {
-            message = data.message;
+        if (data && typeof data === 'object') {
+            // Check if it's a BaseResponse with error
+            if ('error' in data && data.error?.messages?.[0]) {
+                message = data.error.messages[0];
+            } else if ('message' in data && data.message) {
+                message = data.message;
+            }
+        } else if (typeof data === 'string') {
+            // If backend returned plain text (or trimmed HTML), prefer plain text; avoid HTML bodies
+            const trimmed = data.trim();
+            if (trimmed && !trimmed.startsWith('<')) {
+                message = trimmed;
+            }
         }
-    } else if ('message' in error && error.message) {
+    } else if (typeof error === 'object' && error !== null && 'message' in error && error.message) {
         message = error.message;
-    } else if ('error' in error && error.error?.messages?.[0]) {
-        message = error.error.messages[0];
+    } else if (typeof error === 'object' && error !== null && 'error' in error && (error as GenericErrorResponse).error?.messages?.[0]) {
+        message = (error as GenericErrorResponse).error!.messages![0];
     }
 
     // map common server errors to user-friendly messages
