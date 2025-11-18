@@ -6,6 +6,7 @@ import {useRouter} from "next/navigation";
 import Link from "next/link";
 import ErrorPopup from "@/components/ui/ErrorPopup";
 import {ErrorInput, getErrorType, mapErrorToUserMessage} from "@/utils/errorMapper";
+import Spinner from "@/components/ui/Spinner";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -191,8 +192,8 @@ export default function LoginPage() {
     // Show loading while checking authentication
     if (isLoading) {
         return (
-            <div className="min-h-screen gradient-bg flex items-center justify-center px-4 py-12">
-                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+            <div className="min-h-screen gradient-bg flex items-center justify-center">
+                <Spinner size="page" variant="white" />
             </div>
         );
     }
