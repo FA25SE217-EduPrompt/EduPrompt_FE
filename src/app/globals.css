@@ -2,33 +2,57 @@
 
 @theme {
     /* --- PALETTE --- */
-    --color-brand-primary: #334155; /* Slate 700 */
-    --color-brand-secondary: #0ea5e9; /* Sky 500 */
-    --color-brand-highlight: #bae6fd;
-    --color-brand-subtle: #e0f2fe;
+    --color-brand-primary: #0284c7;
+    /* Sky 600 - Main Brand Color (Darker) */
+    --color-brand-secondary: #0369a1;
+    /* Sky 700 - Darker Shade for interactions */
+    --color-brand-highlight: #e0f2fe;
+    /* Sky 100 - Light backgrounds */
+    --color-brand-subtle: #f0f9ff;
+    /* Sky 50 - Very subtle backgrounds */
 
     /* ACCENTS */
-    --color-accent-ai: #14b8a6; /* Teal 500 */
-    --color-accent-ai-subtle: #f0fdfa; /* Teal 50 */
-    --color-accent-star: #f59e0b; /* Amber 500 */
-    --color-accent-star-subtle: #fffbeb; /* Amber 50 */
-    --color-accent-subject: #10b981; /* Emerald 500 */
-    --color-accent-subject-subtle: #ecfdf5; /* Emerald 50 */
-    --color-accent-grade: #8b5cf6; /* Violet 500 */
-    --color-accent-grade-subtle: #f5f3ff; /* Violet 50 */
-    --color-accent-type: #ec4899; /* Pink 500 */
-    --color-accent-type-subtle: #fdf2f8; /* Pink 50 */
-    --color-accent-new: #f59e0b; /* Amber 500 (Same as star) */
-    --color-accent-new-subtle: #fffbeb; /* Amber 50 */
-    --color-accent-trending: #e11d48; /* Rose 600 */
-    --color-accent-trending-subtle: #fff1f2; /* Rose 50 */
+    --color-accent-ai: #06b6d4;
+    /* Cyan 500 */
+    --color-accent-ai-subtle: #ecfeff;
+    /* Cyan 50 */
+    --color-accent-star: #f59e0b;
+    /* Amber 500 */
+    --color-accent-star-subtle: #fffbeb;
+    /* Amber 50 */
+    --color-accent-subject: #10b981;
+    /* Emerald 500 */
+    --color-accent-subject-subtle: #ecfdf5;
+    /* Emerald 50 */
+    --color-accent-grade: #8b5cf6;
+    /* Violet 500 */
+    --color-accent-grade-subtle: #f5f3ff;
+    /* Violet 50 */
+    --color-accent-type: #ec4899;
+    /* Pink 500 */
+    --color-accent-type-subtle: #fdf2f8;
+    /* Pink 50 */
+    --color-accent-new: #f59e0b;
+    /* Amber 500 */
+    --color-accent-new-subtle: #fffbeb;
+    /* Amber 50 */
+    --color-accent-trending: #e11d48;
+    /* Rose 600 */
+    --color-accent-trending-subtle: #fff1f2;
+    /* Rose 50 */
+
     /* TEXT & BACKGROUNDS */
-    --color-text-primary: #171717;
-    --color-text-secondary: #4b5563;
+    --color-text-primary: #334155;
+    /* Slate 700 */
+    --color-text-secondary: #64748b;
+    /* Slate 500 */
     --color-text-on-brand: #ffffff;
+    /* White text on brand colors */
 
     --color-bg-primary: #ffffff;
+    /* White */
     --color-bg-secondary: #f8fafc;
+    /* Slate 50 - Page Background */
 
     /* FONTS */
     --font-sans: var(--font-geist-sans), Arial, Helvetica, sans-serif;
@@ -41,7 +65,6 @@ body {
     font-family: var(--font-sans);
     box-sizing: border-box;
 }
-
 
 @layer components {
     .gradient-bg {

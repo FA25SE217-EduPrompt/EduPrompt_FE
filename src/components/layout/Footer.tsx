@@ -7,7 +7,7 @@ export default function Footer() {
                 <div className="grid md:grid-cols-4 gap-8">
                     <div>
                         <div className="flex items-center mb-4">
-                            <div className="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center mr-3">
+                            <div className="w-8 h-8 bg-sky-600 rounded-lg flex items-center justify-center mr-3">
                                 <span className="text-white font-bold">E</span>
                             </div>
                             <span className="text-xl font-bold">EduPrompt</span>
