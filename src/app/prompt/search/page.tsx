@@ -3,13 +3,22 @@
 import React, { useState } from 'react';
 import { Search, GitCompare, Sparkles, Info, Copy, RefreshCw, BookOpen, Star, TrendingUp, X, ChevronDown } from 'lucide-react';
 
+interface Prompt {
+    id: string;
+    title: string;
+    category: string;
+    rating: number;
+    instruction: string;
+    inputExample: string;
+}
+
 const MODEL_OPTIONS = [
     { label: 'GPT-4o mini', value: 'GPT_4O_MINI', description: 'Fast and cost-effective' },
     { label: 'Claude 3.5 Sonnet', value: 'CLAUDE_3_5_SONNET', description: 'Balanced performance' },
     { label: 'Gemini 2.5 Flash', value: 'GEMINI_2_5_FLASH', description: 'Quick responses' },
 ];
 
-const SAMPLE_PROMPTS = [
+const SAMPLE_PROMPTS: Prompt[] = [
     { id: '1', title: 'Essay Writing Assistant for Grade 10', category: 'English', rating: 4.8, instruction: 'Help students write well-structured academic essays with clear thesis statements, supporting arguments, and proper conclusions.', inputExample: 'Topic: Climate change effects on agriculture' },
     { id: '2', title: 'Algebra Problem Solver', category: 'Mathematics', rating: 4.9, instruction: 'Provide step-by-step solutions to algebraic equations, explaining each step clearly for high school students.', inputExample: 'Solve: 2x + 5 = 13' },
     { id: '3', title: 'Biology Concept Explainer', category: 'Science', rating: 4.7, instruction: 'Explain biological concepts using clear language, real-world examples, and visual descriptions suitable for grade 9-10 students.', inputExample: 'Explain photosynthesis in simple terms' },
@@ -28,8 +37,8 @@ const PromptTestingPage = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchType, setSearchType] = useState<'keyword' | 'semantic'>('keyword');
     const [showSearchDropdown, setShowSearchDropdown] = useState(false);
-    const [selectedPromptA, setSelectedPromptA] = useState(null);
-    const [selectedPromptB, setSelectedPromptB] = useState(null);
+    const [selectedPromptA, setSelectedPromptA] = useState<Prompt | null>(null);
+    const [selectedPromptB, setSelectedPromptB] = useState<Prompt | null>(null);
     const [activePromptSlot, setActivePromptSlot] = useState<'A' | 'B' | null>(null);
     const [expandedCollection, setExpandedCollection] = useState<string | null>(null);
 
@@ -51,7 +60,7 @@ const PromptTestingPage = () => {
         </div>
     );
 
-    const handleSelectPrompt = (prompt: any) => {
+    const handleSelectPrompt = (prompt: Prompt) => {
         if (activePromptSlot === 'A') {
             setSelectedPromptA(prompt);
         } else if (activePromptSlot === 'B') {
@@ -63,16 +72,15 @@ const PromptTestingPage = () => {
         setExpandedCollection(null);
     };
 
-    const PromptCard = ({ slot, prompt, onClear }: { slot: 'A' | 'B', prompt: any, onClear: () => void }) => {
+    const PromptCard = ({ slot, prompt, onClear }: { slot: 'A' | 'B', prompt: Prompt | null, onClear: () => void }) => {
         const [isOptimizing, setIsOptimizing] = useState(false);
 
         return (
             <div className="bg-white rounded-xl border-2 border-gray-200 p-6 hover:border-blue-300 transition-all duration-300 h-full">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-3">
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-white shadow-sm ${
-                            slot === 'A' ? 'bg-gradient-to-br from-blue-500 to-blue-600' : 'bg-gradient-to-br from-purple-500 to-purple-600'
-                        }`}>
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-white shadow-sm ${slot === 'A' ? 'bg-gradient-to-br from-blue-500 to-blue-600' : 'bg-gradient-to-br from-purple-500 to-purple-600'
+                            }`}>
                             {slot}
                         </div>
                         <div>
@@ -333,21 +341,19 @@ const PromptTestingPage = () => {
                         <div className="flex bg-gray-100 rounded-lg p-1">
                             <button
                                 onClick={() => setSearchType('keyword')}
-                                className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                                    searchType === 'keyword'
+                                className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${searchType === 'keyword'
                                         ? 'bg-white text-blue-600 shadow-sm'
                                         : 'text-gray-600 hover:text-gray-900'
-                                }`}
+                                    }`}
                             >
                                 Keyword
                             </button>
                             <button
                                 onClick={() => setSearchType('semantic')}
-                                className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center space-x-1 ${
-                                    searchType === 'semantic'
+                                className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center space-x-1 ${searchType === 'semantic'
                                         ? 'bg-white text-blue-600 shadow-sm'
                                         : 'text-gray-600 hover:text-gray-900'
-                                }`}
+                                    }`}
                             >
                                 <Sparkles className="w-4 h-4" />
                                 <span>Semantic</span>

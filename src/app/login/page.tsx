@@ -1,16 +1,16 @@
 "use client";
 
-import React, {useCallback, useEffect, useRef, useState} from "react";
-import {useAuth} from "@/hooks/useAuth";
-import {useRouter} from "next/navigation";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ErrorPopup from "@/components/ui/ErrorPopup";
-import {ErrorInput, getErrorType, mapErrorToUserMessage} from "@/utils/errorMapper";
+import { ErrorInput, getErrorType, mapErrorToUserMessage } from "@/utils/errorMapper";
 import Spinner from "@/components/ui/Spinner";
 
 export default function LoginPage() {
     const router = useRouter();
-    const {login, loginWithGoogle, isAuthenticated, isLoading} = useAuth();
+    const { login, loginWithGoogle, isAuthenticated, isLoading } = useAuth();
 
     // form state (kept as-is to preserve behavior)
     const [email, setEmail] = useState("");
@@ -47,6 +47,7 @@ export default function LoginPage() {
 
     // Google Identity Services - improved script loading and initialization
     const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    console.log('Google Client ID:', googleClientId); // Debug log
     const googleBtnRef = useRef<HTMLDivElement | null>(null);
     const [googleScriptLoaded, setGoogleScriptLoaded] = useState(false);
 
@@ -216,8 +217,8 @@ export default function LoginPage() {
                         </div>
                         <span
                             className="ml-4 text-4xl font-bold bg-gradient-to-r from-blue-800 to-indigo-800 bg-clip-text text-transparent">
-              EduPrompt
-            </span>
+                            EduPrompt
+                        </span>
                     </div>
                     <h1 className="text-4xl font-bold text-blue-800 mb-2">Welcome Back</h1>
                     <p className="text-gray-600 text-lg">Sign in to your account to continue</p>
@@ -303,8 +304,8 @@ export default function LoginPage() {
                          transition-all duration-200 group-hover:border-blue-400"
                             />
                             <span className="text-sm font-medium group-hover:text-blue-600 transition-colors">
-                Remember me
-              </span>
+                                Remember me
+                            </span>
                         </label>
                         <Link
                             href="/forgot-password"
@@ -335,33 +336,33 @@ export default function LoginPage() {
                      disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none
                      active:scale-[0.98]
                      ${success
-                            ? "bg-green-500 hover:bg-green-600"
-                            : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
-                        }`}
+                                ? "bg-green-500 hover:bg-green-600"
+                                : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
+                            }`}
                     >
-            <span className="inline-flex items-center justify-center">
-              {success ? (
-                  <>
-                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                      </svg>
-                      Success!
-                  </>
-              ) : submitting ? (
-                  <>
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg"
-                           fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                  strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Signing in.
-                  </>
-              ) : (
-                  "Sign In"
-              )}
-            </span>
+                        <span className="inline-flex items-center justify-center">
+                            {success ? (
+                                <>
+                                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Success!
+                                </>
+                            ) : submitting ? (
+                                <>
+                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg"
+                                        fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                            strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Signing in.
+                                </>
+                            ) : (
+                                "Sign In"
+                            )}
+                        </span>
                     </button>
                 </form>
 
@@ -370,9 +371,9 @@ export default function LoginPage() {
                     <div className="mt-6">
                         <div className="relative">
                             <div className="flex items-center">
-                                <div className="flex-grow h-px bg-gray-200"/>
+                                <div className="flex-grow h-px bg-gray-200" />
                                 <span className="mx-3 text-gray-400 text-sm">or continue with</span>
-                                <div className="flex-grow h-px bg-gray-200"/>
+                                <div className="flex-grow h-px bg-gray-200" />
                             </div>
                             <div className="mt-4 flex justify-center">
                                 {/* Use the ref to render google button */}
