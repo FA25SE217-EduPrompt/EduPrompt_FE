@@ -1,32 +1,27 @@
-import {decodeJWT, isTokenExpired as jwtIsTokenExpired} from '@/utils/jwt';
+import { decodeJWT, isTokenExpired as jwtIsTokenExpired } from '@/utils/jwt';
+import Cookies from 'js-cookie';
 
 // Token management utilities
 export class TokenManager {
     private static readonly TOKEN_KEY = 'eduprompt.access_token';
 
-    //Later we will use httpOnly, Secure, SameSite cookies (access short‑lived; refresh rotating) and read them in middleware/server.
-
-    // Get token from localStorage
+    // Get token from cookies
     static getToken(): string | null {
         try {
-            if (typeof window !== 'undefined') {
-                return localStorage.getItem(this.TOKEN_KEY);
-            }
-            return null;
+            return Cookies.get(this.TOKEN_KEY) || null;
         } catch (error) {
-            console.warn('Failed to get token from localStorage:', error);
+            console.warn('Failed to get token from cookies:', error);
             return null;
         }
     }
 
-    // Set token in localStorage
+    // Set token in cookies
     static setToken(token: string): void {
         try {
-            if (typeof window !== 'undefined') {
-                localStorage.setItem(this.TOKEN_KEY, token);
-            }
+            // Set cookie with 7 days expiry
+            Cookies.set(this.TOKEN_KEY, token, { expires: 7, secure: window.location.protocol === 'https:', sameSite: 'Strict' });
         } catch (error) {
-            console.warn('Failed to set token in localStorage:', error);
+            console.warn('Failed to set token in cookies:', error);
         }
     }
 
@@ -40,11 +35,9 @@ export class TokenManager {
     // Clear all tokens
     static clearTokens(): void {
         try {
-            if (typeof window !== 'undefined') {
-                localStorage.removeItem(this.TOKEN_KEY);
-            }
+            Cookies.remove(this.TOKEN_KEY);
         } catch (error) {
-            console.warn('Failed to clear tokens from localStorage:', error);
+            console.warn('Failed to clear tokens from cookies:', error);
         }
     }
 
