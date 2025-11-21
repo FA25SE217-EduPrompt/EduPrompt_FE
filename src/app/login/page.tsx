@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import ErrorPopup from "@/components/ui/ErrorPopup";
 import { ErrorInput, getErrorType, mapErrorToUserMessage } from "@/utils/errorMapper";
 import Spinner from "@/components/ui/Spinner";
@@ -211,10 +212,13 @@ export default function LoginPage() {
                 {/* Header */}
                 <header className="text-center mb-10">
                     <div className="inline-flex items-center justify-center mb-6">
-                        <div
-                            className="w-14 h-14 bg-gradient-to-br from-sky-500 to-blue-800 rounded-xl flex items-center justify-center shadow-lg">
-                            <span className="text-white font-bold text-2xl">E</span>
-                        </div>
+                        <Image
+                            src="/logo.png"
+                            alt="EduPrompt Logo"
+                            width={64}
+                            height={64}
+                            className="w-16 h-16 rounded-xl shadow-lg"
+                        />
                         <span
                             className="ml-4 text-4xl font-bold bg-gradient-to-r from-blue-800 to-indigo-800 bg-clip-text text-transparent">
                             EduPrompt

@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
     BookOpenIcon,
@@ -54,9 +55,16 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                 }`}
         >
             <div className="flex items-center justify-between p-5 border-b border-gray-100">
-                <span className="text-2xl font-bold text-sky-700">
-                    <Link href="/">EduPrompt</Link>
-                </span>
+                <Link href="/" className="flex items-center gap-2">
+                    <Image
+                        src="/logo.png"
+                        alt="EduPrompt Logo"
+                        width={40}
+                        height={40}
+                        className="w-10 h-10 rounded-lg"
+                    />
+                    <span className="text-2xl font-bold text-sky-700">EduPrompt</span>
+                </Link>
                 {/* close button for mobile/toggle */}
                 <button
                     onClick={() => setIsSidebarOpen(false)}

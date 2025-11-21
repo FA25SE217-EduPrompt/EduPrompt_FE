@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -54,10 +55,13 @@ export default function Navbar() {
                     <div className="flex items-center">
                         <div className="flex-shrink-0 flex items-center">
                             <Link href="/" className="flex items-center">
-                                <div
-                                    className="w-10 h-10 bg-gradient-to-br from-sky-600 to-sky-800 rounded-lg flex items-center justify-center">
-                                    <span className="text-white font-bold text-lg">E</span>
-                                </div>
+                                <Image
+                                    src="/logo.png"
+                                    alt="EduPrompt Logo"
+                                    width={48}
+                                    height={48}
+                                    className="w-12 h-12 rounded-lg"
+                                />
                                 <span className="ml-3 text-2xl font-bold text-sky-700">EduPrompt</span>
                             </Link>
                         </div>

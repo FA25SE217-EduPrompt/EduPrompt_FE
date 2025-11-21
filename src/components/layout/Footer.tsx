@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 export default function Footer() {
     return (
         <footer className="bg-blue-800 text-white py-12">
@@ -7,9 +9,13 @@ export default function Footer() {
                 <div className="grid md:grid-cols-4 gap-8">
                     <div>
                         <div className="flex items-center mb-4">
-                            <div className="w-8 h-8 bg-sky-600 rounded-lg flex items-center justify-center mr-3">
-                                <span className="text-white font-bold">E</span>
-                            </div>
+                            <Image
+                                src="/logo.png"
+                                alt="EduPrompt Logo"
+                                width={40}
+                                height={40}
+                                className="w-10 h-10 rounded-lg mr-3"
+                            />
                             <span className="text-xl font-bold">EduPrompt</span>
                         </div>
                         <p className="text-sky-200">Empowering educators with AI-driven teaching tools.</p>
