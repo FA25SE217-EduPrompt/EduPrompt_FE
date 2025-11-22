@@ -31,14 +31,11 @@ export default function RootLayout({
             <body
                 className={`${geistSans.variable} ${geistMono.variable} antialiased`}
             >
-                <React.StrictMode>
-                    <QueryClientProvider client={queryClient}>
-                        <AuthProvider>
-                            {children}
-                        </AuthProvider>
-                    </QueryClientProvider>
-                </React.StrictMode>
-
+                <QueryClientProvider client={queryClient}>
+                    <AuthProvider>
+                        {children}
+                    </AuthProvider>
+                </QueryClientProvider>
             </body>
         </html>
     );
