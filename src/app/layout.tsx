@@ -19,9 +19,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
     title: "EduPrompt - AI-Powered Education Platform",
     description: "Transform your teaching with AI-powered prompts and educational tools",
-    icons: {
-        icon: '/favicon.png',
-    },
 };
 
 export default function RootLayout({
