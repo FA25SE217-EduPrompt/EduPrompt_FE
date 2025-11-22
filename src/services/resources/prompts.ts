@@ -1,6 +1,6 @@
 // src/services/prompts.ts
-import {apiClient} from '@/services/auth'; // uses existing apiClient with interceptors
-import {BaseResponse, PaginatedResponse} from '@/types/api';
+import { apiClient } from '@/services/auth'; // uses existing apiClient with interceptors
+import { BaseResponse, PaginatedResponse } from '@/types/api';
 import ApiCall from '@/utils/apiCall';
 import {
     ApiRequestOptions,
@@ -8,10 +8,13 @@ import {
     PendingOptimizationItem,
     PromptCreateRequest,
     PromptCreateWithCollectionRequest,
+    PromptFilterParams,
+    PromptMetadataResponse,
     PromptOptimizationRequest,
     PromptResponse,
     PromptTestRequest,
     PromptTestResponse,
+    PromptViewLogResponse,
 } from '@/types/prompt.api';
 
 const BASE = "/api/prompts";
@@ -45,7 +48,7 @@ export function buildRequestConfig(opts?: ApiRequestOptions): {
 // }
 
 function toPromptTestPayload(request: PromptTestRequest) {
-    const payload: Record<string, unknown> = {promptId: request.promptId};
+    const payload: Record<string, unknown> = { promptId: request.promptId };
     if (request.aiModel) payload.aiModel = request.aiModel;
     if (request.inputText) payload.inputText = request.inputText;
     if (typeof request.temperature !== 'undefined') payload.temperature = request.temperature;
@@ -250,6 +253,65 @@ export const promptsService = {
             apiClient.request({
                 url: `${BASE}/optimize/queue/${encodeURIComponent(queueId)}`,
                 method: 'delete',
+                ...buildRequestConfig(opts),
+            })
+        );
+    },
+
+    // Get non-private prompts
+    async getNonPrivatePrompts(page = 0, size = 20, opts?: ApiRequestOptions): Promise<BaseResponse<PaginatedResponse<PromptMetadataResponse>>> {
+        return ApiCall<PaginatedResponse<PromptMetadataResponse>>(() =>
+            apiClient.request({
+                url: `${BASE}/get-non-private?page=${page}&size=${size}`,
+                method: 'get',
+                ...buildRequestConfig(opts),
+            })
+        );
+    },
+
+    // Filter prompts
+    async filterPrompts(params: PromptFilterParams, opts?: ApiRequestOptions): Promise<BaseResponse<PaginatedResponse<PromptMetadataResponse>>> {
+        const queryParams = new URLSearchParams();
+        if (params.createdBy) queryParams.append('createdBy', params.createdBy);
+        if (params.collectionName) queryParams.append('collectionName', params.collectionName);
+        if (params.schoolName) queryParams.append('schoolName', params.schoolName);
+        if (params.groupName) queryParams.append('groupName', params.groupName);
+        if (params.title) queryParams.append('title', params.title);
+        if (params.includeDeleted !== undefined) queryParams.append('includeDeleted', String(params.includeDeleted));
+        if (params.page !== undefined) queryParams.append('page', String(params.page));
+        if (params.size !== undefined) queryParams.append('size', String(params.size));
+
+        // Handle arrays
+        if (params.tagTypes) params.tagTypes.forEach(t => queryParams.append('tagTypes', t));
+        if (params.tagValues) params.tagValues.forEach(v => queryParams.append('tagValues', v));
+
+        return ApiCall<PaginatedResponse<PromptMetadataResponse>>(() =>
+            apiClient.request({
+                url: `${BASE}/filter?${queryParams.toString()}`,
+                method: 'get',
+                ...buildRequestConfig(opts),
+            })
+        );
+    },
+
+    // Log prompt view (unlock)
+    async logPromptView(promptId: string, opts?: ApiRequestOptions): Promise<BaseResponse<PromptViewLogResponse>> {
+        return ApiCall<PromptViewLogResponse>(() =>
+            apiClient.request({
+                url: `${BASE}/prompt-view-log/new`,
+                method: 'post',
+                data: { promptId },
+                ...buildRequestConfig(opts),
+            })
+        );
+    },
+
+    // Check if prompt is viewed/unlocked
+    async checkPromptViewed(promptId: string, opts?: ApiRequestOptions): Promise<BaseResponse<boolean>> {
+        return ApiCall<boolean>(() =>
+            apiClient.request({
+                url: `${BASE}/${encodeURIComponent(promptId)}/viewed`,
+                method: 'get',
                 ...buildRequestConfig(opts),
             })
         );
