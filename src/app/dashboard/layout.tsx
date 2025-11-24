@@ -3,8 +3,8 @@ import DashboardSidebar from "@/components/layout/Dashboard-sidebar"
 import type React from "react" 
 
 export const metadata = {
-  title: "Admin - Quản Lý Nội Thất Gỗ",
-  description: "Bảng điều khiển quản lý sản phẩm, blog và dự án",
+  title: "dashboard - Quản Lý  ",
+  description: "Bảng điều khiển quản lý  ",
 }
 
 export default function Layout({

@@ -7,7 +7,8 @@ import { cn } from "@/lib/utils"
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: Package, label: "group", href: "/dashboard/group" }, 
+  { icon: Package, label: "Groups", href: "/dashboard/group" }, 
+  { icon: BookOpen, label: "Users", href: "/dashboard/users" },
 ]
 
 export default function DashboardSidebar() {
