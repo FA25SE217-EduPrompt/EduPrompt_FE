@@ -88,15 +88,35 @@ const PromptCard = ({ slot, prompt, onClear, onSelect, model, onModelChange }: {
             ) : (
                 <div className="space-y-4">
                     {/* Prompt Content */}
-                    <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4 space-y-3 border border-gray-200">
+                    <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4 space-y-3 border border-gray-200 max-h-[400px] overflow-y-auto">
+                        {prompt.context && (
+                            <div>
+                                <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Context</label>
+                                <p className="text-sm text-gray-800 mt-1 leading-relaxed whitespace-pre-wrap">{prompt.context}</p>
+                            </div>
+                        )}
                         <div>
                             <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Instruction</label>
-                            <p className="text-sm text-gray-800 mt-1 leading-relaxed">{prompt.instruction}</p>
+                            <p className="text-sm text-gray-800 mt-1 leading-relaxed whitespace-pre-wrap">{prompt.instruction}</p>
                         </div>
-                        <div className="pt-2 border-t border-gray-200">
-                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Input Example</label>
-                            <p className="text-sm text-gray-800 mt-1 leading-relaxed">{prompt.inputExample}</p>
-                        </div>
+                        {prompt.inputExample && (
+                            <div className="pt-2 border-t border-gray-200">
+                                <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Input Example</label>
+                                <p className="text-sm text-gray-800 mt-1 leading-relaxed whitespace-pre-wrap">{prompt.inputExample}</p>
+                            </div>
+                        )}
+                        {prompt.outputFormat && (
+                            <div className="pt-2 border-t border-gray-200">
+                                <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Output Format</label>
+                                <p className="text-sm text-gray-800 mt-1 leading-relaxed whitespace-pre-wrap">{prompt.outputFormat}</p>
+                            </div>
+                        )}
+                        {prompt.constraints && (
+                            <div className="pt-2 border-t border-gray-200">
+                                <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Constraints</label>
+                                <p className="text-sm text-gray-800 mt-1 leading-relaxed whitespace-pre-wrap">{prompt.constraints}</p>
+                            </div>
+                        )}
                     </div>
 
                     {/* Model Selection & Optimize */}

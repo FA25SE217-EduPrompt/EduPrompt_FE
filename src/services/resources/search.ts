@@ -18,7 +18,7 @@ export const searchService = {
     ): Promise<BaseResponse<SemanticSearchResponse>> {
         return ApiCall<SemanticSearchResponse>(() =>
             apiClient.request({
-                url: `${BASE}/`,
+                url: `${BASE}`,
                 method: 'post',
                 data: payload,
                 ...buildRequestConfig(opts),

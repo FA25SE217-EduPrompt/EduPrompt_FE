@@ -182,6 +182,7 @@ export type SemanticSearchRequest = {
         groupId?: string;
     };
     username?: string;
+    userId?: string;
 };
 
 export type SemanticSearchResult = {
