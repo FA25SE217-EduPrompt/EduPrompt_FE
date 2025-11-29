@@ -1,11 +1,13 @@
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, GitCompare, Sparkles, Info, Copy, RefreshCw, BookOpen, Star, TrendingUp, X, ChevronDown } from 'lucide-react';
+import { Search, GitCompare, Sparkles, Info, Copy, RefreshCw, BookOpen, Star, TrendingUp, X, ChevronDown, Play, Loader2 } from 'lucide-react';
 import { useFilterPrompts, useSemanticSearch } from '@/hooks/queries/search';
 import { useGetMyCollections } from '@/hooks/queries/collection';
+import { useRunPromptTest, useGetTestUsage, useGetPrompt } from '@/hooks/queries/prompt';
 import { promptsService } from '@/services/resources/prompts';
-import { PromptResponse } from '@/types/prompt.api';
+import { PromptResponse, PromptTestResponse, PromptAiModel } from '@/types/prompt.api';
+import { toast, Toaster } from 'sonner';
 
 interface PromptDisplay {
     id: string;
@@ -31,15 +33,18 @@ const InfoTooltip = ({ text }: { text: string }) => (
     </div>
 );
 
-const PromptCard = ({ slot, prompt, onClear, onSelect, model, onModelChange }: {
+const PromptCard = ({ slot, prompt, onClear, onSelect, model, onModelChange, onTest, isTesting, testResult, testError }: {
     slot: 'A' | 'B',
     prompt: PromptResponse | null,
     onClear: () => void,
     onSelect: () => void,
     model: string,
-    onModelChange: (value: string) => void
+    onModelChange: (value: string) => void,
+    onTest: () => void,
+    isTesting: boolean,
+    testResult: PromptTestResponse | null,
+    testError: string | null
 }) => {
-    const [isOptimizing, setIsOptimizing] = useState(false);
 
     return (
         <div className="bg-white rounded-xl border-2 border-gray-200 p-6 hover:border-blue-300 transition-all duration-300 h-full">
@@ -119,7 +124,7 @@ const PromptCard = ({ slot, prompt, onClear, onSelect, model, onModelChange }: {
                         )}
                     </div>
 
-                    {/* Model Selection & Optimize */}
+                    {/* Model Selection & Test */}
                     <div className="flex items-center space-x-2">
                         <div className="flex-1">
                             <label className="text-xs font-medium text-gray-700 mb-1.5 block">AI Model</label>
@@ -135,45 +140,81 @@ const PromptCard = ({ slot, prompt, onClear, onSelect, model, onModelChange }: {
                         </div>
                         <div className="pt-5">
                             <button
-                                onClick={() => {
-                                    setIsOptimizing(true);
-                                    setTimeout(() => setIsOptimizing(false), 2000);
-                                }}
-                                disabled={isOptimizing}
-                                className="inline-flex items-center justify-center gap-1 bg-accent-ai-subtle text-accent-ai border border-accent-ai/20 rounded-lg text-xs font-medium px-3 py-2 shadow-sm hover:bg-accent-ai/10 hover:shadow-md hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
-                                title="Optimize this prompt with AI suggestions"
+                                onClick={onTest}
+                                disabled={isTesting}
+                                className="inline-flex items-center justify-center gap-1 bg-blue-600 text-white border border-blue-700 rounded-lg text-xs font-medium px-4 py-2 shadow-sm hover:bg-blue-700 hover:shadow-md hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 min-w-[80px]"
+                                title="Run test with selected model"
                             >
-                                <Sparkles className="w-3.5 h-3.5" />
-                                {isOptimizing ? 'Optimizing...' : 'Optimize'}
+                                {isTesting ? (
+                                    <>
+                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                        <span>Testing...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Play className="w-3.5 h-3.5 fill-current" />
+                                        <span>Test</span>
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>
 
                     {/* Test Results Area */}
-                    <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-lg p-4 min-h-[200px] border border-blue-100">
+                    <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-lg p-4 min-h-[200px] border border-blue-100 relative">
                         <div className="flex items-center justify-between mb-3">
                             <h4 className="text-sm font-semibold text-gray-900">Test Results</h4>
                             <div className="flex items-center space-x-2">
-                                <button className="p-1 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded transition-all duration-200" title="Copy results">
-                                    <Copy className="w-4 h-4" />
-                                </button>
-                                <button className="p-1 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded transition-all duration-200" title="Rerun test">
-                                    <RefreshCw className="w-4 h-4" />
-                                </button>
+                                {testResult?.output && (
+                                    <button
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(testResult.output || '');
+                                            toast.success('Copied to clipboard');
+                                        }}
+                                        className="p-1 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded transition-all duration-200"
+                                        title="Copy results"
+                                    >
+                                        <Copy className="w-4 h-4" />
+                                    </button>
+                                )}
                             </div>
                         </div>
-                        <div className="text-sm text-gray-600 space-y-2">
-                            <p className="italic text-gray-500">Click &#34;Run Test&#34; to see AI response here...</p>
-                            <div className="grid grid-cols-2 gap-3 pt-3 border-t border-blue-200">
-                                <div className="bg-white/60 backdrop-blur-sm rounded-lg p-2">
-                                    <span className="text-xs text-gray-500 block">Tokens Used</span>
-                                    <span className="text-sm text-gray-700 font-semibold">-</span>
+
+                        <div className="text-sm text-gray-600 space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar">
+                            {isTesting ? (
+                                <div className="flex flex-col items-center justify-center h-32 space-y-3">
+                                    <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+                                    <p className="text-xs text-gray-500 animate-pulse">Generating response...</p>
                                 </div>
-                                <div className="bg-white/60 backdrop-blur-sm rounded-lg p-2">
-                                    <span className="text-xs text-gray-500 block">Response Time</span>
-                                    <span className="text-sm text-gray-700 font-semibold">-</span>
+                            ) : testError ? (
+                                <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-red-600 text-xs">
+                                    <p className="font-semibold mb-1">Error</p>
+                                    {testError}
                                 </div>
-                            </div>
+                            ) : testResult ? (
+                                <div className="prose prose-sm max-w-none">
+                                    <p className="whitespace-pre-wrap text-gray-800 leading-relaxed">{testResult.output}</p>
+                                </div>
+                            ) : (
+                                <p className="italic text-gray-500">Click "Test" to see AI response here...</p>
+                            )}
+
+                            {(testResult || isTesting) && (
+                                <div className="grid grid-cols-2 gap-3 pt-3 border-t border-blue-200 mt-4">
+                                    <div className="bg-white/60 backdrop-blur-sm rounded-lg p-2">
+                                        <span className="text-xs text-gray-500 block">Tokens Used</span>
+                                        <span className="text-sm text-gray-700 font-semibold">
+                                            {testResult?.tokensUsed || '-'}
+                                        </span>
+                                    </div>
+                                    <div className="bg-white/60 backdrop-blur-sm rounded-lg p-2">
+                                        <span className="text-xs text-gray-500 block">Response Time</span>
+                                        <span className="text-sm text-gray-700 font-semibold">
+                                            {testResult?.executionTimeMs ? `${testResult.executionTimeMs}ms` : '-'}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -183,167 +224,206 @@ const PromptCard = ({ slot, prompt, onClear, onSelect, model, onModelChange }: {
 };
 
 const PromptTestingPage = () => {
+    // State
     const [searchQuery, setSearchQuery] = useState('');
     const [executedSearchQuery, setExecutedSearchQuery] = useState('');
     const [searchType, setSearchType] = useState<'keyword' | 'semantic'>('keyword');
     const [showSearchDropdown, setShowSearchDropdown] = useState(false);
-    const [selectedPromptA, setSelectedPromptA] = useState<PromptResponse | null>(null);
-    const [selectedPromptB, setSelectedPromptB] = useState<PromptResponse | null>(null);
-    const [activePromptSlot, setActivePromptSlot] = useState<'A' | 'B' | null>(null);
-    const [expandedCollection, setExpandedCollection] = useState<string | null>(null); // Stores Collection ID
 
-    // Test settings
-    const [modelA, setModelA] = useState('GPT_4O_MINI');
-    const [modelB, setModelB] = useState('CLAUDE_3_5_SONNET');
+    const [selectedPromptIdA, setSelectedPromptIdA] = useState<string | null>(null);
+    const [selectedPromptIdB, setSelectedPromptIdB] = useState<string | null>(null);
+    const [activePromptSlot, setActivePromptSlot] = useState<'A' | 'B' | null>(null);
+    const [expandedCollection, setExpandedCollection] = useState<string | null>(null);
+
+    const [modelA, setModelA] = useState(MODEL_OPTIONS[0].value);
+    const [modelB, setModelB] = useState(MODEL_OPTIONS[1].value);
+
     const [temperature, setTemperature] = useState(0.7);
     const [topP, setTopP] = useState(0.9);
     const [maxTokens, setMaxTokens] = useState(2048);
-    const [showSettings, setShowSettings] = useState(false);
+    const [showSettings, setShowSettings] = useState(true);
 
-    // --- Queries ---
+    const [testResponseA, setTestResponseA] = useState<PromptTestResponse | null>(null);
+    const [testErrorA, setTestErrorA] = useState<string | null>(null);
+    const [testResponseB, setTestResponseB] = useState<PromptTestResponse | null>(null);
+    const [testErrorB, setTestErrorB] = useState<string | null>(null);
 
-    // 1. Keyword Search
+    const [isPollingA, setIsPollingA] = useState(false);
+    const [isPollingB, setIsPollingB] = useState(false);
+
+    // Queries
     const { data: keywordResults, isLoading: isKeywordLoading } = useFilterPrompts(
         { title: executedSearchQuery, page: 0, size: 10 },
         { enabled: searchType === 'keyword' && executedSearchQuery.length > 0 }
     );
 
-    // 2. Semantic Search
-    const { mutate: searchSemantic, data: semanticResults, isPending: isSemanticLoading } = useSemanticSearch();
+    const { mutate: performSemanticSearch, data: semanticResults, isPending: isSemanticLoading } = useSemanticSearch();
 
-    // 3. My Collections
-    const { data: collectionsData } = useGetMyCollections(0, 20);
-    // Fix: Wrap collections in useMemo to prevent unstable dependencies in subsequent hooks
-    const collections = useMemo(() => collectionsData?.data?.content || [], [collectionsData]);
-
-    // 4. Collection Prompts (when expanded)
-    const expandedCollectionName = useMemo(() => {
-        return collections.find(c => c.id === expandedCollection)?.name;
-    }, [expandedCollection, collections]);
+    const { data: collectionsData } = useGetMyCollections(0, 100);
+    const collections = collectionsData?.data?.content || [];
 
     const { data: collectionPromptsData, isLoading: isCollectionPromptsLoading } = useFilterPrompts(
-        { collectionName: expandedCollectionName, page: 0, size: 5 },
-        { enabled: !!expandedCollectionName }
+        { title: '', page: 0, size: 20 },
+        { enabled: !!expandedCollection }
     );
 
-    const handleSearch = () => {
-        if (searchQuery.trim().length === 0) return;
+    // Fetch selected prompts details
+    const { data: promptA } = useGetPrompt(selectedPromptIdA!, {}, { enabled: !!selectedPromptIdA });
+    const { data: promptB } = useGetPrompt(selectedPromptIdB!, {}, { enabled: !!selectedPromptIdB });
 
+    // Test Mutations
+    const { mutate: runTestA, isPending: isTestingA } = useRunPromptTest();
+    const { mutate: runTestB, isPending: isTestingB } = useRunPromptTest();
+
+    // Handlers
+    const handleSearch = () => {
+        if (!searchQuery.trim()) return;
         setExecutedSearchQuery(searchQuery);
         setShowSearchDropdown(true);
-
         if (searchType === 'semantic') {
-            searchSemantic({ query: searchQuery, limit: 10 });
+            performSemanticSearch({ query: searchQuery, limit: 10 });
         }
     };
 
-    // Combine results for display
+    const handleSelectPrompt = (prompt: PromptDisplay) => {
+        if (activePromptSlot === 'A') {
+            setSelectedPromptIdA(prompt.id);
+        } else if (activePromptSlot === 'B') {
+            setSelectedPromptIdB(prompt.id);
+        } else {
+            if (!selectedPromptIdA) setSelectedPromptIdA(prompt.id);
+            else if (!selectedPromptIdB) setSelectedPromptIdB(prompt.id);
+            else setSelectedPromptIdA(prompt.id);
+        }
+        setShowSearchDropdown(false);
+        setActivePromptSlot(null);
+    };
+
+    const handleTest = async (slot: 'A' | 'B') => {
+        const prompt = slot === 'A' ? promptA?.data : promptB?.data;
+        const model = slot === 'A' ? modelA : modelB;
+        const setResponse = slot === 'A' ? setTestResponseA : setTestResponseB;
+        const setError = slot === 'A' ? setTestErrorA : setTestErrorB;
+        const runTest = slot === 'A' ? runTestA : runTestB;
+        const setIsPolling = slot === 'A' ? setIsPollingA : setIsPollingB;
+
+        if (!prompt) return;
+
+        setError(null);
+        setResponse(null);
+
+        const inputText = prompt.inputExample || "Default test input";
+
+        runTest({
+            request: {
+                promptId: prompt.id,
+                aiModel: model as PromptAiModel,
+                temperature,
+                topP,
+                maxTokens,
+                inputText
+            }
+        }, {
+            onSuccess: async (data) => {
+                if (!data.data) {
+                    setError('No data received from server');
+                    return;
+                }
+
+                if (data.data.status === 'PENDING' || data.data.status === 'PROCESSING') {
+                    setIsPolling(true);
+                    // Start polling
+                    const poll = async () => {
+                        try {
+                            if (!data.data) return;
+                            const result = await promptsService.getTestUsage(data.data.id);
+
+                            if (!result.data) {
+                                setTimeout(poll, 2000);
+                                return;
+                            }
+
+                            if (result.data.status === 'COMPLETED') {
+                                setResponse(result.data);
+                                setIsPolling(false);
+                            } else if (result.data.status === 'FAILED') {
+                                setError(result.data.errorMessage || 'Test failed during processing');
+                                setIsPolling(false);
+                            } else {
+                                // Continue polling
+                                setTimeout(poll, 2000);
+                            }
+                        } catch (err) {
+                            setError('Failed to poll test results');
+                            setIsPolling(false);
+                        }
+                    };
+                    poll();
+                } else {
+                    setResponse(data.data);
+                }
+            },
+            onError: (error: any) => {
+                const errPayload = error?.response?.data?.error;
+                if (errPayload?.code === 'QUOTA_EXCEEDED') {
+                    toast.error('Quota Exceeded', { description: errPayload.message?.[0] || 'You have reached your testing limit.' });
+                } else if (errPayload?.code === 'DUPLICATE_REQUEST') {
+                    toast.warning('Duplicate Request', { description: 'A test is already in progress.' });
+                } else if (errPayload?.code === 'AI_PROVIDER_UNAVAILABLE') {
+                    toast.error('Service Unavailable', { description: 'AI provider is temporarily down. Please try again later.' });
+                } else {
+                    toast.error('Test Failed', { description: error.message || 'An unexpected error occurred.' });
+                }
+                setError(error.message || 'Test failed');
+            }
+        });
+    };
+
+    // Derived results for display
     const displayResults: PromptDisplay[] = useMemo(() => {
-        if (searchType === 'keyword' && keywordResults?.data?.content) {
-            return keywordResults.data.content.map(p => ({
+        if (searchType === 'keyword') {
+            return keywordResults?.data?.content?.map(p => ({
                 id: p.id,
                 title: p.title,
                 category: p.collectionName || 'General',
                 rating: p.averageRating || 0,
                 description: p.description
-            }));
-        } else if (searchType === 'semantic' && semanticResults?.data?.results) {
-            return semanticResults.data.results.map(p => ({
+            })) || [];
+        } else {
+            return semanticResults?.data?.results?.map((p) => ({
                 id: p.promptId,
                 title: p.title,
-                category: 'Semantic Match', // or use tags if available
+                category: 'Semantic Match',
                 rating: p.averageRating || 0,
-                description: p.description
-            }));
+                description: p.description || p.matchedSnippet
+            })) || [];
         }
-        return [];
     }, [searchType, keywordResults, semanticResults]);
 
     const isLoading = searchType === 'keyword' ? isKeywordLoading : isSemanticLoading;
 
-    const handleSelectPrompt = async (promptDisplay: PromptDisplay) => {
-        console.log("Attempting to select prompt:", promptDisplay);
-        try {
-            if (!promptDisplay.id) {
-                console.error("Prompt ID is missing", promptDisplay);
-                return;
-            }
-            // Fetch full details
-            console.log("Fetching full details for ID:", promptDisplay.id);
-            const response = await promptsService.getPrompt(promptDisplay.id);
-            console.log("Fetch response:", response);
-
-            if (response.data) {
-                const fullPrompt = response.data;
-                console.log("Full prompt details:", fullPrompt);
-
-                // UX FIX: If no active slot, default to A, or B if A is taken
-                if (activePromptSlot === 'A' || (!activePromptSlot && !selectedPromptA)) {
-                    console.log("Setting Prompt A");
-                    setSelectedPromptA(fullPrompt);
-                } else if (activePromptSlot === 'B' || (!activePromptSlot && selectedPromptA)) {
-                    console.log("Setting Prompt B");
-                    setSelectedPromptB(fullPrompt);
-                } else {
-                    console.warn("No active prompt slot selected (A or B)");
-                }
-
-                // Log view (unlock)
-                promptsService.logPromptView(promptDisplay.id).catch(console.error);
-            } else {
-                console.error("Response data is missing");
-            }
-        } catch (error) {
-            console.error("Failed to fetch prompt details", error);
-        }
-
-        setShowSearchDropdown(false);
-        setSearchQuery('');
-        setActivePromptSlot(null);
-        setExpandedCollection(null);
-    };
-
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-            {/* Header - Same as Create Prompt Page */}
-            <header className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-16">
-                        <div className="flex items-center space-x-4">
-                            <button className="text-gray-600 hover:text-gray-900 transition-colors">
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                                </svg>
-                            </button>
-                            <div>
-                                <h1 className="text-xl font-bold text-gray-900">Prompt Testing & Optimization</h1>
-                                <p className="text-xs text-gray-500">Compare and improve your prompts</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                            <button
-                                onClick={() => setShowSettings(!showSettings)}
-                                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200 text-sm font-medium flex items-center space-x-2"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                                <span>Test Settings</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </header>
+        <div className="min-h-screen bg-gray-50 p-8 font-sans text-gray-800">
+            <div className="max-w-7xl mx-auto">
+                <Toaster position="top-right" />
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Search Bar */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6 transition-all duration-300 hover:shadow-md">
-                    <div className="flex items-center space-x-4 mb-3">
-                        <div className="flex-1 relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                {/* Header */}
+                <div className="mb-8">
+                    <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+                        <Sparkles className="w-8 h-8 text-blue-500 mr-3" />
+                        Prompt Testing & Comparison
+                    </h1>
+                    <p className="text-gray-600 mt-2 ml-11">
+                        Test your prompts with different models and settings to find the best results for your students.
+                    </p>
+                </div>
+
+                {/* Search Section */}
+                <div className="relative mb-6">
+                    <div className="flex gap-2 relative">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                             <input
-                                type="text"
                                 value={searchQuery}
                                 onChange={(e) => {
                                     setSearchQuery(e.target.value);
@@ -461,12 +541,13 @@ const PromptTestingPage = () => {
                         </div>
                         <button
                             onClick={handleSearch}
-                            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm hover:shadow-md"
+                            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm hover:shadow-md h-[50px]"
                         >
                             Search
                         </button>
+                    </div>
 
-                        {/* Search Type Toggle */}
+                    <div className="mt-3 flex justify-between items-center">
                         <div className="flex bg-gray-100 rounded-lg p-1">
                             <button
                                 onClick={() => setSearchType('keyword')}
@@ -491,7 +572,7 @@ const PromptTestingPage = () => {
                     </div>
 
                     {searchType === 'semantic' && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start space-x-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                        <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start space-x-2 animate-in fade-in slide-in-from-top-1 duration-200">
                             <Info className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
                             <p className="text-xs text-blue-700">
                                 Semantic search finds prompts based on meaning, not just exact words. Try: &#34;help students understand complex science topics&#34;
@@ -580,27 +661,43 @@ const PromptTestingPage = () => {
                     <div className="h-full">
                         <PromptCard
                             slot="A"
-                            prompt={selectedPromptA}
-                            onClear={() => setSelectedPromptA(null)}
+                            prompt={promptA?.data || null}
+                            onClear={() => {
+                                setSelectedPromptIdA(null);
+                                setTestResponseA(null);
+                                setTestErrorA(null);
+                            }}
                             onSelect={() => {
                                 setActivePromptSlot('A');
                                 setShowSearchDropdown(true);
                             }}
                             model={modelA}
                             onModelChange={setModelA}
+                            onTest={() => handleTest('A')}
+                            isTesting={isTestingA || isPollingA}
+                            testResult={testResponseA}
+                            testError={testErrorA}
                         />
                     </div>
                     <div className="h-full">
                         <PromptCard
                             slot="B"
-                            prompt={selectedPromptB}
-                            onClear={() => setSelectedPromptB(null)}
+                            prompt={promptB?.data || null}
+                            onClear={() => {
+                                setSelectedPromptIdB(null);
+                                setTestResponseB(null);
+                                setTestErrorB(null);
+                            }}
                             onSelect={() => {
                                 setActivePromptSlot('B');
                                 setShowSearchDropdown(true);
                             }}
                             model={modelB}
                             onModelChange={setModelB}
+                            onTest={() => handleTest('B')}
+                            isTesting={isTestingB || isPollingB}
+                            testResult={testResponseB}
+                            testError={testErrorB}
                         />
                     </div>
                 </div>
@@ -609,17 +706,23 @@ const PromptTestingPage = () => {
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-300">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center space-x-3">
-                            <button className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 font-medium flex items-center space-x-2 disabled:opacity-60 disabled:cursor-not-allowed">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
+                            <button
+                                onClick={() => {
+                                    handleTest('A');
+                                    handleTest('B');
+                                }}
+                                disabled={isTestingA || isPollingA || isTestingB || isPollingB || (!selectedPromptIdA && !selectedPromptIdB)}
+                                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 font-medium flex items-center space-x-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                            >
+                                {isTestingA || isPollingA || isTestingB || isPollingB ? (
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                ) : (
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                )}
                                 <span>Run Both Tests</span>
-                            </button>
-
-                            <button className="px-6 py-3 bg-gradient-to-r from-teal-500 to-emerald-600 text-white rounded-lg hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 font-medium flex items-center space-x-2 disabled:opacity-60 disabled:cursor-not-allowed">
-                                <Sparkles className="w-5 h-5" />
-                                <span>Optimize Both</span>
                             </button>
                         </div>
 
