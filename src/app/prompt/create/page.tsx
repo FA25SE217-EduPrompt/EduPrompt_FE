@@ -9,7 +9,7 @@ import {
     useGetOptimizationStatus,
     useGetTestUsage,
     useRequestOptimization,
-    useRunPromptTest
+    useRunPromptTest,
 } from '@/hooks/queries/prompt';
 
 import type {
@@ -21,13 +21,14 @@ import type {
     PromptTestResponse,
     UploadedFile as PromptUploadedFile,
 } from '@/types/prompt.api';
-import {useCreateCollection, useGetMyCollections} from "@/hooks/queries/collection";
-import {CreateCollectionRequest} from "@/types/collection.api";
-import {ApplySuggestion} from "@/components/ui/ApplySuggestion";
-import {SkeletonLoader} from "@/components/ui/SkeletonLoader";
-import {toast, Toaster} from "sonner";
-import {CopyButton} from "@/components/ui/CopyButtonProps";
-import {PulsingDotsLoader} from "@/components/ui/PulsingDotsLoaderProps";
+import {useCreateCollection, useGetMyCollections,} from '@/hooks/queries/collection';
+import {CreateCollectionRequest} from '@/types/collection.api';
+import {ApplySuggestion} from '@/components/ui/ApplySuggestion';
+import {SkeletonLoader} from '@/components/ui/SkeletonLoader';
+import {toast, Toaster} from 'sonner';
+import {CopyButton} from '@/components/ui/CopyButtonProps';
+import {PulsingDotsLoader} from '@/components/ui/PulsingDotsLoaderProps';
+import {CreatorNavbar} from '@/components/layout/CreatorNavbar'; // Import the new Navbar
 
 interface Template {
     title: string;
@@ -155,7 +156,6 @@ function parseOptimizationOutput(rawOutput: string): OptimizedPromptFields {
     return suggestions;
 }
 
-
 export default function CreatePromptPage() {
     const [form, setForm] = useState<PromptFormModel & { id?: string }>({
         id: undefined,
@@ -191,7 +191,7 @@ export default function CreatePromptPage() {
 
     const [customCollectionName, setCustomCollectionName] = useState('');
 
-    // Mutation hooks
+    // MUTATION HOOKS
     const {mutateAsync: createTagsBatch, isPending: isSavingTags} = useCreateTagsBatch();
     const {mutateAsync: createPromptMutation, isPending: isSavingStandalone} = useCreatePrompt();
     const {
@@ -202,6 +202,7 @@ export default function CreatePromptPage() {
     const {mutateAsync: runTestMutation, isPending: isSubmittingTest} = useRunPromptTest();
     const {mutateAsync: requestOptimizationMutation, isPending: isSubmittingOptimize} = useRequestOptimization();
 
+    // QUERY HOOKS
     const {data: myCollections, isLoading: isLoadingCollections} =
         useGetMyCollections(0, 20);
 
@@ -292,7 +293,7 @@ export default function CreatePromptPage() {
             setTestResponse(pollingResult.data);
             setTestError(null);
             setPollingUsageId(null);
-            toast.success('Test completed successfully'); // <-- ADDED
+            toast.success('Test completed successfully');
         }
 
         if (status === 'FAILED') {
@@ -304,6 +305,7 @@ export default function CreatePromptPage() {
         }
     }, [pollingResult]);
 
+    // HANDLER FUNCTIONS
     const handleFieldChange = <K extends keyof (PromptFormModel & { id?: string })>(
         field: K,
         value: (PromptFormModel & { id?: string })[K]
@@ -387,7 +389,7 @@ export default function CreatePromptPage() {
             constraints: template.constraints,
         }));
 
-        toast.success(`Template "${template.title}" applied`); // <-- ADDED
+        toast.success(`Template "${template.title}" applied`);
     };
 
     const generatePromptReview = () => {
@@ -678,54 +680,27 @@ export default function CreatePromptPage() {
         }
     };
 
+
     return (
         <ProtectedRoute>
             <Toaster position="top-right" richColors/>
             <div className="min-h-full bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-                {/* ... (Header) ... */}
-                <header className="backdrop-blur-sm bg-white/90 border-b border-gray-200 sticky top-0 z-40">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="flex justify-between items-center h-16">
-                            <nav className="flex items-center space-x-2 text-sm">
-                                <a href="#" className="text-gray-500 hover:text-gray-700">Dashboard</a>
-                                <span className="text-gray-400">/</span>
-                                <a href="#" className="text-gray-500 hover:text-gray-700">Prompts</a>
-                                <span className="text-gray-400">/</span>
-                                <span className="text-gray-900 font-medium">Create New</span>
-                            </nav>
-                            <div className="flex items-center space-x-4">
-                                <div className="flex items-center space-x-3">
-                                    <img
-                                        src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%233b82f6'/%3E%3Ctext x='16' y='21' text-anchor='middle' fill='white' font-family='Arial' font-size='14' font-weight='bold'%3EJS%3C/text%3E%3C/svg%3E"
-                                        alt="Teacher Avatar" className="w-8 h-8 rounded-full"/>
-                                    <span className="text-sm font-medium text-gray-700">Lord Tri Nguyen</span>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <button
-                                        onClick={handleSave}
-                                        disabled={isSaving}
-                                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60 disabled:cursor-not-allowed"
-                                    >
-                                        {isSaving ? 'Saving...' : 'Save Draft'}
-                                    </button>
-                                    <button
-                                        onClick={() => setShowTestModal(true)}
-                                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    >
-                                        Run Test
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </header>
+                <CreatorNavbar
+                    onSave={handleSave}
+                    isSaving={isSaving}
+                    onTest={() => setShowTestModal(true)}
+                    isTesting={isTesting}
+                />
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                         <main className="lg:col-span-3">
                             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                                <h1 className="text-2xl font-bold text-gray-900 mb-6">Create New Prompt</h1>
+                                <h1 className="text-2xl font-bold text-gray-900 mb-6">
+                                    Create New Prompt
+                                </h1>
                                 <form className="space-y-6" onSubmit={(event) => event.preventDefault()}>
+                                    {/* ... (Title, Description) ... */}
                                     <div>
                                         <div className="flex items-center justify-between mb-2">
                                             <label htmlFor="title" className="block text-sm font-medium text-gray-700">
@@ -781,28 +756,40 @@ export default function CreatePromptPage() {
                                             placeholder="Brief description of what this prompt does"
                                         />
                                     </div>
-
                                     <div>
                                         <div className="flex items-center justify-between mb-2">
-                                            <label htmlFor="instruction"
-                                                   className="block text-sm font-medium text-gray-700">
+                                            <label
+                                                htmlFor="instruction"
+                                                className="block text-sm font-medium text-gray-700"
+                                            >
                                                 Instruction *
                                             </label>
-                                            <div className='flex items-center space-x-1'>
-                                                <CopyButton text={form.instruction} label="Instruction"/>
+                                            <div className="flex items-center space-x-1">
+                                                <CopyButton
+                                                    text={form.instruction}
+                                                    label="Instruction"
+                                                />
+                                                {/* Optimize Button */}
                                                 <button
                                                     type="button"
                                                     onClick={handleOptimize}
                                                     disabled={isOptimizing}
-                                                    className="inline-flex items-center px-2 py-1 text-xs font-medium text-purple-600 bg-purple-50 rounded-md hover:bg-purple-100 border border-purple-200 disabled:opacity-50"
+                                                    className="btn-optimize"
                                                 >
-                                                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor"
-                                                         viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round"
-                                                              strokeWidth="2"
-                                                              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                                    <svg
+                                                        className="w-3 h-3 mr-1"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth="2"
+                                                            d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                                                        ></path>
                                                     </svg>
-                                                    {isOptimizing ? 'Analyzing...' : 'Optimize'}
+                                                    {isOptimizing ? "Analyzing..." : "Optimize"}
                                                 </button>
                                             </div>
                                         </div>
@@ -810,23 +797,34 @@ export default function CreatePromptPage() {
                                             suggestion={optimizedSuggestions?.instruction}
                                             onApply={() => {
                                                 if (optimizedSuggestions?.instruction) {
-                                                    handleFieldChange('instruction', optimizedSuggestions.instruction);
-                                                    setOptimizedSuggestions(s => ({...s, instruction: undefined}));
+                                                    handleFieldChange(
+                                                        "instruction",
+                                                        optimizedSuggestions.instruction
+                                                    );
+                                                    setOptimizedSuggestions((s) => ({
+                                                        ...s,
+                                                        instruction: undefined,
+                                                    }));
                                                 }
                                             }}
                                         />
                                         <textarea
                                             id="instruction"
                                             value={form.instruction}
-                                            onChange={(e) => handleFieldChange('instruction', e.target.value)}
+                                            onChange={(e) =>
+                                                handleFieldChange("instruction", e.target.value)
+                                            }
                                             rows={4}
                                             required
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400 hover:shadow-sm transition-all duration-200"
                                             placeholder="Detailed instructions for the AI model"
                                         />
-                                        <p className="text-xs text-gray-500 mt-1">Minimum 20 characters required</p>
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            Minimum 20 characters required
+                                        </p>
                                     </div>
 
+                                    {/* ... (Context, Input, Output, Constraints, etc...) ... */}
                                     <div>
                                         <div className="flex items-center justify-between mb-2">
                                             <label htmlFor="context"
@@ -1030,7 +1028,7 @@ export default function CreatePromptPage() {
                                                 onChange={(e) => handleFieldChange('collection', e.target.value)}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400 hover:shadow-sm transition-all duration-200"
                                             >
-                                                <option value={COLLECTION_NONE}>Do not add to collection</option>
+                                                <option value={COLLECTION_NONE}></option>
                                                 <option value={COLLECTION_AUTO}>Auto-create new collection</option>
                                                 <option value={COLLECTION_NEW}>Create new collection...</option>
                                                 {isLoadingCollections &&
@@ -1120,43 +1118,61 @@ export default function CreatePromptPage() {
                                         </div>
                                     </div>
 
-                                    {/* PulsingDotsLoader */}
+                                    {/* UPDATED: AI Optimization Box now uses AI-Teal */}
                                     <div
-                                        className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-200">
+                                        className="bg-gradient-to-r from-accent-ai-subtle to-blue-50 rounded-lg p-4 border border-accent-ai/20">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center space-x-2">
-                                                <svg className="w-5 h-5 text-purple-600" fill="none"
-                                                     stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                                          d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                                <svg
+                                                    className="w-5 h-5 text-accent-ai"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth="2"
+                                                        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                                                    ></path>
                                                 </svg>
-                                                <span
-                                                    className="text-sm font-medium text-purple-700">AI Optimization</span>
+                                                <span className="text-sm font-medium text-accent-ai">
+                          AI Optimization
+                        </span>
                                             </div>
                                             <button
                                                 type="button"
                                                 onClick={handleOptimize}
                                                 disabled={isOptimizing}
-                                                className="px-3 py-1 text-xs font-medium text-purple-600 bg-white rounded-md hover:bg-purple-50 border border-purple-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                                                className="btn-optimize"
                                             >
-                                                {isOptimizing ? 'Submitting...' : 'Optimize Prompt'}
+                                                {isOptimizing ? "Submitting..." : "Optimize Prompt"}
                                             </button>
                                         </div>
-                                        <p className="text-xs text-purple-600 mt-2">Get AI suggestions to improve your
-                                            prompt&#39;s effectiveness</p>
+                                        <p className="text-xs text-accent-ai mt-2">
+                                            Get AI suggestions to improve your prompt&#39;s
+                                            effectiveness
+                                        </p>
                                         <div className="mt-2">
                                             {isOptimizing && !optimizationQueue ? (
-                                                <PulsingDotsLoader text="Optimizing prompt"/>
+                                                <PulsingDotsLoader
+                                                    text="Optimizing prompt"
+                                                    variant="blue"
+                                                />
                                             ) : (
                                                 <>
                                                     {optimizationQueue && (
-                                                        <p className="text-xs text-purple-600">
-                                                            Status: <span
-                                                            className="font-medium">{optimizationQueue.status}</span>
+                                                        <p className="text-xs text-accent-ai">
+                                                            Status:{" "}
+                                                            <span className="font-medium">
+                                {optimizationQueue.status}
+                              </span>
                                                         </p>
                                                     )}
                                                     {optimizationError && (
-                                                        <p className="text-xs text-red-600 mt-2">{optimizationError}</p>
+                                                        <p className="text-xs text-red-600 mt-2">
+                                                            {optimizationError}
+                                                        </p>
                                                     )}
                                                 </>
                                             )}
@@ -1166,6 +1182,7 @@ export default function CreatePromptPage() {
                             </div>
                         </main>
 
+                        {/* ... (Aside/Templates) ... */}
                         <aside className="lg:col-span-1">
                             <div
                                 className="bg-white rounded-xl shadow-sm border border-gray-200 h-[calc(100vh-200px)] flex flex-col sticky top-24 transition-all duration-500 ease-in-out hover:shadow-lg">
@@ -1219,7 +1236,7 @@ export default function CreatePromptPage() {
                     </div>
                 </div>
 
-                {/* Test Modal */}
+                {/* ... (Test Modal) ... */}
                 {showTestModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 z-50">
                         <div className="flex items-center justify-center min-h-screen p-4">

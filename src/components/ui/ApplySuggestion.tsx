@@ -1,5 +1,4 @@
-
-import { SparklesIcon } from '@heroicons/react/24/outline';
+import {SparklesIcon} from '@heroicons/react/24/outline';
 
 type ApplySuggestionProps = {
     suggestion?: string;
@@ -10,7 +9,7 @@ type ApplySuggestionProps = {
  * a small component that appears above a form field
  * to show an AI suggestion and an 'Apply' button.
  */
-export const ApplySuggestion = ({ suggestion, onApply }: ApplySuggestionProps) => {
+export const ApplySuggestion = ({suggestion, onApply}: ApplySuggestionProps) => {
     if (!suggestion) {
         return null;
     }
@@ -19,7 +18,7 @@ export const ApplySuggestion = ({ suggestion, onApply }: ApplySuggestionProps) =
         <div className="mb-2 rounded-lg border border-purple-200 bg-purple-50 p-3 text-sm">
             <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                    <SparklesIcon className="h-5 w-5 text-purple-600" />
+                    <SparklesIcon className="h-5 w-5 text-purple-600"/>
                     <span className="font-medium text-purple-700">AI Suggestion</span>
                 </div>
                 <button
