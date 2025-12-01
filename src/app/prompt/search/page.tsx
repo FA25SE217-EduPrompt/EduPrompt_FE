@@ -1,13 +1,19 @@
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, GitCompare, Sparkles, Info, Copy, RefreshCw, BookOpen, Star, TrendingUp, X, ChevronDown, Play, Loader2 } from 'lucide-react';
+import { Search, GitCompare, Sparkles, Info, Copy, BookOpen, Star, TrendingUp, X, ChevronDown, Play, Loader2, Filter } from 'lucide-react';
 import { useFilterPrompts, useSemanticSearch } from '@/hooks/queries/search';
 import { useGetMyCollections } from '@/hooks/queries/collection';
 import { useRunPromptTest, useGetTestUsage, useGetPrompt } from '@/hooks/queries/prompt';
 import { promptsService } from '@/services/resources/prompts';
-import { PromptResponse, PromptTestResponse, PromptAiModel } from '@/types/prompt.api';
+import { PromptResponse, PromptTestResponse, PromptAiModel, PromptMetadataResponse } from '@/types/prompt.api';
+import { CollectionResponse } from '@/types/collection.api';
+import { BaseResponse, PaginatedResponse } from '@/types/api';
 import { toast, Toaster } from 'sonner';
+import { CreatorNavbar } from '@/components/layout/CreatorNavbar';
+import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'next/navigation';
+import Spinner from '@/components/ui/Spinner';
 
 interface PromptDisplay {
     id: string;
@@ -33,6 +39,187 @@ const InfoTooltip = ({ text }: { text: string }) => (
     </div>
 );
 
+// --- Components ---
+
+const PromptSelectionModal = ({
+    isOpen,
+    onClose,
+    onSelect,
+    searchQuery,
+    setSearchQuery,
+    searchType,
+    setSearchType,
+    handleSearch,
+    results,
+    isLoading,
+    collections,
+    expandedCollection,
+    setExpandedCollection,
+    collectionPromptsData,
+    isCollectionPromptsLoading
+}: {
+    isOpen: boolean;
+    onClose: () => void;
+    onSelect: (prompt: PromptDisplay) => void;
+    searchQuery: string;
+    setSearchQuery: (q: string) => void;
+    searchType: 'keyword' | 'semantic';
+    setSearchType: (t: 'keyword' | 'semantic') => void;
+    handleSearch: () => void;
+    results: PromptDisplay[];
+    isLoading: boolean;
+    collections: CollectionResponse[];
+    expandedCollection: string | null;
+    setExpandedCollection: (id: string | null) => void;
+    collectionPromptsData: BaseResponse<PaginatedResponse<PromptMetadataResponse>> | undefined;
+    isCollectionPromptsLoading: boolean;
+}) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+                {/* Header */}
+                <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                    <h2 className="text-lg font-semibold text-gray-900">Select a Prompt</h2>
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors">
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                {/* Search Bar */}
+                <div className="p-4 border-b border-gray-100 space-y-3">
+                    <div className="flex gap-2">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                            <input
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                placeholder="Search prompts..."
+                                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                autoFocus
+                            />
+                        </div>
+                        <button
+                            onClick={handleSearch}
+                            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+                        >
+                            Search
+                        </button>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <button
+                            onClick={() => setSearchType('keyword')}
+                            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${searchType === 'keyword' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100'}`}
+                        >
+                            Keyword
+                        </button>
+                        <button
+                            onClick={() => setSearchType('semantic')}
+                            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center space-x-1 ${searchType === 'semantic' ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:bg-gray-100'}`}
+                        >
+                            <Sparkles className="w-3 h-3" />
+                            <span>Semantic</span>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Results List */}
+                <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
+                    {/* Search Results */}
+                    {searchQuery && (
+                        <div className="mb-4">
+                            <div className="text-xs font-semibold text-gray-500 px-3 py-2 uppercase tracking-wide">Search Results</div>
+                            {isLoading ? (
+                                <div className="flex items-center justify-center py-8 text-gray-500">
+                                    <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                                    Searching...
+                                </div>
+                            ) : results.length > 0 ? (
+                                <div className="space-y-1">
+                                    {results.map(prompt => (
+                                        <button
+                                            key={prompt.id}
+                                            onClick={() => onSelect(prompt)}
+                                            className="w-full text-left px-3 py-3 hover:bg-blue-50 rounded-lg transition-all duration-200 flex items-center justify-between group border border-transparent hover:border-blue-100"
+                                        >
+                                            <div className="flex-1 min-w-0">
+                                                <div className="font-medium text-gray-900 group-hover:text-blue-700 truncate">{prompt.title}</div>
+                                                <div className="text-xs text-gray-500 mt-0.5 truncate">{prompt.description || 'No description'}</div>
+                                            </div>
+                                            <div className="flex items-center space-x-2 ml-3">
+                                                <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">{prompt.category}</span>
+                                                <div className="flex items-center text-amber-500">
+                                                    <Star className="w-3 h-3 fill-current" />
+                                                    <span className="text-xs font-medium ml-0.5">{prompt.rating}</span>
+                                                </div>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="px-4 py-8 text-center text-gray-500 text-sm">No prompts found matching &quot;{searchQuery}&quot;</div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Collections (only show if not searching or if search is empty) */}
+                    {!searchQuery && (
+                        <div>
+                            <div className="text-xs font-semibold text-gray-500 px-3 py-2 uppercase tracking-wide flex items-center">
+                                <BookOpen className="w-3.5 h-3.5 mr-1.5" />
+                                My Collections
+                            </div>
+                            <div className="space-y-1">
+                                {collections.map(collection => (
+                                    <div key={collection.id} className="rounded-lg overflow-hidden">
+                                        <button
+                                            onClick={() => setExpandedCollection(expandedCollection === collection.id ? null : collection.id)}
+                                            className="w-full text-left px-3 py-2.5 hover:bg-gray-50 flex items-center justify-between group transition-colors"
+                                        >
+                                            <span className="font-medium text-gray-700 group-hover:text-gray-900 text-sm">{collection.name}</span>
+                                            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${expandedCollection === collection.id ? 'rotate-180' : ''}`} />
+                                        </button>
+                                        {expandedCollection === collection.id && (
+                                            <div className="bg-gray-50/50 px-2 py-2 space-y-1 border-t border-gray-100">
+                                                {isCollectionPromptsLoading ? (
+                                                    <div className="px-3 py-2 text-xs text-gray-400 flex items-center">
+                                                        <Loader2 className="w-3 h-3 animate-spin mr-2" />
+                                                        Loading...
+                                                    </div>
+                                                ) : collectionPromptsData?.data?.content && collectionPromptsData.data.content.length > 0 ? (
+                                                    collectionPromptsData.data.content.map((prompt: PromptMetadataResponse) => (
+                                                        <button
+                                                            key={prompt.id}
+                                                            onClick={() => onSelect({
+                                                                id: prompt.id,
+                                                                title: prompt.title,
+                                                                category: prompt.collectionName || 'General',
+                                                                rating: prompt.averageRating || 0,
+                                                                description: prompt.description
+                                                            })}
+                                                            className="w-full text-left px-3 py-2 hover:bg-white hover:shadow-sm rounded-md transition-all duration-200 text-sm text-gray-600 hover:text-blue-600 flex justify-between items-center"
+                                                        >
+                                                            <span className="truncate">{prompt.title}</span>
+                                                        </button>
+                                                    ))
+                                                ) : (
+                                                    <div className="px-3 py-2 text-xs text-gray-400 italic">Empty collection</div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const PromptCard = ({ slot, prompt, onClear, onSelect, model, onModelChange, onTest, isTesting, testResult, testError }: {
     slot: 'A' | 'B',
     prompt: PromptResponse | null,
@@ -45,190 +232,184 @@ const PromptCard = ({ slot, prompt, onClear, onSelect, model, onModelChange, onT
     testResult: PromptTestResponse | null,
     testError: string | null
 }) => {
-
     return (
-        <div className="bg-white rounded-xl border-2 border-gray-200 p-6 hover:border-blue-300 transition-all duration-300 h-full">
-            <div className="flex items-center justify-between mb-4">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col group">
+            {/* Card Header */}
+            <div className={`p-4 border-b border-gray-100 flex items-center justify-between ${slot === 'A' ? 'bg-blue-50/30' : 'bg-purple-50/30'}`}>
                 <div className="flex items-center space-x-3">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-white shadow-sm ${slot === 'A' ? 'bg-gradient-to-br from-blue-500 to-blue-600' : 'bg-gradient-to-br from-purple-500 to-purple-600'
-                        }`}>
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-sm shadow-sm ${slot === 'A' ? 'bg-blue-600' : 'bg-purple-600'}`}>
                         {slot}
                     </div>
                     <div>
-                        <h3 className="font-semibold text-gray-900">
-                            {prompt ? prompt.title : `Prompt ${slot}`}
+                        <h3 className="font-semibold text-gray-900 text-sm truncate max-w-[150px]">
+                            {prompt ? prompt.title : 'Empty Slot'}
                         </h3>
-                        {prompt && (
-                            <div className="flex items-center space-x-2 mt-0.5">
-                                <span className="text-xs text-gray-500">{prompt.collectionName || 'General'}</span>
-                                <div className="flex items-center space-x-0.5 text-amber-500">
-                                    <Star className="w-3 h-3 fill-current" />
-                                    <span className="text-xs font-medium">{prompt.averageRating || 0}</span>
-                                </div>
-                            </div>
-                        )}
                     </div>
                 </div>
-                {prompt && (
-                    <button
-                        onClick={onClear}
-                        className="text-gray-400 hover:text-red-500 transition-colors p-1 hover:bg-red-50 rounded"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
-                )}
+                <div className="flex items-center space-x-1">
+                    {prompt ? (
+                        <button
+                            onClick={onClear}
+                            className="text-gray-400 hover:text-red-500 p-1.5 hover:bg-red-50 rounded-md transition-colors"
+                            title="Remove prompt"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    ) : (
+                        <button
+                            onClick={onSelect}
+                            className="text-blue-600 hover:text-blue-700 text-xs font-medium px-2 py-1 hover:bg-blue-50 rounded-md transition-colors"
+                        >
+                            Select
+                        </button>
+                    )}
+                </div>
             </div>
 
-            {!prompt ? (
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-all duration-300">
-                    <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-sm text-gray-500 mb-4">Select a prompt to test</p>
-                    <button
-                        onClick={onSelect}
-                        className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 hover:shadow-sm transition-all duration-200 text-sm font-medium"
-                    >
-                        Choose Prompt
-                    </button>
-                </div>
-            ) : (
-                <div className="space-y-4">
-                    {/* Prompt Content */}
-                    <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4 space-y-3 border border-gray-200 max-h-[400px] overflow-y-auto">
-                        {prompt.context && (
-                            <div>
-                                <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Context</label>
-                                <p className="text-sm text-gray-800 mt-1 leading-relaxed whitespace-pre-wrap">{prompt.context}</p>
-                            </div>
-                        )}
-                        <div>
-                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Instruction</label>
-                            <p className="text-sm text-gray-800 mt-1 leading-relaxed whitespace-pre-wrap">{prompt.instruction}</p>
+            {/* Card Body */}
+            <div className="flex-1 p-4 flex flex-col min-h-[400px]">
+                {!prompt ? (
+                    <div className="flex-1 flex flex-col items-center justify-center text-center p-6 border-2 border-dashed border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50/10 transition-all cursor-pointer group-hover:border-blue-200" onClick={onSelect}>
+                        <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                            <Search className="w-6 h-6" />
                         </div>
-                        {prompt.inputExample && (
-                            <div className="pt-2 border-t border-gray-200">
-                                <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Input Example</label>
-                                <p className="text-sm text-gray-800 mt-1 leading-relaxed whitespace-pre-wrap">{prompt.inputExample}</p>
-                            </div>
-                        )}
-                        {prompt.outputFormat && (
-                            <div className="pt-2 border-t border-gray-200">
-                                <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Output Format</label>
-                                <p className="text-sm text-gray-800 mt-1 leading-relaxed whitespace-pre-wrap">{prompt.outputFormat}</p>
-                            </div>
-                        )}
-                        {prompt.constraints && (
-                            <div className="pt-2 border-t border-gray-200">
-                                <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Constraints</label>
-                                <p className="text-sm text-gray-800 mt-1 leading-relaxed whitespace-pre-wrap">{prompt.constraints}</p>
-                            </div>
-                        )}
+                        <h4 className="text-sm font-medium text-gray-900 mb-1">No Prompt Selected</h4>
+                        <p className="text-xs text-gray-500 mb-4 max-w-[200px]">Choose a prompt from your library to test and compare.</p>
+                        <button className="px-4 py-2 bg-white border border-gray-200 text-gray-700 text-xs font-medium rounded-lg shadow-sm hover:bg-gray-50 hover:border-gray-300 transition-all">
+                            Browse Prompts
+                        </button>
                     </div>
-
-                    {/* Model Selection & Test */}
-                    <div className="flex items-center space-x-2">
-                        <div className="flex-1">
-                            <label className="text-xs font-medium text-gray-700 mb-1.5 block">AI Model</label>
-                            <select
-                                value={model}
-                                onChange={(e) => onModelChange(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition-all duration-200 hover:border-blue-400"
-                            >
-                                {MODEL_OPTIONS.map(opt => (
-                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                ))}
-                            </select>
+                ) : (
+                    <div className="flex-1 flex flex-col space-y-4">
+                        {/* Prompt Preview */}
+                        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 text-xs space-y-3 max-h-[250px] overflow-y-auto custom-scrollbar">
+                            {prompt.description && (
+                                <div>
+                                    <span className="font-semibold text-gray-500 uppercase tracking-wider text-[10px]">Description</span>
+                                    <p className="text-gray-700 mt-0.5">{prompt.description}</p>
+                                </div>
+                            )}
+                            <div>
+                                <span className="font-semibold text-gray-500 uppercase tracking-wider text-[10px]">Instruction</span>
+                                <p className="text-gray-800 mt-0.5 leading-relaxed">{prompt.instruction}</p>
+                            </div>
+                            {prompt.context && (
+                                <div>
+                                    <span className="font-semibold text-gray-500 uppercase tracking-wider text-[10px]">Context</span>
+                                    <p className="text-gray-700 mt-0.5">{prompt.context}</p>
+                                </div>
+                            )}
+                            {prompt.inputExample && (
+                                <div className="pt-2 border-t border-gray-200">
+                                    <span className="font-semibold text-gray-500 uppercase tracking-wider text-[10px]">Input Example</span>
+                                    <p className="text-gray-600 mt-0.5 italic">{prompt.inputExample}</p>
+                                </div>
+                            )}
+                            {prompt.outputFormat && (
+                                <div className="pt-2 border-t border-gray-200">
+                                    <span className="font-semibold text-gray-500 uppercase tracking-wider text-[10px]">Output Format</span>
+                                    <p className="text-gray-600 mt-0.5 font-mono text-[10px]">{prompt.outputFormat}</p>
+                                </div>
+                            )}
+                            {prompt.constraints && (
+                                <div className="pt-2 border-t border-gray-200">
+                                    <span className="font-semibold text-gray-500 uppercase tracking-wider text-[10px]">Constraints</span>
+                                    <p className="text-gray-600 mt-0.5">{prompt.constraints}</p>
+                                </div>
+                            )}
                         </div>
-                        <div className="pt-5">
+
+                        {/* Controls */}
+                        <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                            <div className="flex-1">
+                                <select
+                                    value={model}
+                                    onChange={(e) => onModelChange(e.target.value)}
+                                    className="w-full px-2.5 py-2 bg-white border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                >
+                                    {MODEL_OPTIONS.map(opt => (
+                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    ))}
+                                </select>
+                            </div>
                             <button
                                 onClick={onTest}
                                 disabled={isTesting}
-                                className="inline-flex items-center justify-center gap-1 bg-blue-600 text-white border border-blue-700 rounded-lg text-xs font-medium px-4 py-2 shadow-sm hover:bg-blue-700 hover:shadow-md hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 min-w-[80px]"
-                                title="Run test with selected model"
+                                className={`flex items-center justify-center px-4 py-2 rounded-lg text-xs font-medium text-white shadow-sm transition-all ${isTesting ? 'bg-blue-400 cursor-wait' : 'bg-blue-600 hover:bg-blue-700 hover:shadow-md'}`}
                             >
-                                {isTesting ? (
-                                    <>
-                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                        <span>Testing...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Play className="w-3.5 h-3.5 fill-current" />
-                                        <span>Test</span>
-                                    </>
-                                )}
+                                {isTesting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5 fill-current mr-1" />}
+                                {isTesting ? 'Testing' : 'Run'}
                             </button>
                         </div>
-                    </div>
 
-                    {/* Test Results Area */}
-                    <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-lg p-4 min-h-[200px] border border-blue-100 relative">
-                        <div className="flex items-center justify-between mb-3">
-                            <h4 className="text-sm font-semibold text-gray-900">Test Results</h4>
-                            <div className="flex items-center space-x-2">
+                        {/* Output */}
+                        <div className="flex-1 bg-white border border-gray-200 rounded-lg p-3 relative min-h-[300px] flex flex-col">
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Output</span>
                                 {testResult?.output && (
                                     <button
                                         onClick={() => {
                                             navigator.clipboard.writeText(testResult.output || '');
-                                            toast.success('Copied to clipboard');
+                                            toast.success('Copied');
                                         }}
-                                        className="p-1 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded transition-all duration-200"
-                                        title="Copy results"
+                                        className="text-gray-400 hover:text-blue-500 transition-colors"
                                     >
-                                        <Copy className="w-4 h-4" />
+                                        <Copy className="w-3 h-3" />
                                     </button>
                                 )}
                             </div>
-                        </div>
 
-                        <div className="text-sm text-gray-600 space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar">
-                            {isTesting ? (
-                                <div className="flex flex-col items-center justify-center h-32 space-y-3">
-                                    <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-                                    <p className="text-xs text-gray-500 animate-pulse">Generating response...</p>
-                                </div>
-                            ) : testError ? (
-                                <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-red-600 text-xs">
-                                    <p className="font-semibold mb-1">Error</p>
-                                    {testError}
-                                </div>
-                            ) : testResult ? (
-                                <div className="prose prose-sm max-w-none">
-                                    <p className="whitespace-pre-wrap text-gray-800 leading-relaxed">{testResult.output}</p>
-                                </div>
-                            ) : (
-                                <p className="italic text-gray-500">Click "Test" to see AI response here...</p>
-                            )}
+                            <div className="flex-1 overflow-y-auto custom-scrollbar">
+                                {isTesting ? (
+                                    <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-2">
+                                        <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+                                        <span className="text-xs">Generating response...</span>
+                                    </div>
+                                ) : testError ? (
+                                    <div className="text-red-500 text-xs p-2 bg-red-50 rounded border border-red-100">
+                                        {testError}
+                                    </div>
+                                ) : testResult ? (
+                                    <div className="prose prose-sm max-w-none text-gray-800 leading-relaxed whitespace-pre-wrap">
+                                        {testResult.output}
+                                    </div>
+                                ) : (
+                                    <div className="h-full flex items-center justify-center text-gray-300 text-xs italic">
+                                        Result will appear here
+                                    </div>
+                                )}
+                            </div>
 
-                            {(testResult || isTesting) && (
-                                <div className="grid grid-cols-2 gap-3 pt-3 border-t border-blue-200 mt-4">
-                                    <div className="bg-white/60 backdrop-blur-sm rounded-lg p-2">
-                                        <span className="text-xs text-gray-500 block">Tokens Used</span>
-                                        <span className="text-sm text-gray-700 font-semibold">
-                                            {testResult?.tokensUsed || '-'}
-                                        </span>
-                                    </div>
-                                    <div className="bg-white/60 backdrop-blur-sm rounded-lg p-2">
-                                        <span className="text-xs text-gray-500 block">Response Time</span>
-                                        <span className="text-sm text-gray-700 font-semibold">
-                                            {testResult?.executionTimeMs ? `${testResult.executionTimeMs}ms` : '-'}
-                                        </span>
-                                    </div>
+                            {/* Metrics */}
+                            {(testResult) && (
+                                <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between text-[10px] text-gray-500">
+                                    <span>{testResult.tokensUsed || 0} tokens</span>
+                                    <span>{testResult.executionTimeMs || 0}ms</span>
                                 </div>
                             )}
                         </div>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 };
 
 const PromptTestingPage = () => {
+    const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (!isAuthLoading && !isAuthenticated) {
+            router.replace('/login');
+        }
+    }, [isAuthenticated, isAuthLoading, router]);
+
     // State
     const [searchQuery, setSearchQuery] = useState('');
     const [executedSearchQuery, setExecutedSearchQuery] = useState('');
     const [searchType, setSearchType] = useState<'keyword' | 'semantic'>('keyword');
-    const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const [selectedPromptIdA, setSelectedPromptIdA] = useState<string | null>(null);
     const [selectedPromptIdB, setSelectedPromptIdB] = useState<string | null>(null);
@@ -279,10 +460,17 @@ const PromptTestingPage = () => {
     const handleSearch = () => {
         if (!searchQuery.trim()) return;
         setExecutedSearchQuery(searchQuery);
-        setShowSearchDropdown(true);
         if (searchType === 'semantic') {
             performSemanticSearch({ query: searchQuery, limit: 10 });
         }
+    };
+
+    const openSelectionModal = (slot: 'A' | 'B') => {
+        setActivePromptSlot(slot);
+        setIsModalOpen(true);
+        // Reset search when opening
+        setSearchQuery('');
+        setExecutedSearchQuery('');
     };
 
     const handleSelectPrompt = (prompt: PromptDisplay) => {
@@ -290,16 +478,13 @@ const PromptTestingPage = () => {
             setSelectedPromptIdA(prompt.id);
         } else if (activePromptSlot === 'B') {
             setSelectedPromptIdB(prompt.id);
-        } else {
-            if (!selectedPromptIdA) setSelectedPromptIdA(prompt.id);
-            else if (!selectedPromptIdB) setSelectedPromptIdB(prompt.id);
-            else setSelectedPromptIdA(prompt.id);
         }
-        setShowSearchDropdown(false);
+        setIsModalOpen(false);
         setActivePromptSlot(null);
     };
 
     const handleTest = async (slot: 'A' | 'B') => {
+        console.log(`[handleTest] Starting test for slot ${slot}`);
         const prompt = slot === 'A' ? promptA?.data : promptB?.data;
         const model = slot === 'A' ? modelA : modelB;
         const setResponse = slot === 'A' ? setTestResponseA : setTestResponseB;
@@ -307,12 +492,16 @@ const PromptTestingPage = () => {
         const runTest = slot === 'A' ? runTestA : runTestB;
         const setIsPolling = slot === 'A' ? setIsPollingA : setIsPollingB;
 
-        if (!prompt) return;
+        if (!prompt) {
+            console.error('[handleTest] No prompt selected');
+            return;
+        }
 
         setError(null);
         setResponse(null);
 
         const inputText = prompt.inputExample || "Default test input";
+        console.log('[handleTest] Sending request:', { promptId: prompt.id, model, inputText });
 
         runTest({
             request: {
@@ -325,45 +514,61 @@ const PromptTestingPage = () => {
             }
         }, {
             onSuccess: async (data) => {
+                console.log('[handleTest] runTest success:', data);
                 if (!data.data) {
+                    console.error('[handleTest] No data in response');
                     setError('No data received from server');
                     return;
                 }
 
                 if (data.data.status === 'PENDING' || data.data.status === 'PROCESSING') {
+                    console.log('[handleTest] Status is PENDING/PROCESSING, starting poll');
                     setIsPolling(true);
                     // Start polling
                     const poll = async () => {
                         try {
                             if (!data.data) return;
-                            const result = await promptsService.getTestUsage(data.data.id);
+                            console.log('[handleTest] Polling usage:', data.data.id);
+                            const result = await promptsService.getTestUsage(data.data!.id);
+                            console.log('[handleTest] Poll result:', result);
 
                             if (!result.data) {
+                                console.warn('[handleTest] No data in poll result, retrying...');
                                 setTimeout(poll, 2000);
                                 return;
                             }
 
                             if (result.data.status === 'COMPLETED') {
+                                console.log('[handleTest] Test completed');
                                 setResponse(result.data);
                                 setIsPolling(false);
                             } else if (result.data.status === 'FAILED') {
+                                console.error('[handleTest] Test failed:', result.data.errorMessage);
                                 setError(result.data.errorMessage || 'Test failed during processing');
                                 setIsPolling(false);
                             } else {
                                 // Continue polling
+                                console.log('[handleTest] Status still ' + result.data.status + ', retrying...');
                                 setTimeout(poll, 2000);
                             }
                         } catch (err) {
+                            console.error('[handleTest] Poll error:', err);
                             setError('Failed to poll test results');
                             setIsPolling(false);
                         }
                     };
                     poll();
+                } else if (data.data.status === 'FAILED') {
+                    console.error('[handleTest] Test failed immediately:', data.data.errorMessage);
+                    setError(data.data.errorMessage || 'Test failed immediately');
                 } else {
+                    console.log('[handleTest] Test completed immediately');
                     setResponse(data.data);
                 }
             },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             onError: (error: any) => {
+                console.error('[handleTest] runTest error:', error);
                 const errPayload = error?.response?.data?.error;
                 if (errPayload?.code === 'QUOTA_EXCEEDED') {
                     toast.error('Quota Exceeded', { description: errPayload.message?.[0] || 'You have reached your testing limit.' });
@@ -402,199 +607,50 @@ const PromptTestingPage = () => {
 
     const isLoading = searchType === 'keyword' ? isKeywordLoading : isSemanticLoading;
 
+    if (isAuthLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <Spinner size="page" />
+            </div>
+        );
+    }
+
+    if (!isAuthenticated) {
+        return null; // Don't render anything while redirecting
+    }
+
     return (
-        <div className="min-h-screen bg-gray-50 p-8 font-sans text-gray-800">
-            <div className="max-w-7xl mx-auto">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 font-sans text-gray-800">
+            <CreatorNavbar
+                title="Search & Test"
+                breadcrumbs={[{ label: 'Search & Test' }]}
+            />
+
+            <div className="max-w-7xl mx-auto p-6">
                 <Toaster position="top-right" />
 
-                {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-                        <Sparkles className="w-8 h-8 text-blue-500 mr-3" />
-                        Prompt Testing & Comparison
-                    </h1>
-                    <p className="text-gray-600 mt-2 ml-11">
-                        Test your prompts with different models and settings to find the best results for your students.
-                    </p>
-                </div>
-
-                {/* Search Section */}
-                <div className="relative mb-6">
-                    <div className="flex gap-2 relative">
-                        <div className="relative flex-1">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                            <input
-                                value={searchQuery}
-                                onChange={(e) => {
-                                    setSearchQuery(e.target.value);
-                                }}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                        handleSearch();
-                                    }
-                                }}
-                                onFocus={() => {
-                                    if (executedSearchQuery.length > 0 || activePromptSlot) {
-                                        setShowSearchDropdown(true);
-                                    }
-                                }}
-                                placeholder="Search your prompts by title, description, or tags..."
-                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-blue-400"
-                            />
-
-                            {/* Search Dropdown */}
-                            {showSearchDropdown && (
-                                <>
-                                    <div
-                                        className="fixed inset-0 z-40"
-                                        onClick={() => {
-                                            setShowSearchDropdown(false);
-                                            setActivePromptSlot(null);
-                                            setExpandedCollection(null);
-                                        }}
-                                    />
-                                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 max-h-[32rem] overflow-y-auto z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                                        {/* My Prompts Section */}
-                                        <div className="p-2">
-                                            <div className="text-xs font-semibold text-gray-500 px-3 py-2 uppercase tracking-wide flex items-center">
-                                                <BookOpen className="w-4 h-4 mr-2" />
-                                                My Prompts
-                                            </div>
-                                            {isLoading ? (
-                                                <div className="p-4 text-center text-gray-500 text-sm">Searching...</div>
-                                            ) : displayResults.length > 0 ? (
-                                                displayResults.map(prompt => (
-                                                    <button
-                                                        key={prompt.id}
-                                                        onClick={() => handleSelectPrompt(prompt)}
-                                                        className="w-full text-left px-3 py-3 hover:bg-blue-50 rounded-lg transition-all duration-200 flex items-center justify-between group"
-                                                    >
-                                                        <div className="flex-1">
-                                                            <div className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">{prompt.title}</div>
-                                                            <div className="text-xs text-gray-500 mt-1">{prompt.category}</div>
-                                                        </div>
-                                                        <div className="flex items-center space-x-1 text-amber-500">
-                                                            <Star className="w-4 h-4 fill-current" />
-                                                            <span className="text-xs font-medium">{prompt.rating}</span>
-                                                        </div>
-                                                    </button>
-                                                ))
-                                            ) : (
-                                                executedSearchQuery.length > 0 && <div className="p-4 text-center text-gray-500 text-sm">No results found</div>
-                                            )}
-                                        </div>
-
-                                        {/* Collections Section */}
-                                        <div className="border-t border-gray-200 p-2">
-                                            <div className="text-xs font-semibold text-gray-500 px-3 py-2 uppercase tracking-wide flex items-center">
-                                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                                                </svg>
-                                                My Collections
-                                            </div>
-                                            {collections.length > 0 ? (
-                                                collections.map(collection => (
-                                                    <div key={collection.id}>
-                                                        <button
-                                                            onClick={() => setExpandedCollection(expandedCollection === collection.id ? null : collection.id)}
-                                                            className="w-full text-left px-3 py-2 hover:bg-gray-50 rounded-lg transition-all duration-200 flex items-center justify-between group"
-                                                        >
-                                                            <div className="flex items-center space-x-2">
-                                                                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${expandedCollection === collection.id ? 'rotate-180' : ''}`} />
-                                                                <span className="font-medium text-gray-700 group-hover:text-gray-900">{collection.name}</span>
-                                                            </div>
-                                                        </button>
-                                                        {expandedCollection === collection.id && (
-                                                            <div className="ml-6 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
-                                                                {isCollectionPromptsLoading ? (
-                                                                    <div className="px-3 py-2 text-xs text-gray-400">Loading prompts...</div>
-                                                                ) : collectionPromptsData?.data?.content && collectionPromptsData.data.content.length > 0 ? (
-                                                                    collectionPromptsData.data.content.map(prompt => (
-                                                                        <button
-                                                                            key={`${collection.id}-${prompt.id}`}
-                                                                            onClick={() => handleSelectPrompt({
-                                                                                id: prompt.id,
-                                                                                title: prompt.title,
-                                                                                category: prompt.collectionName || 'General',
-                                                                                rating: prompt.averageRating || 0,
-                                                                                description: prompt.description
-                                                                            })}
-                                                                            className="w-full text-left px-3 py-2 hover:bg-blue-50 rounded-lg transition-all duration-200 text-sm text-gray-600 hover:text-blue-600"
-                                                                        >
-                                                                            {prompt.title}
-                                                                        </button>
-                                                                    ))
-                                                                ) : (
-                                                                    <div className="px-3 py-2 text-xs text-gray-400">No prompts in this collection</div>
-                                                                )}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                ))
-                                            ) : (
-                                                <div className="p-4 text-center text-gray-500 text-sm">No collections found</div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                        <button
-                            onClick={handleSearch}
-                            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm hover:shadow-md h-[50px]"
-                        >
-                            Search
-                        </button>
-                    </div>
-
-                    <div className="mt-3 flex justify-between items-center">
-                        <div className="flex bg-gray-100 rounded-lg p-1">
-                            <button
-                                onClick={() => setSearchType('keyword')}
-                                className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${searchType === 'keyword'
-                                    ? 'bg-white text-blue-600 shadow-sm'
-                                    : 'text-gray-600 hover:text-gray-900'
-                                    }`}
-                            >
-                                Keyword
-                            </button>
-                            <button
-                                onClick={() => setSearchType('semantic')}
-                                className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center space-x-1 ${searchType === 'semantic'
-                                    ? 'bg-white text-blue-600 shadow-sm'
-                                    : 'text-gray-600 hover:text-gray-900'
-                                    }`}
-                            >
-                                <Sparkles className="w-4 h-4" />
-                                <span>Semantic</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    {searchType === 'semantic' && (
-                        <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start space-x-2 animate-in fade-in slide-in-from-top-1 duration-200">
-                            <Info className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                            <p className="text-xs text-blue-700">
-                                Semantic search finds prompts based on meaning, not just exact words. Try: &#34;help students understand complex science topics&#34;
-                            </p>
-                        </div>
-                    )}
+                {/* Header Actions */}
+                <div className="flex justify-end mb-4">
+                    <button
+                        onClick={() => setShowSettings(!showSettings)}
+                        className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all shadow-sm border ${showSettings ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
+                    >
+                        <Filter className="w-4 h-4" />
+                        <span className="text-sm font-medium">{showSettings ? 'Hide Settings' : 'Show Settings'}</span>
+                    </button>
                 </div>
 
                 {/* Global Settings Panel */}
                 {showSettings && (
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6 animate-in fade-in slide-in-from-top-2 duration-300">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                            <svg className="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                            </svg>
-                            Test Settings
+                        <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center uppercase tracking-wider">
+                            Global Test Settings
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
                                 <div className="flex items-center mb-2">
-                                    <label className="text-sm font-medium text-gray-700">Temperature</label>
-                                    <InfoTooltip text="Controls randomness. Lower (0.1-0.3) = more focused and deterministic. Higher (0.7-1.0) = more creative and varied. Good starting point: 0.7" />
+                                    <label className="text-xs font-medium text-gray-700">Temperature</label>
+                                    <InfoTooltip text="Controls randomness. Lower (0.1-0.3) = more focused. Higher (0.7-1.0) = more creative." />
                                 </div>
                                 <div className="space-y-2">
                                     <input
@@ -604,11 +660,11 @@ const PromptTestingPage = () => {
                                         step="0.1"
                                         value={temperature}
                                         onChange={(e) => setTemperature(parseFloat(e.target.value))}
-                                        className="w-full accent-blue-500"
+                                        className="w-full accent-blue-500 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                                     />
-                                    <div className="flex justify-between text-xs text-gray-500">
+                                    <div className="flex justify-between text-[10px] text-gray-500 uppercase font-medium">
                                         <span>Focused</span>
-                                        <span className="font-medium text-gray-900 bg-gray-100 px-2 py-0.5 rounded">{temperature.toFixed(1)}</span>
+                                        <span className="text-blue-600">{temperature.toFixed(1)}</span>
                                         <span>Creative</span>
                                     </div>
                                 </div>
@@ -616,8 +672,8 @@ const PromptTestingPage = () => {
 
                             <div>
                                 <div className="flex items-center mb-2">
-                                    <label className="text-sm font-medium text-gray-700">Top P</label>
-                                    <InfoTooltip text="Controls diversity of word choices. Lower (0.1-0.5) = more predictable. Higher (0.9-1.0) = more diverse vocabulary. Recommended: 0.9" />
+                                    <label className="text-xs font-medium text-gray-700">Top P</label>
+                                    <InfoTooltip text="Controls diversity. Lower = predictable. Higher = diverse." />
                                 </div>
                                 <div className="space-y-2">
                                     <input
@@ -627,11 +683,11 @@ const PromptTestingPage = () => {
                                         step="0.1"
                                         value={topP}
                                         onChange={(e) => setTopP(parseFloat(e.target.value))}
-                                        className="w-full accent-blue-500"
+                                        className="w-full accent-blue-500 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                                     />
-                                    <div className="flex justify-between text-xs text-gray-500">
+                                    <div className="flex justify-between text-[10px] text-gray-500 uppercase font-medium">
                                         <span>Narrow</span>
-                                        <span className="font-medium text-gray-900 bg-gray-100 px-2 py-0.5 rounded">{topP.toFixed(1)}</span>
+                                        <span className="text-blue-600">{topP.toFixed(1)}</span>
                                         <span>Diverse</span>
                                     </div>
                                 </div>
@@ -639,8 +695,8 @@ const PromptTestingPage = () => {
 
                             <div>
                                 <div className="flex items-center mb-2">
-                                    <label className="text-sm font-medium text-gray-700">Max Tokens</label>
-                                    <InfoTooltip text="Maximum length of response. ~4 characters = 1 token. 500 tokens ≈ 375 words. Adjust based on expected response length." />
+                                    <label className="text-xs font-medium text-gray-700">Max Tokens</label>
+                                    <InfoTooltip text="Max response length. 1000 tokens ≈ 750 words." />
                                 </div>
                                 <input
                                     type="number"
@@ -649,7 +705,7 @@ const PromptTestingPage = () => {
                                     min="100"
                                     max="8192"
                                     step="100"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition-all duration-200 hover:border-blue-400"
+                                    className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                                 />
                             </div>
                         </div>
@@ -657,136 +713,78 @@ const PromptTestingPage = () => {
                 )}
 
                 {/* Side-by-Side Comparison */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                    <div className="h-full">
-                        <PromptCard
-                            slot="A"
-                            prompt={promptA?.data || null}
-                            onClear={() => {
-                                setSelectedPromptIdA(null);
-                                setTestResponseA(null);
-                                setTestErrorA(null);
-                            }}
-                            onSelect={() => {
-                                setActivePromptSlot('A');
-                                setShowSearchDropdown(true);
-                            }}
-                            model={modelA}
-                            onModelChange={setModelA}
-                            onTest={() => handleTest('A')}
-                            isTesting={isTestingA || isPollingA}
-                            testResult={testResponseA}
-                            testError={testErrorA}
-                        />
-                    </div>
-                    <div className="h-full">
-                        <PromptCard
-                            slot="B"
-                            prompt={promptB?.data || null}
-                            onClear={() => {
-                                setSelectedPromptIdB(null);
-                                setTestResponseB(null);
-                                setTestErrorB(null);
-                            }}
-                            onSelect={() => {
-                                setActivePromptSlot('B');
-                                setShowSearchDropdown(true);
-                            }}
-                            model={modelB}
-                            onModelChange={setModelB}
-                            onTest={() => handleTest('B')}
-                            isTesting={isTestingB || isPollingB}
-                            testResult={testResponseB}
-                            testError={testErrorB}
-                        />
-                    </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 min-h-[600px]">
+                    <PromptCard
+                        slot="A"
+                        prompt={promptA?.data || null}
+                        onClear={() => {
+                            setSelectedPromptIdA(null);
+                            setTestResponseA(null);
+                            setTestErrorA(null);
+                        }}
+                        onSelect={() => openSelectionModal('A')}
+                        model={modelA}
+                        onModelChange={setModelA}
+                        onTest={() => handleTest('A')}
+                        isTesting={isTestingA || isPollingA}
+                        testResult={testResponseA}
+                        testError={testErrorA}
+                    />
+                    <PromptCard
+                        slot="B"
+                        prompt={promptB?.data || null}
+                        onClear={() => {
+                            setSelectedPromptIdB(null);
+                            setTestResponseB(null);
+                            setTestErrorB(null);
+                        }}
+                        onSelect={() => openSelectionModal('B')}
+                        model={modelB}
+                        onModelChange={setModelB}
+                        onTest={() => handleTest('B')}
+                        isTesting={isTestingB || isPollingB}
+                        testResult={testResponseB}
+                        testError={testErrorB}
+                    />
                 </div>
 
-                {/* Action Buttons */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-300">
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center space-x-3">
-                            <button
-                                onClick={() => {
-                                    handleTest('A');
-                                    handleTest('B');
-                                }}
-                                disabled={isTestingA || isPollingA || isTestingB || isPollingB || (!selectedPromptIdA && !selectedPromptIdB)}
-                                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 font-medium flex items-center space-x-2 disabled:opacity-60 disabled:cursor-not-allowed"
-                            >
-                                {isTestingA || isPollingA || isTestingB || isPollingB ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                ) : (
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                )}
-                                <span>Run Both Tests</span>
-                            </button>
-                        </div>
-
-                        <div className="flex items-center space-x-2 text-sm text-gray-600">
-                            <GitCompare className="w-4 h-4" />
-                            <span>Compare performance metrics</span>
-                        </div>
-                    </div>
-
-                    {/* Performance Comparison */}
-                    <div className="pt-6 border-t border-gray-200">
-                        <h4 className="text-sm font-semibold text-gray-900 mb-4 flex items-center">
-                            <TrendingUp className="w-4 h-4 mr-2 text-blue-500" />
-                            Performance Comparison
-                        </h4>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 text-center hover:shadow-md transition-all duration-200 border border-blue-200">
-                                <div className="text-2xl font-bold text-blue-600">-</div>
-                                <div className="text-xs text-gray-600 mt-1 font-medium">Avg Response Time</div>
-                            </div>
-                            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 text-center hover:shadow-md transition-all duration-200 border border-purple-200">
-                                <div className="text-2xl font-bold text-purple-600">-</div>
-                                <div className="text-xs text-gray-600 mt-1 font-medium">Avg Token Usage</div>
-                            </div>
-                            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg p-4 text-center hover:shadow-md transition-all duration-200 border border-emerald-200">
-                                <div className="text-2xl font-bold text-emerald-600">-</div>
-                                <div className="text-xs text-gray-600 mt-1 font-medium">Quality Score</div>
-                            </div>
-                            <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg p-4 text-center hover:shadow-md transition-all duration-200 border border-amber-200">
-                                <div className="text-2xl font-bold text-amber-600">-</div>
-                                <div className="text-xs text-gray-600 mt-1 font-medium">Cost Efficiency</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Tips Section */}
-                <div className="mt-6 bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 rounded-xl border border-amber-200 p-6 hover:shadow-md transition-all duration-300">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                        <svg className="w-5 h-5 text-amber-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                        </svg>
-                        Testing Tips for Teachers
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="flex items-start space-x-3 bg-white/50 backdrop-blur-sm rounded-lg p-3 hover:bg-white/80 transition-all duration-200">
-                            <div className="w-6 h-6 bg-amber-500 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">1</div>
-                            <p className="text-sm text-gray-700">Start with lower temperature (0.3-0.5) for factual subjects like math and science</p>
-                        </div>
-                        <div className="flex items-start space-x-3 bg-white/50 backdrop-blur-sm rounded-lg p-3 hover:bg-white/80 transition-all duration-200">
-                            <div className="w-6 h-6 bg-amber-500 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">2</div>
-                            <p className="text-sm text-gray-700">Use higher temperature (0.7-0.9) for creative writing and open-ended questions</p>
-                        </div>
-                        <div className="flex items-start space-x-3 bg-white/50 backdrop-blur-sm rounded-lg p-3 hover:bg-white/80 transition-all duration-200">
-                            <div className="w-6 h-6 bg-amber-500 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">3</div>
-                            <p className="text-sm text-gray-700">Test with multiple student input examples to ensure consistent quality</p>
-                        </div>
-                        <div className="flex items-start space-x-3 bg-white/50 backdrop-blur-sm rounded-lg p-3 hover:bg-white/80 transition-all duration-200">
-                            <div className="w-6 h-6 bg-amber-500 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">4</div>
-                            <p className="text-sm text-gray-700">Compare different models to find the best balance of speed and quality</p>
-                        </div>
-                    </div>
+                {/* Bottom Actions */}
+                <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-30">
+                    <button
+                        onClick={() => {
+                            handleTest('A');
+                            handleTest('B');
+                        }}
+                        disabled={isTestingA || isPollingA || isTestingB || isPollingB || (!selectedPromptIdA && !selectedPromptIdB)}
+                        className="px-8 py-3 bg-gray-900 text-white rounded-full shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 font-medium flex items-center space-x-3 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
+                    >
+                        {isTestingA || isPollingA || isTestingB || isPollingB ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                            <GitCompare className="w-5 h-5" />
+                        )}
+                        <span>{isTestingA || isPollingA || isTestingB || isPollingB ? 'Running Tests...' : 'Run Comparison'}</span>
+                    </button>
                 </div>
             </div>
+
+            <PromptSelectionModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSelect={handleSelectPrompt}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                searchType={searchType}
+                setSearchType={setSearchType}
+                handleSearch={handleSearch}
+                results={displayResults}
+                isLoading={isLoading}
+                collections={collections}
+                expandedCollection={expandedCollection}
+                setExpandedCollection={setExpandedCollection}
+                collectionPromptsData={collectionPromptsData}
+                isCollectionPromptsLoading={isCollectionPromptsLoading}
+            />
         </div>
     );
 };
