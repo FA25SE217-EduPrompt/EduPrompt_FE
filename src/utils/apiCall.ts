@@ -1,5 +1,5 @@
-import {isAxiosError} from "axios";
-import type {BaseResponse, ErrorPayload} from "@/types/api";
+import { isAxiosError } from "axios";
+import type { BaseResponse, ErrorPayload } from "@/types/api";
 
 /**
  * Standard shape returned by this helper:
@@ -12,7 +12,7 @@ import type {BaseResponse, ErrorPayload} from "@/types/api";
  */
 export function normalizeAxiosError(err: unknown): ErrorPayload {
     const fallbackMessage = err instanceof Error ? err.message : 'Unknown error';
-    const defaultPayload: ErrorPayload = {code: 'INTERNAL_SERVER_ERROR', messages: [fallbackMessage], status: '500'};
+    const defaultPayload: ErrorPayload = { code: 'INTERNAL_SERVER_ERROR', messages: [fallbackMessage], status: '500' };
 
     if (!isAxiosError(err) || !err.response) return defaultPayload;
 
@@ -65,7 +65,7 @@ function normalizeResponse<T>(data: unknown): BaseResponse<T> {
         return data as BaseResponse<T>;
     }
     // Otherwise wrap raw data in BaseResponse
-    return {data: data as T, error: null};
+    return { data: data as T, error: null };
 }
 
 /**
@@ -76,22 +76,16 @@ function normalizeResponse<T>(data: unknown): BaseResponse<T> {
  * 2. Backward compatible with existing code
  *
  * @param fn - function that returns a Promise resolving to AxiosResponse
- * @param opts - optional object { logger?: (msg, ...args) => void, rethrow?: boolean }
  */
 export async function ApiCall<T>(
     fn: () => Promise<{ data: unknown }>,
-    opts?: { logger?: (...args: unknown[]) => void; rethrow?: boolean }
 ): Promise<BaseResponse<T>> {
-    const logger = opts?.logger ?? console.error;
-
     try {
         const res = await fn();
         return normalizeResponse<T>(res.data);
     } catch (error) {
         const errPayload = normalizeAxiosError(error);
-        logger("[ApiCall] error:", errPayload, error);
-        if (opts?.rethrow) throw error;
-        return {data: null, error: errPayload};
+        return { data: null, error: errPayload };
     }
 }
 
