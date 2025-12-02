@@ -5,6 +5,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import React from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/query";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -34,6 +35,7 @@ export default function RootLayout({
                 <QueryClientProvider client={queryClient}>
                     <AuthProvider>
                         {children}
+                        <Toaster position="top-right" richColors />
                     </AuthProvider>
                 </QueryClientProvider>
             </body>
