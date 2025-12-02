@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import {useEffect, useRef, useState} from "react";
-import {useAuth} from "@/hooks/useAuth";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Navbar() {
-    const {isAuthenticated, user, logout} = useAuth();
+    const { isAuthenticated, user, logout } = useAuth();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -54,11 +55,14 @@ export default function Navbar() {
                     <div className="flex items-center">
                         <div className="flex-shrink-0 flex items-center">
                             <Link href="/" className="flex items-center">
-                                <div
-                                    className="w-10 h-10 bg-gradient-to-br from-sky-500 to-blue-800 rounded-lg flex items-center justify-center">
-                                    <span className="text-white font-bold text-lg">E</span>
-                                </div>
-                                <span className="ml-3 text-2xl font-bold text-blue-800">EduPrompt</span>
+                                <Image
+                                    src="/logo.png"
+                                    alt="EduPrompt Logo"
+                                    width={48}
+                                    height={48}
+                                    className="w-12 h-12 rounded-lg"
+                                />
+                                <span className="ml-3 text-2xl font-bold text-sky-700">EduPrompt</span>
                             </Link>
                         </div>
                     </div>
@@ -66,11 +70,11 @@ export default function Navbar() {
                     <div className="hidden md:block">
                         <div className="ml-10 flex items-baseline space-x-8">
                             <a href="#features"
-                               className="text-gray-600 hover:text-sky-500 px-3 py-2 text-sm font-medium transition-colors">Features</a>
+                                className="text-gray-600 hover:text-sky-700 px-3 py-2 text-sm font-medium transition-colors">Features</a>
                             <a href="#pricing"
-                               className="text-gray-600 hover:text-sky-500 px-3 py-2 text-sm font-medium transition-colors">Pricing</a>
+                                className="text-gray-600 hover:text-sky-700 px-3 py-2 text-sm font-medium transition-colors">Pricing</a>
                             <a href="#about"
-                               className="text-gray-600 hover:text-sky-500 px-3 py-2 text-sm font-medium transition-colors">About</a>
+                                className="text-gray-600 hover:text-sky-700 px-3 py-2 text-sm font-medium transition-colors">About</a>
 
                             {isAuthenticated ? (
                                 <div className="relative" ref={dropdownRef}>
@@ -81,18 +85,18 @@ export default function Navbar() {
                                         aria-expanded={isDropdownOpen}
                                         aria-controls="user-menu"
                                         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                        className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors"
+                                        className="flex items-center space-x-2 text-gray-700 hover:text-sky-700 px-3 py-2 text-sm font-medium transition-colors"
                                     >
                                         <div
-                                            className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm font-semibold">
-                        {user?.firstName?.charAt(0) || user?.email?.charAt(0) || 'U'}
-                      </span>
+                                            className="w-8 h-8 bg-gradient-to-br from-sky-600 to-sky-800 rounded-full flex items-center justify-center">
+                                            <span className="text-white text-sm font-semibold">
+                                                {user?.firstName?.charAt(0) || user?.email?.charAt(0) || 'U'}
+                                            </span>
                                         </div>
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                             aria-hidden="true" focusable="false">
+                                            aria-hidden="true" focusable="false">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                                  d="M19 9l-7 7-7-7"></path>
+                                                d="M19 9l-7 7-7-7"></path>
                                         </svg>
                                     </button>
 
@@ -136,7 +140,7 @@ export default function Navbar() {
                                 </div>
                             ) : (
                                 <Link href="/login"
-                                      className="bg-sky-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors">
+                                    className="bg-sky-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-sky-700 transition-colors">
                                     Sign In
                                 </Link>
                             )}
@@ -147,5 +151,3 @@ export default function Navbar() {
         </nav>
     );
 }
-
-

@@ -24,7 +24,7 @@ export const SkeletonLoader = ({
                                    hasHeading = true,
                                    className,
                                }: SkeletonLoaderProps) => {
-    const lineArray = Array.from({ length: lines - (hasHeading ? 1 : 0) });
+    const lineArray = Array.from({length: lines - (hasHeading ? 1 : 0)});
 
     return (
         <div

@@ -1,20 +1,60 @@
 @import "tailwindcss";
 
 @theme {
-    /* Colors */
-    --color-brand-primary: #1e3a8a;
-    --color-brand-secondary: #0ea5e9;
-    --color-brand-highlight: #bae6fd;
-    --color-brand-subtle: #e0f2fe;
+    /* --- PALETTE --- */
+    --color-brand-primary: #0284c7;
+    /* Sky 600 - Main Brand Color (Darker) */
+    --color-brand-secondary: #0369a1;
+    /* Sky 700 - Darker Shade for interactions */
+    --color-brand-highlight: #e0f2fe;
+    /* Sky 100 - Light backgrounds */
+    --color-brand-subtle: #f0f9ff;
+    /* Sky 50 - Very subtle backgrounds */
 
-    --color-text-primary: #171717;
-    --color-text-secondary: #4b5563;
+    /* ACCENTS */
+    --color-accent-ai: #06b6d4;
+    /* Cyan 500 */
+    --color-accent-ai-subtle: #ecfeff;
+    /* Cyan 50 */
+    --color-accent-star: #f59e0b;
+    /* Amber 500 */
+    --color-accent-star-subtle: #fffbeb;
+    /* Amber 50 */
+    --color-accent-subject: #10b981;
+    /* Emerald 500 */
+    --color-accent-subject-subtle: #ecfdf5;
+    /* Emerald 50 */
+    --color-accent-grade: #8b5cf6;
+    /* Violet 500 */
+    --color-accent-grade-subtle: #f5f3ff;
+    /* Violet 50 */
+    --color-accent-type: #ec4899;
+    /* Pink 500 */
+    --color-accent-type-subtle: #fdf2f8;
+    /* Pink 50 */
+    --color-accent-new: #f59e0b;
+    /* Amber 500 */
+    --color-accent-new-subtle: #fffbeb;
+    /* Amber 50 */
+    --color-accent-trending: #e11d48;
+    /* Rose 600 */
+    --color-accent-trending-subtle: #fff1f2;
+    /* Rose 50 */
+
+    /* TEXT & BACKGROUNDS */
+    --color-text-primary: #334155;
+    /* Slate 700 */
+    --color-text-secondary: #64748b;
+    /* Slate 500 */
     --color-text-on-brand: #ffffff;
+    /* White text on brand colors */
 
     --color-bg-primary: #ffffff;
-    --color-bg-secondary: #f9fafb;
+    /* White */
+    --color-bg-secondary: #f8fafc;
+    /* Slate 50 - Page Background */
 
-    /* Fonts */
+    /* FONTS */
     --font-sans: var(--font-geist-sans), Arial, Helvetica, sans-serif;
     --font-mono: var(--font-geist-mono), monospace;
 }
@@ -26,7 +66,6 @@ body {
     box-sizing: border-box;
 }
 
-
 @layer components {
     .gradient-bg {
         @apply bg-gradient-to-r from-brand-primary to-brand-secondary;
@@ -35,6 +74,7 @@ body {
     .btn-primary {
         @apply bg-gradient-to-r from-brand-secondary to-brand-primary text-text-on-brand transition-all duration-300 ease-in-out;
     }
+
     .btn-primary:hover {
         @apply -translate-y-0.5 shadow-lg shadow-brand-secondary/30;
     }
@@ -47,9 +87,14 @@ body {
         @apply text-brand-primary bg-brand-subtle hover:bg-brand-highlight border border-brand-highlight/80 disabled:opacity-50 disabled:cursor-not-allowed;
     }
 
+    .btn-optimize {
+        @apply inline-flex items-center justify-center gap-1 bg-accent-ai-subtle text-accent-ai border border-accent-ai/20 rounded-md text-xs font-medium px-2 py-1 shadow-sm hover:bg-accent-ai/20 disabled:opacity-60 disabled:cursor-not-allowed transition-all;
+    }
+
     .feature-card {
         @apply transition-all duration-300 ease-in-out;
     }
+
     .feature-card:hover {
         @apply -translate-y-1 shadow-xl;
     }
