@@ -1,8 +1,8 @@
 'use client';
 
-import {useEffect, useState} from 'react';
+import { useEffect, useState } from 'react';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import {useCreateTagsBatch} from '@/hooks/queries/tag';
+import { useCreateTagsBatch } from '@/hooks/queries/tag';
 import {
     useCreatePrompt,
     useCreatePromptWithCollection,
@@ -21,14 +21,15 @@ import type {
     PromptTestResponse,
     UploadedFile as PromptUploadedFile,
 } from '@/types/prompt.api';
-import {useCreateCollection, useGetMyCollections,} from '@/hooks/queries/collection';
-import {CreateCollectionRequest} from '@/types/collection.api';
-import {ApplySuggestion} from '@/components/ui/ApplySuggestion';
-import {SkeletonLoader} from '@/components/ui/SkeletonLoader';
-import {toast, Toaster} from 'sonner';
-import {CopyButton} from '@/components/ui/CopyButtonProps';
-import {PulsingDotsLoader} from '@/components/ui/PulsingDotsLoaderProps';
-import {CreatorNavbar} from '@/components/layout/CreatorNavbar'; // Import the new Navbar
+import { useCreateCollection, useGetMyCollections, } from '@/hooks/queries/collection';
+import { CreateCollectionRequest } from '@/types/collection.api';
+import { ApplySuggestion } from '@/components/ui/ApplySuggestion';
+import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
+import { toast, Toaster } from 'sonner';
+import { CopyButton } from '@/components/ui/CopyButtonProps';
+import { PulsingDotsLoader } from '@/components/ui/PulsingDotsLoaderProps';
+import { CreatorNavbar } from '@/components/layout/CreatorNavbar'; // Import the new Navbar
+import { OptimizationPanel } from '@/components/prompt-manage/OptimizationPanel';
 
 interface Template {
     title: string;
@@ -110,9 +111,9 @@ const TEMPLATES: Record<string, Template> = {
 };
 
 const MODEL_OPTIONS: { label: string; value: PromptAiModel }[] = [
-    {label: 'GPT-4o mini', value: 'GPT_4O_MINI'},
-    {label: 'Claude 3.5 Sonnet', value: 'CLAUDE_3_5_SONNET'},
-    {label: 'Gemini 2.5 Flash', value: 'GEMINI_2_5_FLASH'},
+    { label: 'GPT-4o mini', value: 'GPT_4O_MINI' },
+    { label: 'Claude 3.5 Sonnet', value: 'CLAUDE_3_5_SONNET' },
+    { label: 'Gemini 2.5 Flash', value: 'GEMINI_2_5_FLASH' },
 ];
 
 const COLLECTION_NONE = '_NONE_';
@@ -192,18 +193,18 @@ export default function CreatePromptPage() {
     const [customCollectionName, setCustomCollectionName] = useState('');
 
     // MUTATION HOOKS
-    const {mutateAsync: createTagsBatch, isPending: isSavingTags} = useCreateTagsBatch();
-    const {mutateAsync: createPromptMutation, isPending: isSavingStandalone} = useCreatePrompt();
+    const { mutateAsync: createTagsBatch, isPending: isSavingTags } = useCreateTagsBatch();
+    const { mutateAsync: createPromptMutation, isPending: isSavingStandalone } = useCreatePrompt();
     const {
         mutateAsync: createPromptWithCollectionMutation,
         isPending: isSavingToCollection
     } = useCreatePromptWithCollection();
-    const {mutateAsync: createCollectionMutation, isPending: isCreatingCollection} = useCreateCollection();
-    const {mutateAsync: runTestMutation, isPending: isSubmittingTest} = useRunPromptTest();
-    const {mutateAsync: requestOptimizationMutation, isPending: isSubmittingOptimize} = useRequestOptimization();
+    const { mutateAsync: createCollectionMutation, isPending: isCreatingCollection } = useCreateCollection();
+    const { mutateAsync: runTestMutation, isPending: isSubmittingTest } = useRunPromptTest();
+    const { mutateAsync: requestOptimizationMutation, isPending: isSubmittingOptimize } = useRequestOptimization();
 
     // QUERY HOOKS
-    const {data: myCollections, isLoading: isLoadingCollections} =
+    const { data: myCollections, isLoading: isLoadingCollections } =
         useGetMyCollections(0, 20);
 
     const isSaving =
@@ -212,7 +213,7 @@ export default function CreatePromptPage() {
         isSavingToCollection ||
         isCreatingCollection;
 
-    const {data: pollingResult, isLoading: isPollingTest} = useGetTestUsage(
+    const { data: pollingResult, isLoading: isPollingTest } = useGetTestUsage(
         pollingUsageId!,
         undefined,
         {
@@ -234,7 +235,7 @@ export default function CreatePromptPage() {
 
     const isTesting = isSubmittingTest || isPollingTest;
 
-    const {data: pollingOptimizeResult, isLoading: isPollingOptimize} = useGetOptimizationStatus(
+    const { data: pollingOptimizeResult, isLoading: isPollingOptimize } = useGetOptimizationStatus(
         pollingOptimizeId!,
         undefined,
         {
@@ -258,7 +259,7 @@ export default function CreatePromptPage() {
         if (!pollingOptimizeResult || !pollingOptimizeResult.data) return;
 
         const queueEntry = pollingOptimizeResult.data;
-        const {status, errorMessage, output} = queueEntry;
+        const { status, errorMessage, output } = queueEntry;
 
         setOptimizationQueue(queueEntry);
 
@@ -286,7 +287,7 @@ export default function CreatePromptPage() {
     useEffect(() => {
         if (!pollingResult || !pollingResult.data) return;
 
-        const {status, errorMessage} = pollingResult.data;
+        const { status, errorMessage } = pollingResult.data;
 
         if (status === 'COMPLETED') {
             console.log("Polling: Test COMPLETED");
@@ -328,7 +329,7 @@ export default function CreatePromptPage() {
             didAdd = true;
             return {
                 ...prev,
-                tags: [...prev.tags, {type: tagType, value: trimmed}],
+                tags: [...prev.tags, { type: tagType, value: trimmed }],
             };
         });
         if (!didAdd) return;
@@ -360,7 +361,7 @@ export default function CreatePromptPage() {
         });
         if (!additions.length) return;
         setLocalFiles(prev => [...prev, ...additions]);
-        const normalizedAttachments = additions.map(({file, ...rest}) => rest as PromptUploadedFile);
+        const normalizedAttachments = additions.map(({ file, ...rest }) => rest as PromptUploadedFile);
         setForm(prev => ({
             ...prev,
             attachments: [...prev.attachments, ...normalizedAttachments],
@@ -450,12 +451,12 @@ export default function CreatePromptPage() {
 
         try {
             const sanitizedForm = sanitizeForm();
-            const {tags, attachments, id, collection, ...restOfForm} = sanitizedForm;
+            const { tags, attachments, id, collection, ...restOfForm } = sanitizedForm;
 
             //create tags
             let tagIds: string[] = [];
             if (sanitizedForm.tags.length > 0) {
-                const tagResult = await createTagsBatch({tags: sanitizedForm.tags});
+                const tagResult = await createTagsBatch({ tags: sanitizedForm.tags });
                 if (tagResult.error || !tagResult.data) {
                     toast.error(tagResult.error?.messages.join(', ') || 'Failed to create tags.');
                     return undefined;
@@ -473,7 +474,7 @@ export default function CreatePromptPage() {
                     ...restOfForm,
                     tagIds: tagIds,
                 };
-                promptResult = await createPromptMutation({payload});
+                promptResult = await createPromptMutation({ payload });
             } else {
                 // user choose to create collection, either auto or custom
                 if (collectionChoice === COLLECTION_AUTO || collectionChoice === COLLECTION_NEW) {
@@ -488,7 +489,7 @@ export default function CreatePromptPage() {
                         tags: tagIds, // use the same tag as the prompt
                     };
 
-                    const collectionResult = await createCollectionMutation({payload: collectionPayload});
+                    const collectionResult = await createCollectionMutation({ payload: collectionPayload });
 
                     if (collectionResult.error || !collectionResult.data) {
                         toast.error(collectionResult.error?.messages.join(', ') || 'Failed to create collection.');
@@ -508,7 +509,7 @@ export default function CreatePromptPage() {
                     tagIds: tagIds,
                     collectionId: finalCollectionId,
                 };
-                promptResult = await createPromptWithCollectionMutation({payload});
+                promptResult = await createPromptWithCollectionMutation({ payload });
             }
 
             if (promptResult.error) {
@@ -628,7 +629,7 @@ export default function CreatePromptPage() {
         }
     };
 
-    const handleOptimize = async () => {
+    const handleOptimize = async (selectedModel?: PromptAiModel, optimizationInput?: string) => {
         setOptimizationError(null);
         setOptimizationQueue(null);
         setPollingOptimizeId(null);
@@ -643,11 +644,20 @@ export default function CreatePromptPage() {
         }
 
         try {
+            // Use provided model or fall back to state
+            const aiModel = selectedModel || model;
+
+            // Build input: if optimizationInput is provided (from panel), append it to the review
+            let finalInput = buildOptimizationInput();
+            if (optimizationInput) {
+                finalInput += `\n\nSpecific Instructions: ${optimizationInput}`;
+            }
+
             const optimizationPayload = {
                 request: {
                     promptId,
-                    aiModel: model,
-                    optimizationInput: buildOptimizationInput(),
+                    aiModel,
+                    optimizationInput: finalInput,
                     temperature,
                     maxTokens,
                 }
@@ -683,7 +693,7 @@ export default function CreatePromptPage() {
 
     return (
         <ProtectedRoute>
-            <Toaster position="top-right" richColors/>
+            <Toaster position="top-right" richColors />
             <div className="min-h-full bg-gradient-to-br from-blue-50 via-white to-indigo-50">
                 <CreatorNavbar
                     onSave={handleSave}
@@ -706,14 +716,14 @@ export default function CreatePromptPage() {
                                             <label htmlFor="title" className="block text-sm font-medium text-gray-700">
                                                 Title *
                                             </label>
-                                            <CopyButton text={form.title} label="Title"/>
+                                            <CopyButton text={form.title} label="Title" />
                                         </div>
                                         <ApplySuggestion
                                             suggestion={optimizedSuggestions?.title}
                                             onApply={() => {
                                                 if (optimizedSuggestions?.title) {
                                                     handleFieldChange('title', optimizedSuggestions.title);
-                                                    setOptimizedSuggestions(s => ({...s, title: undefined}));
+                                                    setOptimizedSuggestions(s => ({ ...s, title: undefined }));
                                                 }
                                             }}
                                         />
@@ -733,17 +743,17 @@ export default function CreatePromptPage() {
                                     <div>
                                         <div className="flex items-center justify-between mb-2">
                                             <label htmlFor="description"
-                                                   className="block text-sm font-medium text-gray-700">
+                                                className="block text-sm font-medium text-gray-700">
                                                 Description
                                             </label>
-                                            <CopyButton text={form.description || ''} label="Description"/>
+                                            <CopyButton text={form.description || ''} label="Description" />
                                         </div>
                                         <ApplySuggestion
                                             suggestion={optimizedSuggestions?.description}
                                             onApply={() => {
                                                 if (optimizedSuggestions?.description) {
                                                     handleFieldChange('description', optimizedSuggestions.description);
-                                                    setOptimizedSuggestions(s => ({...s, description: undefined}));
+                                                    setOptimizedSuggestions(s => ({ ...s, description: undefined }));
                                                 }
                                             }}
                                         />
@@ -769,28 +779,6 @@ export default function CreatePromptPage() {
                                                     text={form.instruction}
                                                     label="Instruction"
                                                 />
-                                                {/* Optimize Button */}
-                                                <button
-                                                    type="button"
-                                                    onClick={handleOptimize}
-                                                    disabled={isOptimizing}
-                                                    className="btn-optimize"
-                                                >
-                                                    <svg
-                                                        className="w-3 h-3 mr-1"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        viewBox="0 0 24 24"
-                                                    >
-                                                        <path
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                            strokeWidth="2"
-                                                            d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                                                        ></path>
-                                                    </svg>
-                                                    {isOptimizing ? "Analyzing..." : "Optimize"}
-                                                </button>
                                             </div>
                                         </div>
                                         <ApplySuggestion
@@ -822,23 +810,33 @@ export default function CreatePromptPage() {
                                         <p className="text-xs text-gray-500 mt-1">
                                             Minimum 20 characters required
                                         </p>
+
+                                        <div className="mt-4">
+                                            <OptimizationPanel
+                                                onOptimize={(model, input) => {
+                                                    setModel(model);
+                                                    handleOptimize(model, input);
+                                                }}
+                                                isOptimizing={isOptimizing}
+                                            />
+                                        </div>
                                     </div>
 
                                     {/* ... (Context, Input, Output, Constraints, etc...) ... */}
                                     <div>
                                         <div className="flex items-center justify-between mb-2">
                                             <label htmlFor="context"
-                                                   className="block text-sm font-medium text-gray-700">
+                                                className="block text-sm font-medium text-gray-700">
                                                 Context
                                             </label>
-                                            <CopyButton text={form.context || ''} label="Context"/>
+                                            <CopyButton text={form.context || ''} label="Context" />
                                         </div>
                                         <ApplySuggestion
                                             suggestion={optimizedSuggestions?.context}
                                             onApply={() => {
                                                 if (optimizedSuggestions?.context) {
                                                     handleFieldChange('context', optimizedSuggestions.context);
-                                                    setOptimizedSuggestions(s => ({...s, context: undefined}));
+                                                    setOptimizedSuggestions(s => ({ ...s, context: undefined }));
                                                 }
                                             }}
                                         />
@@ -854,17 +852,17 @@ export default function CreatePromptPage() {
                                     <div>
                                         <div className="flex items-center justify-between mb-2">
                                             <label htmlFor="inputExample"
-                                                   className="block text-sm font-medium text-gray-700">
+                                                className="block text-sm font-medium text-gray-700">
                                                 Input Example
                                             </label>
-                                            <CopyButton text={form.inputExample || ''} label="Input Example"/>
+                                            <CopyButton text={form.inputExample || ''} label="Input Example" />
                                         </div>
                                         <ApplySuggestion
                                             suggestion={optimizedSuggestions?.inputExample}
                                             onApply={() => {
                                                 if (optimizedSuggestions?.inputExample) {
                                                     handleFieldChange('inputExample', optimizedSuggestions.inputExample);
-                                                    setOptimizedSuggestions(s => ({...s, inputExample: undefined}));
+                                                    setOptimizedSuggestions(s => ({ ...s, inputExample: undefined }));
                                                 }
                                             }}
                                         />
@@ -880,17 +878,17 @@ export default function CreatePromptPage() {
                                     <div>
                                         <div className="flex items-center justify-between mb-2">
                                             <label htmlFor="outputFormat"
-                                                   className="block text-sm font-medium text-gray-700">
+                                                className="block text-sm font-medium text-gray-700">
                                                 Output Format
                                             </label>
-                                            <CopyButton text={form.outputFormat || ''} label="Output Format"/>
+                                            <CopyButton text={form.outputFormat || ''} label="Output Format" />
                                         </div>
                                         <ApplySuggestion
                                             suggestion={optimizedSuggestions?.outputFormat}
                                             onApply={() => {
                                                 if (optimizedSuggestions?.outputFormat) {
                                                     handleFieldChange('outputFormat', optimizedSuggestions.outputFormat);
-                                                    setOptimizedSuggestions(s => ({...s, outputFormat: undefined}));
+                                                    setOptimizedSuggestions(s => ({ ...s, outputFormat: undefined }));
                                                 }
                                             }}
                                         />
@@ -906,17 +904,17 @@ export default function CreatePromptPage() {
                                     <div>
                                         <div className="flex items-center justify-between mb-2">
                                             <label htmlFor="constraints"
-                                                   className="block text-sm font-medium text-gray-700">
+                                                className="block text-sm font-medium text-gray-700">
                                                 Constraints
                                             </label>
-                                            <CopyButton text={form.constraints || ''} label="Constraints"/>
+                                            <CopyButton text={form.constraints || ''} label="Constraints" />
                                         </div>
                                         <ApplySuggestion
                                             suggestion={optimizedSuggestions?.constraints}
                                             onApply={() => {
                                                 if (optimizedSuggestions?.constraints) {
                                                     handleFieldChange('constraints', optimizedSuggestions.constraints);
-                                                    setOptimizedSuggestions(s => ({...s, constraints: undefined}));
+                                                    setOptimizedSuggestions(s => ({ ...s, constraints: undefined }));
                                                 }
                                             }}
                                         />
@@ -937,7 +935,7 @@ export default function CreatePromptPage() {
                                             <div className="flex flex-wrap gap-2 min-h-[2rem]">
                                                 {form.tags.map((tag, index) => (
                                                     <span key={`${tag.type}-${tag.value}-${index}`}
-                                                          className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                        className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                                         <span className="text-blue-600 mr-1">{tag.type}:</span>
                                                         {tag.value}
                                                         <button
@@ -946,10 +944,10 @@ export default function CreatePromptPage() {
                                                             className="ml-2 text-blue-600 hover:text-blue-800"
                                                         >
                                                             <svg className="w-3 h-3" fill="none" stroke="currentColor"
-                                                                 viewBox="0 0 24 24">
+                                                                viewBox="0 0 24 24">
                                                                 <path strokeLinecap="round" strokeLinejoin="round"
-                                                                      strokeWidth="2"
-                                                                      d="M6 18L18 6M6 6l12 12"></path>
+                                                                    strokeWidth="2"
+                                                                    d="M6 18L18 6M6 6l12 12"></path>
                                                             </svg>
                                                         </button>
                                                     </span>
@@ -1042,7 +1040,7 @@ export default function CreatePromptPage() {
                                             {form.collection === COLLECTION_NEW && (
                                                 <div className="pl-2">
                                                     <label htmlFor="custom-collection-name"
-                                                           className="block text-sm font-medium text-gray-700 mb-1">
+                                                        className="block text-sm font-medium text-gray-700 mb-1">
                                                         New Collection Name
                                                     </label>
                                                     <input
@@ -1074,10 +1072,10 @@ export default function CreatePromptPage() {
                                             />
                                             <label htmlFor="fileInput" className="cursor-pointer">
                                                 <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor"
-                                                     fill="none" viewBox="0 0 48 48">
+                                                    fill="none" viewBox="0 0 48 48">
                                                     <path
                                                         d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                                                        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                                        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                                 </svg>
                                                 <p className="mt-2 text-sm text-gray-600">Click to upload or drag and
                                                     drop</p>
@@ -1088,13 +1086,13 @@ export default function CreatePromptPage() {
                                         <div className="mt-4 space-y-2">
                                             {localFiles.map(file => (
                                                 <div key={file.id}
-                                                     className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                                                     <div className="flex items-center space-x-3">
                                                         <svg className="w-5 h-5 text-gray-400" fill="none"
-                                                             stroke="currentColor" viewBox="0 0 24 24">
+                                                            stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round"
-                                                                  strokeWidth="2"
-                                                                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                                strokeWidth="2"
+                                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                                         </svg>
                                                         <div>
                                                             <p className="text-sm font-medium text-gray-900">{file.name}</p>
@@ -1107,10 +1105,10 @@ export default function CreatePromptPage() {
                                                         className="text-red-500 hover:text-red-700"
                                                     >
                                                         <svg className="w-4 h-4" fill="none" stroke="currentColor"
-                                                             viewBox="0 0 24 24">
+                                                            viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round"
-                                                                  strokeWidth="2"
-                                                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                                strokeWidth="2"
+                                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                                         </svg>
                                                     </button>
                                                 </div>
@@ -1118,66 +1116,7 @@ export default function CreatePromptPage() {
                                         </div>
                                     </div>
 
-                                    {/* UPDATED: AI Optimization Box now uses AI-Teal */}
-                                    <div
-                                        className="bg-gradient-to-r from-accent-ai-subtle to-blue-50 rounded-lg p-4 border border-accent-ai/20">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center space-x-2">
-                                                <svg
-                                                    className="w-5 h-5 text-accent-ai"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    viewBox="0 0 24 24"
-                                                >
-                                                    <path
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        strokeWidth="2"
-                                                        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                                                    ></path>
-                                                </svg>
-                                                <span className="text-sm font-medium text-accent-ai">
-                          AI Optimization
-                        </span>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={handleOptimize}
-                                                disabled={isOptimizing}
-                                                className="btn-optimize"
-                                            >
-                                                {isOptimizing ? "Submitting..." : "Optimize Prompt"}
-                                            </button>
-                                        </div>
-                                        <p className="text-xs text-accent-ai mt-2">
-                                            Get AI suggestions to improve your prompt&#39;s
-                                            effectiveness
-                                        </p>
-                                        <div className="mt-2">
-                                            {isOptimizing && !optimizationQueue ? (
-                                                <PulsingDotsLoader
-                                                    text="Optimizing prompt"
-                                                    variant="blue"
-                                                />
-                                            ) : (
-                                                <>
-                                                    {optimizationQueue && (
-                                                        <p className="text-xs text-accent-ai">
-                                                            Status:{" "}
-                                                            <span className="font-medium">
-                                {optimizationQueue.status}
-                              </span>
-                                                        </p>
-                                                    )}
-                                                    {optimizationError && (
-                                                        <p className="text-xs text-red-600 mt-2">
-                                                            {optimizationError}
-                                                        </p>
-                                                    )}
-                                                </>
-                                            )}
-                                        </div>
-                                    </div>
+                                    {/* Removed old AI Optimization Box */}
                                 </form>
                             </div>
                         </main>
@@ -1250,7 +1189,7 @@ export default function CreatePromptPage() {
                                     >
                                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                                  d="M6 18L18 6M6 6l12 12"></path>
+                                                d="M6 18L18 6M6 6l12 12"></path>
                                         </svg>
                                     </button>
                                 </div>
@@ -1261,7 +1200,7 @@ export default function CreatePromptPage() {
                                         <div>
                                             <div className="flex items-center justify-between mb-4">
                                                 <h3 className="text-lg font-medium text-gray-900">Prompt Review</h3>
-                                                <CopyButton text={generatePromptReview()} label="Prompt Review"/>
+                                                <CopyButton text={generatePromptReview()} label="Prompt Review" />
                                             </div>
                                             <div
                                                 className="bg-gray-50 rounded-lg p-4 min-h-[300px] max-h-[500px] overflow-y-auto border border-gray-200">
@@ -1280,7 +1219,7 @@ export default function CreatePromptPage() {
                                                 <div
                                                     className="bg-gray-50 rounded-lg p-4 min-h-[400px] max-h-[600px] overflow-y-auto border border-gray-200">
                                                     {isTesting ? (
-                                                        <SkeletonLoader lines={5} hasHeading={true}/>
+                                                        <SkeletonLoader lines={5} hasHeading={true} />
                                                     ) : testError ? (
                                                         <p className="text-sm text-red-600 text-center">{testError}</p>
                                                     ) : testResponse && (testResponse.status === 'PENDING' || testResponse.status === 'PROCESSING') ? (
@@ -1293,9 +1232,9 @@ export default function CreatePromptPage() {
                                                             <div
                                                                 className="flex flex-wrap items-center gap-2 text-green-700">
                                                                 <svg className="w-5 h-5" fill="none"
-                                                                     stroke="currentColor" viewBox="0 0 24 24">
+                                                                    stroke="currentColor" viewBox="0 0 24 24">
                                                                     <path strokeLinecap="round" strokeLinejoin="round"
-                                                                          strokeWidth="2" d="M5 13l4 4L19 7"/>
+                                                                        strokeWidth="2" d="M5 13l4 4L19 7" />
                                                                 </svg>
                                                                 <span className="text-sm font-medium">Test completed successfully</span>
                                                                 <span
@@ -1307,7 +1246,7 @@ export default function CreatePromptPage() {
                                                                     <h4 className="text-sm font-medium text-gray-900">AI
                                                                         Response</h4>
                                                                     <CopyButton text={testResponse.output || ''}
-                                                                                label="AI Response"/>
+                                                                        label="AI Response" />
                                                                 </div>
                                                                 <p className="text-sm text-gray-700 whitespace-pre-wrap">
                                                                     {testResponse.output}
@@ -1338,7 +1277,7 @@ export default function CreatePromptPage() {
                                                 <div className="space-y-3">
                                                     <div>
                                                         <label htmlFor="model"
-                                                               className="block text-sm font-medium text-gray-700 mb-1">Model</label>
+                                                            className="block text-sm font-medium text-gray-700 mb-1">Model</label>
                                                         <select
                                                             value={model}
                                                             onChange={(e) => setModel(e.target.value as PromptAiModel)}
@@ -1346,13 +1285,13 @@ export default function CreatePromptPage() {
                                                         >
                                                             {MODEL_OPTIONS.map(option => (
                                                                 <option key={option.value}
-                                                                        value={option.value}>{option.label}</option>
+                                                                    value={option.value}>{option.label}</option>
                                                             ))}
                                                         </select>
                                                     </div>
                                                     <div>
                                                         <label htmlFor="temperature"
-                                                               className="block text-sm font-medium text-gray-700 mb-1">
+                                                            className="block text-sm font-medium text-gray-700 mb-1">
                                                             Temp: {temperature.toFixed(1)}
                                                         </label>
                                                         <input
@@ -1367,7 +1306,7 @@ export default function CreatePromptPage() {
                                                     </div>
                                                     <div>
                                                         <label htmlFor="maxTokens"
-                                                               className="block text-sm font-medium text-gray-700 mb-1">Max
+                                                            className="block text-sm font-medium text-gray-700 mb-1">Max
                                                             Tokens</label>
                                                         <input
                                                             type="number"
