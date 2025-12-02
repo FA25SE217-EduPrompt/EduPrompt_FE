@@ -15,6 +15,13 @@ import {
     PromptTestRequest,
     PromptTestResponse,
     PromptViewLogResponse,
+    PromptVersionResponse,
+    CreatePromptVersionRequest,
+    UpdatePromptMetadataRequest,
+    UpdatePromptVisibilityRequest,
+    PromptRatingCreateRequest,
+    PromptRatingResponse,
+    PromptShareResponse,
 } from '@/types/prompt.api';
 
 const BASE = "/api/prompts";
@@ -311,6 +318,109 @@ export const promptsService = {
         return ApiCall<boolean>(() =>
             apiClient.request({
                 url: `${BASE}/${encodeURIComponent(promptId)}/viewed`,
+                method: 'get',
+                ...buildRequestConfig(opts),
+            })
+        );
+    },
+
+    // Get prompt versions
+    async getPromptVersions(promptId: string, opts?: ApiRequestOptions): Promise<BaseResponse<PromptVersionResponse[]>> {
+        return ApiCall<PromptVersionResponse[]>(() =>
+            apiClient.request({
+                url: `${BASE}/${encodeURIComponent(promptId)}/versions`,
+                method: 'get',
+                ...buildRequestConfig(opts),
+            })
+        );
+    },
+
+    // Create prompt version
+    async createPromptVersion(promptId: string, payload: CreatePromptVersionRequest, opts?: ApiRequestOptions): Promise<BaseResponse<PromptVersionResponse>> {
+        return ApiCall<PromptVersionResponse>(() =>
+            apiClient.request({
+                url: `${BASE}/${encodeURIComponent(promptId)}/versions`,
+                method: 'post',
+                data: payload,
+                ...buildRequestConfig(opts),
+            })
+        );
+    },
+
+    // Update prompt metadata
+    async updatePromptMetadata(promptId: string, payload: UpdatePromptMetadataRequest, opts?: ApiRequestOptions): Promise<BaseResponse<PromptResponse>> {
+        return ApiCall<PromptResponse>(() =>
+            apiClient.request({
+                url: `${BASE}/${encodeURIComponent(promptId)}/metadata`,
+                method: 'put',
+                data: payload,
+                ...buildRequestConfig(opts),
+            })
+        );
+    },
+
+    // Update prompt visibility
+    async updatePromptVisibility(promptId: string, payload: UpdatePromptVisibilityRequest, opts?: ApiRequestOptions): Promise<BaseResponse<PromptResponse>> {
+        return ApiCall<PromptResponse>(() =>
+            apiClient.request({
+                url: `${BASE}/${encodeURIComponent(promptId)}/visibility`,
+                method: 'put',
+                data: payload,
+                ...buildRequestConfig(opts),
+            })
+        );
+    },
+
+    // Rollback prompt version
+    async rollbackPromptVersion(promptId: string, versionId: string, opts?: ApiRequestOptions): Promise<BaseResponse<PromptResponse>> {
+        return ApiCall<PromptResponse>(() =>
+            apiClient.request({
+                url: `${BASE}/${encodeURIComponent(promptId)}/rollback/${encodeURIComponent(versionId)}`,
+                method: 'put',
+                ...buildRequestConfig(opts),
+            })
+        );
+    },
+
+    // Rate prompt
+    async ratePrompt(payload: PromptRatingCreateRequest, opts?: ApiRequestOptions): Promise<BaseResponse<PromptRatingResponse>> {
+        return ApiCall<PromptRatingResponse>(() =>
+            apiClient.request({
+                url: `${BASE}/ratings`,
+                method: 'post',
+                data: payload,
+                ...buildRequestConfig(opts),
+            })
+        );
+    },
+
+    // Share prompt
+    async sharePrompt(promptId: string, opts?: ApiRequestOptions): Promise<BaseResponse<string>> {
+        return ApiCall<string>(() =>
+            apiClient.request({
+                url: `/api/prompts-share/${encodeURIComponent(promptId)}`,
+                method: 'post',
+                ...buildRequestConfig(opts),
+            })
+        );
+    },
+
+    // Revoke share
+    async revokeSharePrompt(promptId: string, opts?: ApiRequestOptions): Promise<BaseResponse<void>> {
+        return ApiCall<void>(() =>
+            apiClient.request({
+                url: `/api/prompts-share/revoke-share/${encodeURIComponent(promptId)}`,
+                method: 'post',
+                ...buildRequestConfig(opts),
+            })
+        );
+    },
+
+    // Get Shared Prompt (Public Access)
+    async getSharedPrompt(promptId: string, token: string, opts?: ApiRequestOptions): Promise<BaseResponse<PromptShareResponse>> {
+        return ApiCall<PromptShareResponse>(() =>
+            apiClient.request({
+                url: `/api/prompts-share/shared/${encodeURIComponent(promptId)}?token=${encodeURIComponent(token)}`,
                 method: 'get',
                 ...buildRequestConfig(opts),
             })

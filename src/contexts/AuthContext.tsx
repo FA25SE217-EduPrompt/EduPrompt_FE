@@ -1,10 +1,10 @@
 "use client";
 
-import React, {createContext, useCallback, useContext, useEffect, useState} from 'react';
-import {useRouter} from 'next/navigation';
-import {decodeJWT} from '@/utils/jwt';
-import {TokenManager} from '@/utils/tokenManager';
-import {BaseResponse} from '@/types/api';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { decodeJWT } from '@/utils/jwt';
+import { TokenManager } from '@/utils/tokenManager';
+import { BaseResponse } from '@/types/api';
 
 const SYSTEM_ADMIN_ROLE = 'ADMIN';
 const SCHOOL_ADMIN_ROLE = 'SCHOOL_ADMIN';
@@ -13,6 +13,7 @@ const TEACHER_ROLE = 'TEACHER';
 
 // Types based on backend API
 export interface User {
+    id?: string;
     email: string;
     firstName: string;
     lastName: string;
@@ -93,7 +94,7 @@ export const useAuth = () => {
 };
 
 // Auth provider component
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [authState, setAuthState] = useState<AuthState>({
         user: null,
         token: null,
@@ -106,7 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
     // Fetch user data from API
     const fetchUserData = useCallback(async () => {
         try {
-            const {getCurrentUser} = await import('@/services/auth');
+            const { getCurrentUser } = await import('@/services/auth');
             const response = await getCurrentUser();
 
             if (response.data && !response.error) {
@@ -114,6 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
                 setAuthState(prev => ({
                     ...prev,
                     user: {
+                        id: userData.id,
                         email: userData.email,
                         firstName: userData.firstName,
                         lastName: userData.lastName,
@@ -192,15 +194,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
     // Login function
     const login = useCallback(async (email: string, password: string, remember = false) => {
         try {
-            setAuthState(prev => ({...prev, isLoading: true}));
+            setAuthState(prev => ({ ...prev, isLoading: true }));
 
-            const {loginUser} = await import('@/services/auth');
-            const response = await loginUser({email, password});
+            const { loginUser } = await import('@/services/auth');
+            const response = await loginUser({ email, password });
 
             if (response.error) {
                 throw new Error(response.error.messages?.[0] || 'Login failed');
             }
-            const {token} = response.data;
+            const { token } = response.data;
             if (!token) {
                 throw new Error('No token received');
             }
@@ -261,7 +263,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
             await fetchUserData();
 
         } catch (error) {
-            setAuthState(prev => ({...prev, isLoading: false}));
+            setAuthState(prev => ({ ...prev, isLoading: false }));
             throw error;
         }
     }, [fetchUserData]);
@@ -269,16 +271,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
     // Google login function
     const loginWithGoogle = useCallback(async (tokenId: string) => {
         try {
-            setAuthState(prev => ({...prev, isLoading: true}));
+            setAuthState(prev => ({ ...prev, isLoading: true }));
 
-            const {loginWithGoogle: loginWithGoogleAPI} = await import('@/services/auth');
-            const response = await loginWithGoogleAPI({tokenId});
+            const { loginWithGoogle: loginWithGoogleAPI } = await import('@/services/auth');
+            const response = await loginWithGoogleAPI({ tokenId });
 
             if (response.error) {
                 throw new Error(response.error.messages?.[0] || 'Google login failed');
             }
 
-            const {token} = response.data;
+            const { token } = response.data;
             if (!token) {
                 throw new Error('No token received');
             }
@@ -316,7 +318,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
             await fetchUserData();
 
         } catch (error) {
-            setAuthState(prev => ({...prev, isLoading: false}));
+            setAuthState(prev => ({ ...prev, isLoading: false }));
             throw error;
         }
     }, [fetchUserData]);
@@ -324,18 +326,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
     // Register function
     const register = useCallback(async (userData: RegisterData) => {
         try {
-            setAuthState(prev => ({...prev, isLoading: true}));
+            setAuthState(prev => ({ ...prev, isLoading: true }));
 
-            const {registerUser} = await import('@/services/auth');
+            const { registerUser } = await import('@/services/auth');
             const response = await registerUser(userData);
 
             if (response.error) {
                 throw new Error(response.error.messages?.[0] || 'Registration failed');
             }
 
-            setAuthState(prev => ({...prev, isLoading: false}));
+            setAuthState(prev => ({ ...prev, isLoading: false }));
         } catch (error) {
-            setAuthState(prev => ({...prev, isLoading: false}));
+            setAuthState(prev => ({ ...prev, isLoading: false }));
             throw error;
         }
     }, []);
@@ -344,7 +346,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
     const logout = useCallback(async () => {
         try {
             // Call logout API to invalidate token
-            const {logout: logoutAPI} = await import('@/services/auth');
+            const { logout: logoutAPI } = await import('@/services/auth');
             await logoutAPI();
         } catch (error) {
             if (process.env.NODE_ENV === 'development') {
@@ -381,7 +383,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
                 throw new Error('No token to refresh');
             }
 
-            const {refreshToken: refreshTokenAPI} = await import('@/services/auth');
+            const { refreshToken: refreshTokenAPI } = await import('@/services/auth');
             const response = await refreshTokenAPI();
 
             if (response.error) {
@@ -412,7 +414,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
     // Verify email function
     const verifyEmail = useCallback(async (token: string): Promise<BaseResponse<VerifyEmailResponse>> => {
         try {
-            const {verifyEmail: verifyEmailAPI} = await import('@/services/auth');
+            const { verifyEmail: verifyEmailAPI } = await import('@/services/auth');
             const response = await verifyEmailAPI(token);
 
             if (response.error) {
@@ -428,7 +430,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
     // Resend verification function
     const resendVerification = useCallback(async (email: string): Promise<BaseResponse<ResendVerificationResponse>> => {
         try {
-            const {resendVerification: resendVerificationAPI} = await import('@/services/auth');
+            const { resendVerification: resendVerificationAPI } = await import('@/services/auth');
             const response = await resendVerificationAPI(email);
 
             if (response.error) {
@@ -444,8 +446,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
     // Change password function
     const changePassword = useCallback(async (oldPassword: string, newPassword: string): Promise<BaseResponse<ChangePasswordResponse>> => {
         try {
-            const {changePassword: changePasswordAPI} = await import('@/services/auth');
-            const response = await changePasswordAPI({oldPassword, newPassword});
+            const { changePassword: changePasswordAPI } = await import('@/services/auth');
+            const response = await changePasswordAPI({ oldPassword, newPassword });
 
             if (response.error) {
                 throw new Error(response.error.messages?.[0] || 'Password change failed');
@@ -460,8 +462,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
     // Forgot password function
     const forgotPassword = useCallback(async (email: string): Promise<BaseResponse<ForgotPasswordResponse>> => {
         try {
-            const {forgotPassword: forgotPasswordAPI} = await import('@/services/auth');
-            const response = await forgotPasswordAPI({email});
+            const { forgotPassword: forgotPasswordAPI } = await import('@/services/auth');
+            const response = await forgotPasswordAPI({ email });
 
             if (response.error) {
                 throw new Error(response.error.messages?.[0] || 'Failed to send reset email');
@@ -476,8 +478,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
     // Reset password function
     const resetPassword = useCallback(async (token: string, newPassword: string): Promise<BaseResponse<ResetPasswordResponse>> => {
         try {
-            const {resetPassword: resetPasswordAPI} = await import('@/services/auth');
-            const response = await resetPasswordAPI({token, newPassword});
+            const { resetPassword: resetPasswordAPI } = await import('@/services/auth');
+            const response = await resetPasswordAPI({ token, newPassword });
 
             if (response.error) {
                 throw new Error(response.error.messages?.[0] || 'Password reset failed');
@@ -493,8 +495,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
     const updateUser = useCallback((userData: Partial<User>) => {
         setAuthState(prev => {
             if (prev.user) {
-                const updatedUser = {...prev.user, ...userData};
-                return {...prev, user: updatedUser};
+                const updatedUser = { ...prev.user, ...userData };
+                return { ...prev, user: updatedUser };
             }
             return prev;
         });

@@ -204,3 +204,63 @@ export type SemanticSearchResponse = {
     searchId: string;
     executionTimeMs: number;
 };
+
+export type CreatePromptVersionRequest = {
+    instruction: string;
+    context?: string;
+    inputExample?: string;
+    outputFormat?: string;
+    constraints?: string;
+    isAiGenerated: boolean;
+};
+
+export type PromptVersionResponse = {
+    id: string;
+    promptId: string;
+    instruction: string;
+    context?: string;
+    inputExample?: string;
+    outputFormat?: string;
+    constraints?: string;
+    editorId: string;
+    versionNumber: number;
+    isAiGenerated: boolean;
+    createdAt: string;
+};
+
+export type UpdatePromptMetadataRequest = {
+    title: string;
+    description?: string;
+    instruction?: string;
+    context?: string;
+    inputExample?: string;
+    outputFormat?: string;
+    constraints?: string;
+    tagIds?: string[];
+};
+
+export type UpdatePromptVisibilityRequest = {
+    visibility: "private" | "group" | "public" | "school";
+    collectionId?: string;
+};
+
+export type PromptRatingCreateRequest = {
+    promptId: string;
+    rating: number;
+};
+
+export type PromptRatingResponse = {
+    isDone: boolean;
+};
+
+export type PromptShareResponse = {
+    id: string;
+    title: string;
+    description: string;
+    instruction: string;
+    context?: string;
+    inputExample?: string;
+    outputFormat?: string;
+    constraints?: string;
+    shareToken: string;
+};
