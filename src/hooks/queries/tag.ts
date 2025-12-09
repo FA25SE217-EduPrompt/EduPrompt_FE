@@ -1,7 +1,7 @@
 // hooks/queries/tag.ts
-import {keepPreviousData, useMutation, useQuery, useQueryClient,} from '@tanstack/react-query';
-import {TagService} from '@/services/resources/tag';
-import {CreateTagsBatchRequest} from '@/types/tag.api';
+import { keepPreviousData, useMutation, useQuery, useQueryClient, } from '@tanstack/react-query';
+import { TagService } from '@/services/resources/tag';
+import { CreateTagsBatchRequest } from '@/types/tag.api';
 
 /* ----------------------------
    Query Keys
@@ -31,6 +31,7 @@ export const useGetTags = (params?: { type?: string[]; page?: number; size?: num
         queryKey: tagKeys.list(params),
         queryFn: () => TagService.getAll(params),
         placeholderData: keepPreviousData,
+        staleTime: 15 * 60 * 1000, // 15 minutes
     });
 };
 
@@ -41,6 +42,7 @@ export const useGetTagsContent = (params?: { type?: string[]; page?: number; siz
     return useQuery({
         queryKey: tagKeys.contentList(params),
         queryFn: () => TagService.getAllContent(params),
+        staleTime: 15 * 60 * 1000, // 15 minutes
     });
 };
 
@@ -53,8 +55,8 @@ export const useCreateTagsBatch = () => {
         mutationFn: (payload: CreateTagsBatchRequest) => TagService.createBatch(payload),
         onSuccess: async () => {
             // Invalidate all queries related to tag lists
-            await queryClient.invalidateQueries({queryKey: tagKeys.lists()});
-            await queryClient.invalidateQueries({queryKey: tagKeys.contentLists()});
+            await queryClient.invalidateQueries({ queryKey: tagKeys.lists() });
+            await queryClient.invalidateQueries({ queryKey: tagKeys.contentLists() });
         },
     });
 };

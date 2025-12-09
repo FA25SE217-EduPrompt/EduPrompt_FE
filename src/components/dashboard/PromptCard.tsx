@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import { BoltIcon, ChevronDownIcon, StarIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
 import { Badge } from "./Badge";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
 interface PromptCardProps {
     id: string;
@@ -44,6 +45,7 @@ const formatDate = (dateString: string): string => {
 };
 
 export const PromptCard: React.FC<PromptCardProps> = (props) => {
+    const t = useTranslations('Dashboard.PromptCard');
     const [isExpanded, setIsExpanded] = useState(false);
     const showNewBadge = isNew(props.createdAt);
 
@@ -77,14 +79,14 @@ export const PromptCard: React.FC<PromptCardProps> = (props) => {
                         {showNewBadge && (
                             <Badge
                                 color="bg-accent-new-subtle text-accent-new"
-                                text="New"
+                                text={t('new')}
                                 size="sm"
                             />
                         )}
                         {props.isTrending && (
                             <Badge
                                 color="bg-accent-trending-subtle text-accent-trending"
-                                text="Trending"
+                                text={t('trending')}
                                 size="sm"
                             />
                         )}
@@ -103,20 +105,20 @@ export const PromptCard: React.FC<PromptCardProps> = (props) => {
                             href={`/dashboard/prompts/${props.id}/manage`}
                             className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors z-10"
                             onClick={(e) => e.stopPropagation()}
-                            title="Manage Prompt"
+                            title={t('manageTooltip')}
                         >
                             <PencilSquareIcon className="h-4 w-4" />
                         </Link>
 
                         <button
-                            aria-label={`Optimize prompt ${props.title}`}
+                            aria-label={`${t('optimize')} prompt ${props.title}`}
                             className="btn-optimize z-10"
                             onClick={(e) => {
                                 e.stopPropagation(); // Prevent card from expanding when clicking optimize
                             }}
                         >
                             <BoltIcon className="h-4 w-4" />
-                            <span>Optimize</span>
+                            <span>{t('optimize')}</span>
                         </button>
                     </div>
 
@@ -137,17 +139,17 @@ export const PromptCard: React.FC<PromptCardProps> = (props) => {
                 <div className="px-4 pb-4 border-t border-gray-100">
                     {/* Description */}
                     <p className="text-sm text-text-secondary mt-3">
-                        {props.description || "No description provided."}
+                        {props.description || t('noDescription')}
                     </p>
 
                     {/* Metadata */}
                     <div className="mt-4 space-y-2 text-xs text-text-secondary">
                         <div className="flex">
-                            <span className="font-medium w-20">Author:</span>
+                            <span className="font-medium w-20">{t('author')}</span>
                             <span className="truncate">{props.author}</span>
                         </div>
                         <div className="flex">
-                            <span className="font-medium w-20">Updated:</span>
+                            <span className="font-medium w-20">{t('updated')}</span>
                             <span>{formatDate(props.lastUpdated)}</span>
                         </div>
                     </div>
@@ -163,7 +165,7 @@ export const PromptCard: React.FC<PromptCardProps> = (props) => {
                     />
                     <Badge
                         color="bg-accent-grade-subtle text-accent-grade"
-                        text={`Grade ${props.grade}`}
+                        text={`${t('grade')} ${props.grade}`}
                     />
                     <Badge
                         color="bg-accent-type-subtle text-accent-type"

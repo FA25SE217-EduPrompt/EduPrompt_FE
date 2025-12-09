@@ -5,6 +5,6 @@ export const useGetQuota = () => {
     return useQuery({
         queryKey: ['quota'],
         queryFn: () => quotaService.getUserQuota(),
-        staleTime: 60 * 1000, // 1 minute
+        staleTime: 5 * 60 * 1000, // 5 minutes
     });
 };

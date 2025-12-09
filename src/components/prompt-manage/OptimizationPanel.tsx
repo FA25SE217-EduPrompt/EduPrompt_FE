@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { PromptResponse, PromptAiModel } from '@/types/prompt.api';
+import { PromptAiModel } from '@/types/prompt.api';
 import { BoltIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface OptimizationPanelProps {
-    prompt: PromptResponse;
     onOptimize: (model: PromptAiModel, input: string) => void;
     isOptimizing: boolean;
 }
@@ -16,6 +16,7 @@ const MODEL_OPTIONS = [
 ];
 
 export const OptimizationPanel: React.FC<OptimizationPanelProps> = ({ onOptimize, isOptimizing }) => {
+    const t = useTranslations('Prompt.OptimizationPanel');
     const [selectedModel, setSelectedModel] = useState<PromptAiModel>('GPT_4O_MINI');
     const [optimizationInput, setOptimizationInput] = useState('');
 
@@ -29,16 +30,16 @@ export const OptimizationPanel: React.FC<OptimizationPanelProps> = ({ onOptimize
                 <div className="p-2 bg-white rounded-lg shadow-sm text-indigo-600">
                     <SparklesIcon className="w-5 h-5" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900">AI Optimization</h3>
+                <h3 className="text-lg font-semibold text-gray-900">{t('title')}</h3>
             </div>
 
             <p className="text-sm text-gray-600 mb-6">
-                Enhance your prompt using AI. Select a model and provide specific instructions on how you want to improve it.
+                {t('description')}
             </p>
 
             <div className="space-y-4">
                 <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">AI Model</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">{t('modelLabel')}</label>
                     <select
                         value={selectedModel}
                         onChange={(e) => setSelectedModel(e.target.value as PromptAiModel)}
@@ -51,11 +52,11 @@ export const OptimizationPanel: React.FC<OptimizationPanelProps> = ({ onOptimize
                 </div>
 
                 <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Optimization Instructions (Optional)</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">{t('instructionsLabel')}</label>
                     <textarea
                         value={optimizationInput}
                         onChange={(e) => setOptimizationInput(e.target.value)}
-                        placeholder="e.g., Make it more concise, add more examples, fix grammar..."
+                        placeholder={t('instructionsPlaceholder')}
                         rows={3}
                         className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-none"
                     />
@@ -69,12 +70,12 @@ export const OptimizationPanel: React.FC<OptimizationPanelProps> = ({ onOptimize
                     {isOptimizing ? (
                         <>
                             <Loader2 className="w-4 h-4 animate-spin" />
-                            <span>Optimizing...</span>
+                            <span>{t('optimizing')}</span>
                         </>
                     ) : (
                         <>
                             <BoltIcon className="w-4 h-4" />
-                            <span>Optimize Prompt</span>
+                            <span>{t('optimizeButton')}</span>
                         </>
                     )}
                 </button>

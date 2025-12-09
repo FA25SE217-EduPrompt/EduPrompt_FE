@@ -109,6 +109,22 @@ export const promptsService = {
         );
     },
 
+    // Get prompts by collection
+    async getPromptsByCollection(
+        collectionId: string,
+        page = 0,
+        size = 20,
+        opts?: ApiRequestOptions
+    ): Promise<BaseResponse<PaginatedResponse<PromptResponse>>> {
+        return ApiCall<PaginatedResponse<PromptResponse>>(() =>
+            apiClient.request({
+                url: `/api/prompts/collection/${collectionId}?page=${page}&size=${size}`,
+                method: 'get',
+                ...buildRequestConfig(opts),
+            })
+        );
+    },
+
     // Get prompt by id
     async getPrompt(promptId: string, opts?: ApiRequestOptions): Promise<BaseResponse<PromptResponse>> {
         return ApiCall<PromptResponse>(() =>

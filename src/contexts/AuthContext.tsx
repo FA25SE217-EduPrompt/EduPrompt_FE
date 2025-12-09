@@ -23,6 +23,10 @@ export interface User {
     isSystemAdmin?: boolean;
     isSchoolAdmin?: boolean;
     isTeacher?: boolean;
+    isFreeTier?: boolean;
+    isProTier?: boolean;
+    isPremiumTier?: boolean;
+    hasSchoolSubscription?: boolean;
 }
 
 
@@ -125,6 +129,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         isSystemAdmin: userData.isSystemAdmin,
                         isSchoolAdmin: userData.isSchoolAdmin,
                         isTeacher: userData.isTeacher,
+                        isFreeTier: userData.isFreeTier,
+                        isProTier: userData.isProTier,
+                        isPremiumTier: userData.isPremiumTier,
+                        hasSchoolSubscription: userData.hasSchoolSubscription,
                     },
                 }));
             }

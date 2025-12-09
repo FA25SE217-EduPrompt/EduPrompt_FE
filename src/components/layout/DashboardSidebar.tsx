@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
@@ -14,6 +14,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { UserAvatar } from "./UserAvatar";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslations } from "next-intl";
 
 // NavItem
 const NavItem: React.FC<{
@@ -47,6 +48,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     isSidebarOpen,
     setIsSidebarOpen,
 }) => {
+    const t = useTranslations('Dashboard.Sidebar');
     const { user } = useAuth();
 
     return (
@@ -78,27 +80,27 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
                 <NavItem
                     icon={<SparklesIcon className="h-5 w-5" />}
-                    label="My Prompts"
+                    label={t('myPrompts')}
                     href="/dashboard/prompts"
                 />
                 <NavItem
                     icon={<BookOpenIcon className="h-5 w-5" />}
-                    label="My Collections"
+                    label={t('myCollections')}
                     href="/dashboard/collections"
                 />
                 <NavItem
                     icon={<ChartBarIcon className="h-5 w-5" />}
-                    label="My Groups"
+                    label={t('myGroups')}
                     href="/dashboard/groups"
                 />
                 <NavItem
                     icon={<WalletIcon className="h-5 w-5" />}
-                    label="Subscription"
+                    label={t('subscription')}
                     href="/dashboard/subscription"
                 />
                 <NavItem
                     icon={<Cog6ToothIcon className="h-5 w-5" />}
-                    label="My Wallet"
+                    label={t('myWallet')}
                     href="/dashboard/wallet"
                 />
             </nav>
