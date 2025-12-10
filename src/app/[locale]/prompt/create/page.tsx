@@ -32,84 +32,14 @@ import { CreatorNavbar } from '@/components/layout/CreatorNavbar'; // Import the
 import { OptimizationPanel } from '@/components/prompt-manage/OptimizationPanel';
 import { useTranslations } from 'next-intl';
 
-interface Template {
-    title: string;
-    instruction: string;
-    context: string;
-    inputExample: string;
-    outputFormat: string;
-    constraints: string;
-}
+import { PROMPT_TEMPLATES, Template } from '@/lib/prompt-templates';
+import { TemplateWizardModal } from '@/components/prompt-manage/TemplateWizardModal';
+import TagService from '@/services/resources/tag';
+import { TagResponse } from '@/types/tag.api';
+import { MarkdownRenderer } from '@/components/ui/MarkdownRenderer';
 
+// Restore missing type
 type LocalUploadedFile = PromptUploadedFile & { file?: File };
-
-const TEMPLATES: Record<string, Template> = {
-    essay: {
-        title: 'Essay Writing Assistant',
-        instruction:
-            'Help students write well-structured academic essays with clear thesis statements, supporting arguments, and proper conclusions.',
-        context: 'Academic writing context with focus on critical thinking and argumentation.',
-        inputExample: 'Topic: Climate change effects on agriculture',
-        outputFormat: 'Structured essay with introduction, body paragraphs, and conclusion',
-        constraints: 'Minimum 500 words, academic tone, cite sources when applicable',
-    },
-    math: {
-        title: 'Math Problem Solver',
-        instruction: 'Provide step-by-step solutions to mathematical problems, explaining each step clearly.',
-        context: 'Educational mathematics with focus on understanding concepts.',
-        inputExample: 'Solve: 2x + 5 = 13',
-        outputFormat: 'Step-by-step solution with explanations',
-        constraints: 'Show all work, explain reasoning for each step',
-    },
-    code: {
-        title: 'Code Review Assistant',
-        instruction: 'Review code for best practices, bugs, and improvements. Provide constructive feedback.',
-        context: 'Programming education and code quality improvement.',
-        inputExample: 'function calculateSum(a, b) { return a + b; }',
-        outputFormat: 'Detailed review with suggestions and improved code',
-        constraints: 'Focus on readability, efficiency, and best practices',
-    },
-    language: {
-        title: 'Language Practice Conversation',
-        instruction: 'Engage in natural conversation to help students practice language skills.',
-        context: 'Language learning environment with supportive feedback.',
-        inputExample: 'Student response in target language',
-        outputFormat: 'Natural conversation with gentle corrections',
-        constraints: 'Appropriate difficulty level, encouraging tone',
-    },
-    creative: {
-        title: 'Creative Writing Assistant',
-        instruction: 'Help students develop creative writing skills through engaging prompts and feedback.',
-        context: 'Creative writing education with focus on imagination and storytelling.',
-        inputExample: 'Write a short story about a time traveler',
-        outputFormat: 'Creative narrative with character development',
-        constraints: 'Encourage creativity, provide constructive feedback',
-    },
-    science: {
-        title: 'Science Explanation Assistant',
-        instruction: 'Explain scientific concepts in clear, accessible language for students.',
-        context: 'Science education with focus on understanding complex concepts.',
-        inputExample: 'Explain photosynthesis in simple terms',
-        outputFormat: 'Clear explanation with examples and analogies',
-        constraints: 'Use appropriate terminology, include visual descriptions',
-    },
-    history: {
-        title: 'History Analysis Assistant',
-        instruction: 'Help students analyze historical events and their significance.',
-        context: 'History education with focus on critical analysis and context.',
-        inputExample: 'Analyze the causes of World War I',
-        outputFormat: 'Structured analysis with multiple perspectives',
-        constraints: 'Cite historical evidence, consider different viewpoints',
-    },
-    business: {
-        title: 'Business Case Study Assistant',
-        instruction: 'Guide students through business problem analysis and solution development.',
-        context: 'Business education with focus on practical problem-solving.',
-        inputExample: "Analyze a company's declining sales",
-        outputFormat: 'Comprehensive business analysis with recommendations',
-        constraints: 'Use business frameworks, provide actionable insights',
-    },
-};
 
 const MODEL_OPTIONS: { label: string; value: PromptAiModel }[] = [
     { label: 'GPT-4o mini', value: 'GPT_4O_MINI' },
@@ -121,46 +51,11 @@ const COLLECTION_NONE = '_NONE_';
 const COLLECTION_AUTO = '_AUTO_';
 const COLLECTION_NEW = '_NEW_';
 
-export type OptimizedPromptFields = {
-    title?: string;
-    description?: string;
-    instruction?: string;
-    context?: string;
-    inputExample?: string;
-    outputFormat?: string;
-    constraints?: string;
-    tags?: string;
-};
-
-const fieldMap: Record<string, keyof OptimizedPromptFields> = {
-    'Title': 'title',
-    'Description': 'description',
-    'Instruction': 'instruction',
-    'Context': 'context',
-    'Input Example': 'inputExample',
-    'Output Format': 'outputFormat',
-    'Constraints': 'constraints',
-    'Tags': 'tags',
-};
-
-function parseOptimizationOutput(rawOutput: string): OptimizedPromptFields {
-    const suggestions: OptimizedPromptFields = {};
-    const regex = /\*\*(.*?):\*\*\s*([\s\S]*?)(?=\n\n\*\*|$)/g;
-    let match;
-    while ((match = regex.exec(rawOutput)) !== null) {
-        const apiLabel = match[1].trim();
-        const content = match[2].trim();
-        const stateKey = fieldMap[apiLabel];
-        if (stateKey && content) {
-            suggestions[stateKey] = content;
-        }
-    }
-    return suggestions;
-}
+import { parseOptimizationOutput, OptimizedPromptFields } from "@/utils/prompt-optimization";
 
 export default function CreatePromptPage() {
     const t = useTranslations('Prompt.Create');
-    const tTemplates = useTranslations('Prompt.Templates');
+
     const [form, setForm] = useState<PromptFormModel & { id?: string }>({
         id: undefined,
         title: '',
@@ -175,7 +70,7 @@ export default function CreatePromptPage() {
         tags: [],
         attachments: [],
     });
-    const [tagType, setTagType] = useState('category');
+    const [tagType, setTagType] = useState('môn');
     const [tagValue, setTagValue] = useState('');
     const [localFiles, setLocalFiles] = useState<LocalUploadedFile[]>([]);
     const [showTestModal, setShowTestModal] = useState(false);
@@ -194,6 +89,11 @@ export default function CreatePromptPage() {
     const [optimizedSuggestions, setOptimizedSuggestions] = useState<OptimizedPromptFields | null>(null);
 
     const [customCollectionName, setCustomCollectionName] = useState('');
+
+    // Wizard State
+    const [isWizardOpen, setIsWizardOpen] = useState(false);
+    const [wizardTemplate, setWizardTemplate] = useState<Template | null>(null);
+
 
     // MUTATION HOOKS
     const { mutateAsync: createTagsBatch, isPending: isSavingTags } = useCreateTagsBatch();
@@ -256,7 +156,7 @@ export default function CreatePromptPage() {
         }
     );
 
-    const isOptimizing = isSubmittingOptimize || isPollingOptimize;
+    const isOptimizing = isSubmittingOptimize || !!pollingOptimizeId;
 
     useEffect(() => {
         if (!pollingOptimizeResult || !pollingOptimizeResult.data) return;
@@ -310,6 +210,25 @@ export default function CreatePromptPage() {
     }, [pollingResult]);
 
     // HANDLER FUNCTIONS
+    const [optimizationInstruction, setOptimizationInstruction] = useState('');
+    const [availableTags, setAvailableTags] = useState<TagResponse[]>([]);
+
+    useEffect(() => {
+        const fetchTags = async () => {
+            // Only fetch if a type is selected, or fetch all?
+            // Let's fetch based on the selected tagType to narrow down suggestions
+            try {
+                const res = await TagService.getAll({ type: [tagType], size: 50 });
+                if (res.data) {
+                    setAvailableTags(res.data.content);
+                }
+            } catch (e) {
+                console.error("Failed to fetch tags", e);
+            }
+        };
+        fetchTags();
+    }, [tagType]);
+
     const handleFieldChange = <K extends keyof (PromptFormModel & { id?: string })>(
         field: K,
         value: (PromptFormModel & { id?: string })[K]
@@ -379,31 +298,48 @@ export default function CreatePromptPage() {
         }));
     };
 
-    const applyTemplate = (templateType: string) => {
-        // Dynamic template loading using tTemplates
-        const titleKey = `${templateType}.title` as any;
-        const instructionKey = `${templateType}.instruction` as any;
-        const contextKey = `${templateType}.context` as any;
-        const inputExampleKey = `${templateType}.inputExample` as any;
-        const outputFormatKey = `${templateType}.outputFormat` as any;
-        const constraintsKey = `${templateType}.constraints` as any;
-
-        // Check if template exists by checking if title translation exists (mock check)
-        // In real next-intl, if it keeps 'prefix.key' it means missing.
-        // But here we trust the type string passed.
+    const applyTemplateToForm = (templateId: string) => {
+        const template = PROMPT_TEMPLATES[templateId];
+        if (!template) return;
 
         setForm(prev => ({
             ...prev,
-            title: tTemplates(titleKey),
-            instruction: tTemplates(instructionKey),
-            context: tTemplates(contextKey),
-            inputExample: tTemplates(inputExampleKey),
-            outputFormat: tTemplates(outputFormatKey),
-            constraints: tTemplates(constraintsKey),
+            title: template.title,
+            instruction: template.instruction,
+            context: template.context,
+            inputExample: template.inputExample,
+            outputFormat: template.outputFormat,
+            constraints: template.constraints,
         }));
 
         toast.success(t('templateApplied'));
     };
+
+    const handleTemplateClick = (templateKey: string) => {
+        const template = PROMPT_TEMPLATES[templateKey];
+        if (template && template.questions) {
+            setWizardTemplate(template);
+            setIsWizardOpen(true);
+        } else {
+            applyTemplateToForm(templateKey);
+        }
+    };
+
+    const handleWizardGenerate = (instruction: string) => {
+        if (!wizardTemplate) return;
+        applyTemplateToForm(wizardTemplate.id);
+        setIsWizardOpen(false);
+        // Set the instruction in the panel, allowing manual optimization trigger
+        setOptimizationInstruction(instruction);
+        toast.info(t('wizardInstructionApplied') || "Optimization advice added. Click 'Optimize' to apply.");
+    };
+
+    const handleWizardSkip = () => {
+        if (!wizardTemplate) return;
+        applyTemplateToForm(wizardTemplate.id);
+        setIsWizardOpen(false);
+    };
+
 
     const generatePromptReview = () => {
         const review: string[] = [];
@@ -830,6 +766,8 @@ export default function CreatePromptPage() {
                                                     handleOptimize(model, input);
                                                 }}
                                                 isOptimizing={isOptimizing}
+                                                instruction={optimizationInstruction}
+                                                onInstructionChange={setOptimizationInstruction}
                                             />
                                         </div>
                                     </div>
@@ -839,7 +777,7 @@ export default function CreatePromptPage() {
                                         <div className="flex items-center justify-between mb-2">
                                             <label htmlFor="context"
                                                 className="block text-sm font-medium text-gray-700">
-                                                Context
+                                                {t('context')}
                                             </label>
                                             <CopyButton text={form.context || ''} label="Context" />
                                         </div>
@@ -858,14 +796,14 @@ export default function CreatePromptPage() {
                                             onChange={(e) => handleFieldChange('context', e.target.value)}
                                             rows={3}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400 hover:shadow-sm transition-all duration-200"
-                                            placeholder="Additional context or background information"
+                                            placeholder={t('fields.contextPlaceholder') || "Additional context or background information"}
                                         />
                                     </div>
                                     <div>
                                         <div className="flex items-center justify-between mb-2">
                                             <label htmlFor="inputExample"
                                                 className="block text-sm font-medium text-gray-700">
-                                                Input Example
+                                                {t('inputExample')}
                                             </label>
                                             <CopyButton text={form.inputExample || ''} label="Input Example" />
                                         </div>
@@ -884,14 +822,14 @@ export default function CreatePromptPage() {
                                             onChange={(e) => handleFieldChange('inputExample', e.target.value)}
                                             rows={3}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400 hover:shadow-sm transition-all duration-200"
-                                            placeholder="Example of expected input"
+                                            placeholder={t('fields.inputExamplePlaceholder') || "Example of expected input"}
                                         />
                                     </div>
                                     <div>
                                         <div className="flex items-center justify-between mb-2">
                                             <label htmlFor="outputFormat"
                                                 className="block text-sm font-medium text-gray-700">
-                                                Output Format
+                                                {t('outputFormat')}
                                             </label>
                                             <CopyButton text={form.outputFormat || ''} label="Output Format" />
                                         </div>
@@ -910,14 +848,14 @@ export default function CreatePromptPage() {
                                             onChange={(e) => handleFieldChange('outputFormat', e.target.value)}
                                             rows={3}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400 hover:shadow-sm transition-all duration-200"
-                                            placeholder="Specify the desired output format"
+                                            placeholder={t('fields.outputFormatPlaceholder') || "Specify the desired output format"}
                                         />
                                     </div>
                                     <div>
                                         <div className="flex items-center justify-between mb-2">
                                             <label htmlFor="constraints"
                                                 className="block text-sm font-medium text-gray-700">
-                                                Constraints
+                                                {t('constraints')}
                                             </label>
                                             <CopyButton text={form.constraints || ''} label="Constraints" />
                                         </div>
@@ -936,7 +874,7 @@ export default function CreatePromptPage() {
                                             onChange={(e) => handleFieldChange('constraints', e.target.value)}
                                             rows={3}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400 hover:shadow-sm transition-all duration-200"
-                                            placeholder="Any limitations or constraints"
+                                            placeholder={t('fields.constraintsPlaceholder') || "Any limitations or constraints"}
                                         />
                                     </div>
 
@@ -944,42 +882,41 @@ export default function CreatePromptPage() {
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">Tags</label>
                                         <div className="space-y-3">
-                                            <div className="flex flex-wrap gap-2 min-h-[2rem]">
-                                                {form.tags.map((tag, index) => (
-                                                    <span key={`${tag.type}-${tag.value}-${index}`}
-                                                        className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                        <span className="text-blue-600 mr-1">{tag.type}:</span>
-                                                        {tag.value}
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => removeTag(index)}
-                                                            className="ml-2 text-blue-600 hover:text-blue-800"
-                                                        >
-                                                            <svg className="w-3 h-3" fill="none" stroke="currentColor"
-                                                                viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round"
-                                                                    strokeWidth="2"
-                                                                    d="M6 18L18 6M6 6l12 12"></path>
-                                                            </svg>
-                                                        </button>
-                                                    </span>
-                                                ))}
-                                            </div>
+                                            {form.tags.length > 0 && (
+                                                <div className="flex flex-wrap gap-2">
+                                                    {form.tags.map((tag, index) => (
+                                                        <span key={`${tag.type}-${tag.value}-${index}`}
+                                                            className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                            <span className="text-blue-600 mr-1">{tag.type}:</span>
+                                                            {tag.value}
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => removeTag(index)}
+                                                                className="ml-2 text-blue-600 hover:text-blue-800"
+                                                            >
+                                                                <svg className="w-3 h-3" fill="none" stroke="currentColor"
+                                                                    viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round"
+                                                                        strokeWidth="2"
+                                                                        d="M6 18L18 6M6 6l12 12"></path>
+                                                                </svg>
+                                                            </button>
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
                                             <div className="flex space-x-2">
                                                 <select
                                                     value={tagType}
                                                     onChange={(e) => setTagType(e.target.value)}
                                                     className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400 hover:shadow-sm transition-all duration-200"
                                                 >
-                                                    <option value="category">Category</option>
-                                                    <option value="subject">Subject</option>
-                                                    <option value="difficulty">Difficulty</option>
-                                                    <option value="language">Language</option>
-                                                    <option value="grade">Grade</option>
-                                                    <option value="chapter">Chapter</option>
+                                                    <option value="môn">{t('tagTypes.subject')}</option>
+                                                    <option value="khối">{t('tagTypes.grade')}</option>
                                                 </select>
                                                 <input
                                                     type="text"
+                                                    list="tag-suggestions"
                                                     value={tagValue}
                                                     onChange={(e) => setTagValue(e.target.value)}
                                                     onKeyDown={(e) => {
@@ -988,9 +925,14 @@ export default function CreatePromptPage() {
                                                             addTag();
                                                         }
                                                     }}
-                                                    placeholder="Tag value"
+                                                    placeholder={t('fields.tagValuePlaceholder') || "Tag value"}
                                                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400 hover:shadow-sm transition-all duration-200"
                                                 />
+                                                <datalist id="tag-suggestions">
+                                                    {availableTags.map((tag) => (
+                                                        <option key={tag.id} value={tag.value} />
+                                                    ))}
+                                                </datalist>
                                                 <button
                                                     type="button"
                                                     onClick={addTag}
@@ -1053,14 +995,14 @@ export default function CreatePromptPage() {
                                                 <div className="pl-2">
                                                     <label htmlFor="custom-collection-name"
                                                         className="block text-sm font-medium text-gray-700 mb-1">
-                                                        New Collection Name
+                                                        {t('newCollectionName')}
                                                     </label>
                                                     <input
                                                         type="text"
                                                         id="custom-collection-name"
                                                         value={customCollectionName}
                                                         onChange={(e) => setCustomCollectionName(e.target.value)}
-                                                        placeholder="e.g., 'My Biology Prompts'"
+                                                        placeholder={t('newCollectionPlaceholder')}
                                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                     />
                                                 </div>
@@ -1071,7 +1013,7 @@ export default function CreatePromptPage() {
                                     {/* ... (Attachments) ... */}
                                     <div>
                                         <label
-                                            className="block text-sm font-medium text-gray-700 mb-2">Attachments</label>
+                                            className="block text-sm font-medium text-gray-700 mb-2">{t('attachments')}</label>
                                         <div
                                             className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
                                             <input
@@ -1089,10 +1031,8 @@ export default function CreatePromptPage() {
                                                         d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
                                                         strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                                 </svg>
-                                                <p className="mt-2 text-sm text-gray-600">Click to upload or drag and
-                                                    drop</p>
-                                                <p className="text-xs text-gray-500">PDF, DOC, TXT, JPG, PNG up to
-                                                    10MB</p>
+                                                <p className="mt-2 text-sm text-gray-600">{t('clickToUpload')}</p>
+                                                <p className="text-xs text-gray-500">{t('fileSupport')}</p>
                                             </label>
                                         </div>
                                         <div className="mt-4 space-y-2">
@@ -1138,47 +1078,50 @@ export default function CreatePromptPage() {
                             <div
                                 className="bg-white rounded-xl shadow-sm border border-gray-200 h-[calc(100vh-200px)] flex flex-col sticky top-24 transition-all duration-500 ease-in-out hover:shadow-lg">
                                 <div className="p-6 border-b border-gray-200">
-                                    <h3 className="text-lg font-semibold text-gray-900">Templates</h3>
-                                    <p className="text-sm text-gray-500 mt-1">Choose a template to get started</p>
+                                    <h3 className="text-lg font-semibold text-gray-900">{t('templatesTitle')}</h3>
+                                    <p className="text-sm text-gray-500 mt-1">{t('templatesSubtitle')}</p>
                                 </div>
                                 <div className="flex-1 overflow-y-auto p-4 space-y-3 scroll-smooth">
-                                    {Object.entries(TEMPLATES).map(([key, template]) => (
+                                    {Object.entries(PROMPT_TEMPLATES).map(([key, template]) => (
                                         <div
                                             key={key}
-                                            onClick={() => applyTemplate(key)}
+                                            onClick={() => handleTemplateClick(key)}
                                             className="p-3 border border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 hover:shadow-md hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300 ease-out group"
                                         >
                                             <h4 className="text-sm font-medium text-gray-900 group-hover:text-blue-700 transition-colors duration-200">{template.title}</h4>
                                             <p className="text-xs text-gray-500 mt-1 group-hover:text-gray-600 transition-colors duration-200">
-                                                {key === 'essay' && 'Structure for academic essays'}
-                                                {key === 'math' && 'Step-by-step solutions'}
-                                                {key === 'code' && 'Programming feedback'}
-                                                {key === 'language' && 'Conversation scenarios'}
-                                                {key === 'creative' && 'Story and narrative prompts'}
-                                                {key === 'science' && 'Scientific concept explanations'}
-                                                {key === 'history' && 'Historical event analysis'}
-                                                {key === 'business' && 'Business problem analysis'}
+                                                {template.description}
                                             </p>
                                         </div>
                                     ))}
                                 </div>
 
+                                {wizardTemplate && (
+                                    <TemplateWizardModal
+                                        isOpen={isWizardOpen}
+                                        onClose={() => setIsWizardOpen(false)}
+                                        template={wizardTemplate}
+                                        onGenerate={handleWizardGenerate}
+                                        onSkip={handleWizardSkip}
+                                    />
+                                )}
+
                                 <div
                                     className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl p-6 hover:shadow-md transition-all duration-300 ease-out">
                                     <h3 className="text-lg font-semibold text-gray-900 mb-3 hover:text-blue-700 transition-colors duration-200">💡
-                                        Quick Tips</h3>
+                                        {t('quickTipsTitle')}</h3>
                                     <ul className="text-sm text-gray-700 space-y-2">
                                         <li className="hover:text-blue-600 transition-colors duration-200 cursor-default">•
-                                            Be specific in your instructions
+                                            {t('quickTips.specific')}
                                         </li>
                                         <li className="hover:text-blue-600 transition-colors duration-200 cursor-default">•
-                                            Include clear examples
+                                            {t('quickTips.examples')}
                                         </li>
                                         <li className="hover:text-blue-600 transition-colors duration-200 cursor-default">•
-                                            Set appropriate constraints
+                                            {t('quickTips.constraints')}
                                         </li>
                                         <li className="hover:text-blue-600 transition-colors duration-200 cursor-default">•
-                                            Test with different inputs
+                                            {t('quickTips.test')}
                                         </li>
                                     </ul>
                                 </div>
@@ -1194,7 +1137,7 @@ export default function CreatePromptPage() {
                             <div
                                 className="bg-white rounded-xl shadow-xl max-w-6xl w-full max-h-[95vh] overflow-hidden">
                                 <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                                    <h2 className="text-xl font-semibold text-gray-900">Test Prompt</h2>
+                                    <h2 className="text-xl font-semibold text-gray-900">{t('testPromptTitle')}</h2>
                                     <button
                                         onClick={() => setShowTestModal(false)}
                                         className="text-gray-400 hover:text-gray-600"
@@ -1211,8 +1154,8 @@ export default function CreatePromptPage() {
                                         {/* CopyButton */}
                                         <div>
                                             <div className="flex items-center justify-between mb-4">
-                                                <h3 className="text-lg font-medium text-gray-900">Prompt Review</h3>
-                                                <CopyButton text={generatePromptReview()} label="Prompt Review" />
+                                                <h3 className="text-lg font-medium text-gray-900">{t('promptReviewTitle')}</h3>
+                                                <CopyButton text={generatePromptReview()} label={t('promptReviewTitle')} />
                                             </div>
                                             <div
                                                 className="bg-gray-50 rounded-lg p-4 min-h-[300px] max-h-[500px] overflow-y-auto border border-gray-200">
@@ -1221,13 +1164,12 @@ export default function CreatePromptPage() {
                                                     {generatePromptReview() || 'No prompt content to review yet. Fill in the instruction, context, input example, output format, and constraints fields to see the complete prompt review.'}
                                                 </pre>
                                             </div>
-                                            <p className="text-xs text-gray-500 mt-2">This shows how your complete
-                                                prompt will be structured</p>
+                                            <p className="text-xs text-gray-500 mt-2">{t('promptReviewSubtitle')}</p>
                                         </div>
 
                                         <div className="grid grid-cols-1 lg:grid-cols-6 gap-6">
                                             <div className="lg:col-span-4">
-                                                <h3 className="text-lg font-medium text-gray-900 mb-4">Results</h3>
+                                                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('resultsTitle')}</h3>
                                                 <div
                                                     className="bg-gray-50 rounded-lg p-4 min-h-[400px] max-h-[600px] overflow-y-auto border border-gray-200">
                                                     {isTesting ? (
@@ -1248,27 +1190,22 @@ export default function CreatePromptPage() {
                                                                     <path strokeLinecap="round" strokeLinejoin="round"
                                                                         strokeWidth="2" d="M5 13l4 4L19 7" />
                                                                 </svg>
-                                                                <span className="text-sm font-medium">Test completed successfully</span>
+                                                                <span className="text-sm font-medium">{t('testSuccess')}</span>
                                                                 <span
-                                                                    className="text-xs text-green-600">Model: {testResponse.aiModel}</span>
+                                                                    className="text-xs text-green-600">{t('testModel')}: {testResponse.aiModel}</span>
                                                             </div>
                                                             <div
                                                                 className="bg-white rounded-lg p-4 border border-gray-200 space-y-2">
                                                                 <div className="flex items-center justify-between">
-                                                                    <h4 className="text-sm font-medium text-gray-900">AI
-                                                                        Response</h4>
+                                                                    <h4 className="text-sm font-medium text-gray-900">{t('aiResponse')}</h4>
                                                                     <CopyButton text={testResponse.output || ''}
-                                                                        label="AI Response" />
+                                                                        label={t('aiResponse')} />
                                                                 </div>
-                                                                <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                                                                    {testResponse.output}
-                                                                </p>
+                                                                <MarkdownRenderer content={testResponse.output || ''} />
                                                             </div>
                                                             <div className="text-xs text-gray-500 space-y-1">
-                                                                <p>Tokens
-                                                                    used: {testResponse.tokensUsed.toLocaleString()} / {(testResponse.maxTokens ?? maxTokens).toLocaleString()}</p>
-                                                                <p>Response
-                                                                    time: {(testResponse.executionTimeMs / 1000).toFixed(2)}s</p>
+                                                                <p>{t('tokensUsed')}: {testResponse.tokensUsed.toLocaleString()} / {(testResponse.maxTokens ?? maxTokens).toLocaleString()}</p>
+                                                                <p>{t('responseTime')}: {(testResponse.executionTimeMs / 1000).toFixed(2)}s</p>
                                                             </div>
                                                         </div>
                                                     ) : testResponse && (testResponse.status === 'PENDING' || testResponse.status === 'PROCESSING') ? (
@@ -1276,20 +1213,18 @@ export default function CreatePromptPage() {
                                                             Test is {testResponse.status.toLowerCase()}...
                                                         </p>
                                                     ) : (
-                                                        <p className="text-gray-500 text-center">Run a test to see
-                                                            results here</p>
+                                                        <p className="text-gray-500 text-center">{t('noResultsYet')}</p>
                                                     )}
                                                 </div>
                                             </div>
 
                                             {/* ... (Settings) ... */}
                                             <div className="lg:col-span-2">
-                                                <h3 className="text-lg font-medium text-gray-900 mb-4">Test
-                                                    Settings</h3>
+                                                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('testSettingsTitle')}</h3>
                                                 <div className="space-y-3">
                                                     <div>
                                                         <label htmlFor="model"
-                                                            className="block text-sm font-medium text-gray-700 mb-1">Model</label>
+                                                            className="block text-sm font-medium text-gray-700 mb-1">{t('modelLabel')}</label>
                                                         <select
                                                             value={model}
                                                             onChange={(e) => setModel(e.target.value as PromptAiModel)}
@@ -1304,7 +1239,7 @@ export default function CreatePromptPage() {
                                                     <div>
                                                         <label htmlFor="temperature"
                                                             className="block text-sm font-medium text-gray-700 mb-1">
-                                                            Temp: {temperature.toFixed(1)}
+                                                            {t('temperatureLabel')}: {temperature.toFixed(1)}
                                                         </label>
                                                         <input
                                                             type="range"
@@ -1318,8 +1253,7 @@ export default function CreatePromptPage() {
                                                     </div>
                                                     <div>
                                                         <label htmlFor="maxTokens"
-                                                            className="block text-sm font-medium text-gray-700 mb-1">Max
-                                                            Tokens</label>
+                                                            className="block text-sm font-medium text-gray-700 mb-1">{t('maxTokensLabel')}</label>
                                                         <input
                                                             type="number"
                                                             value={maxTokens}
@@ -1342,7 +1276,7 @@ export default function CreatePromptPage() {
                                                         onClick={handleTest}
                                                         className="w-full px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60 disabled:cursor-not-allowed"
                                                     >
-                                                        {isTesting ? 'Testing...' : 'Run Test'}
+                                                        {isTesting ? t('testingAction') : t('runTest')}
                                                     </button>
                                                 </div>
                                             </div>

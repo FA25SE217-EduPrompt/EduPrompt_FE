@@ -18,6 +18,8 @@ interface PromptCardProps {
     isTrending?: boolean;
     createdAt: string;
     lastUpdated: string; // ISO 8601 date string
+    tags?: string[];
+    isOwner?: boolean;
 }
 
 const isNew = (createdAt: string): boolean => {
@@ -101,14 +103,16 @@ export const PromptCard: React.FC<PromptCardProps> = (props) => {
                 {/* Actions */}
                 <div className="flex-shrink-0 flex flex-col items-end gap-2">
                     <div className="flex items-center gap-2">
-                        <Link
-                            href={`/dashboard/prompts/${props.id}/manage`}
-                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors z-10"
-                            onClick={(e) => e.stopPropagation()}
-                            title={t('manageTooltip')}
-                        >
-                            <PencilSquareIcon className="h-4 w-4" />
-                        </Link>
+                        {props.isOwner && (
+                            <Link
+                                href={`/dashboard/prompts/${props.id}/manage`}
+                                className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors z-10"
+                                onClick={(e) => e.stopPropagation()}
+                                title={t('manageTooltip')}
+                            >
+                                <PencilSquareIcon className="h-4 w-4" />
+                            </Link>
+                        )}
 
                         <button
                             aria-label={`${t('optimize')} prompt ${props.title}`}
@@ -165,12 +169,19 @@ export const PromptCard: React.FC<PromptCardProps> = (props) => {
                     />
                     <Badge
                         color="bg-accent-grade-subtle text-accent-grade"
-                        text={`${t('grade')} ${props.grade}`}
+                        text={props.grade.startsWith('Khối') || props.grade.startsWith('Grade') ? props.grade : `${t('grade')} ${props.grade}`}
                     />
                     <Badge
                         color="bg-accent-type-subtle text-accent-type"
                         text={props.type}
                     />
+                    {props.tags && props.tags.map((tag, index) => (
+                        <Badge
+                            key={index}
+                            color="bg-blue-50 text-blue-700"
+                            text={tag}
+                        />
+                    ))}
                 </div>
 
                 <div className="flex items-center mt-3 text-accent-star">

@@ -37,11 +37,11 @@
             "subtitle": "Flexible pricing options for individual teachers and schools",
             "freeTrial": "Free Trial",
             "standard": "Standard",
+            "premium": "Premium",
             "schoolWide": "School-Wide",
             "perMonth": "/month",
             "perTeacherMonth": "/teacher/month",
             "perSchoolYear": "/school/year",
-            "negotiated": "Negotiated",
             "features": {
                 "limited": "Limited prompt library",
                 "oneTeacher": "1 teacher per school",
@@ -53,13 +53,24 @@
                 "unlimited": "Unlimited teachers",
                 "adminDashboard": "Admin dashboard",
                 "analytics": "Analytics & reporting",
-                "premium": "Premium add-ons"
+                "premium": "Premium add-ons",
+                "schoolNoQuota": "Free of action, testing & optimization quotas",
+                "schoolSharedPool": "Usage counts toward school token pool"
             },
             "buttons": {
                 "startFreeTrial": "Start Free Trial",
-                "getStarted": "Get Started",
-                "contactSales": "Contact Sales"
-            }
+                "getStarted": "Get Started Now",
+                "contactSales": "Contact Sales",
+                "upgradeNow": "Upgrade Now",
+                "currentPlan": "Current Plan"
+            },
+            "negotiated": "Negotiated"
+        },
+        "PricingCard": {
+            "mostPopular": "Most Popular",
+            "viewPlanDetails": "View Plan Details",
+            "showLess": "Show Less",
+            "currentPlan": "Current Plan"
         },
         "CTA": {
             "title": "Ready to Transform Your Teaching?",
@@ -138,6 +149,7 @@
         },
         "Sidebar": {
             "myPrompts": "My Prompts",
+            "searchPrompts": "Search Prompts",
             "myCollections": "My Collections",
             "myGroups": "My Groups",
             "subscription": "Subscription",
@@ -194,6 +206,8 @@
             "collectionsDesc": "Organize your prompts into collections.",
             "promptViews": "Prompt Views/Unlocks",
             "promptViewsDesc": "View or unlock detailed prompts from the community.",
+            "tokens": "Tokens",
+            "tokensDesc": "Available AI tokens for generating content.",
             "unlimitedAccess": "Unlimited Access",
             "schoolSubscriptionGrant": "Your school subscription grants you unlimited access to:",
             "premiumPromptLibrary": "Premium Prompt Library",
@@ -211,7 +225,8 @@
                 "accessToBasic": "Access to basic prompt library",
                 "accessToPremium": "Access to premium prompt library",
                 "optimizationsPerMonth": "{count} AI optimizations / month",
-                "collectionsLimit": "{count} Collections limit"
+                "collectionsLimit": "{count} Collections limit",
+                "tokensLimit": "{count} AI Tokens"
             },
             "pricing": {
                 "perMonth": "/month",
@@ -249,6 +264,22 @@
         }
     },
     "Auth": {
+        "VerifyEmail": {
+            "title": "Email Verification",
+            "checkEmailMessage": "An email has been sent to your inbox. Please check your email. If you don't see it, please check your spam folder.",
+            "resendButton": "Resend Verification Email",
+            "resendCooldown": "Resend available in {seconds}s",
+            "enterEmail": "Enter your email to resend verification",
+            "verifying": "Verifying your email...",
+            "success": "Email verified successfully! You can now log in to your account.",
+            "failed": "Verification failed",
+            "invalidLink": "Invalid verification link. Please check your email and try again.",
+            "backToLogin": "Back to Login",
+            "goToLogin": "Go to Login",
+            "emailPlaceholder": "Enter your email address",
+            "resendSuccess": "Verification email sent! Please check your inbox.",
+            "resendFailed": "Failed to resend verification email."
+        },
         "welcomeBack": "Welcome Back",
         "signInSubtitle": "Sign in to your account to continue",
         "emailLabel": "Email Address",
@@ -277,6 +308,26 @@
         "creatingAccount": "Creating Account...",
         "passwordsDoNotMatch": "Passwords do not match!",
         "registrationSuccess": "Registration successful! Please check your email for verification.",
+        "ResetPassword": {
+            "title": "Reset Password",
+            "subtitle": "Enter your new password",
+            "newPasswordLabel": "New Password",
+            "newPasswordPlaceholder": "Enter new password",
+            "confirmPasswordLabel": "Confirm New Password",
+            "confirmPasswordPlaceholder": "Confirm new password",
+            "resetButton": "Reset Password",
+            "resetting": "Resetting Password...",
+            "success": "Password Reset!",
+            "rememberPassword": "Remember your password?",
+            "signIn": "Sign in",
+            "needNewLink": "Need a new reset link?",
+            "requestLink": "Request another",
+            "invalidToken": "Invalid or missing reset token. Please request a new reset link.",
+            "tokenRequired": "Reset token is required. Please check your email link.",
+            "passwordsNotMatch": "Passwords do not match!",
+            "resetFailed": "Failed to reset password",
+            "resetSuccessMessage": "Password reset successfully! You can now log in with your new password."
+        },
         "hidePassword": "Hide password",
         "showPassword": "Show password",
         "forgotPasswordTitle": "Forgot Password?",
@@ -302,6 +353,17 @@
             "outputFormat": "Output Format",
             "constraints": "Constraints",
             "tags": "Tags",
+            "fields": {
+                "contextPlaceholder": "Additional context or background information",
+                "inputExamplePlaceholder": "Example of expected input",
+                "outputFormatPlaceholder": "Specify the desired output format",
+                "constraintsPlaceholder": "Any limitations or constraints",
+                "tagValuePlaceholder": "Tag value"
+            },
+            "tagTypes": {
+                "subject": "Subject",
+                "grade": "Grade"
+            },
             "maxChars": "Maximum 255 characters",
             "titleRequired": "Title is required",
             "instructionMinLength": "Instruction must be at least 20 characters long.",
@@ -311,76 +373,178 @@
             "templateApplied": "Template applied",
             "optimizationComplete": "Optimization complete - review suggestions below",
             "testCompleted": "Test completed successfully",
-            "testFailed": "Test failed.",
             "fileSizeLimit": "File size must be less than 10MB",
-            "pleaseSaveBeforeTest": "Please save the prompt before running a test.",
-            "pleaseSaveBeforeOptimize": "Please save the prompt before requesting optimization."
+            "visibility": "Visibility",
+            "public": "Public",
+            "private": "Private",
+            "collection": "Collection",
+            "selectCollection": "Select a collection",
+            "newCollection": "Create new collection",
+            "autoCollection": "Auto-categorize",
+            "enterCollectionName": "Enter collection name...",
+            "applyTemplate": "Apply Template",
+            "generating": "Generating...",
+            "optimize": "Optimize",
+            "attachments": "Attachments",
+            "clickToUpload": "Click to upload or drag and drop",
+            "fileSupport": "PDF, DOC, TXT, JPG, PNG up to 10MB",
+            "newCollectionName": "New Collection Name",
+            "newCollectionPlaceholder": "e.g., My Biology Prompts...",
+            "templatesTitle": "Templates",
+            "templatesSubtitle": "Choose a template to get started",
+            "quickTipsTitle": "Quick Tips",
+            "quickTips": {
+                "specific": "Be specific in your instructions",
+                "examples": "Include clear examples",
+                "constraints": "Set appropriate constraints",
+                "test": "Test with different inputs"
+            },
+            "testPromptTitle": "Test Prompt",
+            "promptReviewTitle": "Prompt Review",
+            "promptReviewSubtitle": "This shows how your complete prompt will be structured",
+            "resultsTitle": "Results",
+            "testSettingsTitle": "Test Settings",
+            "runTest": "Run Test",
+            "testingAction": "Testing...",
+            "testSuccess": "Test completed successfully",
+            "testModel": "Model",
+            "aiResponse": "AI Response",
+            "tokensUsed": "Tokens used",
+            "responseTime": "Response time",
+            "noResultsYet": "Run a test to see results here",
+            "modelLabel": "Model",
+            "temperatureLabel": "Temperature",
+            "maxTokensLabel": "Max Tokens",
+            "failedToCreateTags": "Failed to create tags",
+            "newCollectionDefault": "New Collection",
+            "failedToCreateCollection": "Failed to create collection",
+            "unexpectedError": "Unexpected error",
+            "failedToStartTest": "Failed to start test",
+            "testFailedImmediately": "Test failed immediately",
+            "failedToRequestOptimization": "Failed to request optimization",
+            "optimizationFailedImmediately": "Optimization failed immediately",
+            "failedToStartOptimization": "Failed to start optimization",
+            "instructionPlaceholder": "Detailed instructions for the AI model",
+            "min20Chars": "Minimum 20 characters required",
+            "wizardInstructionApplied": "Optimization advice applied. Click 'Optimize' to use it."
         },
         "Templates": {
-            "essay": {
-                "title": "Essay Writing Assistant",
-                "instruction": "Help students write well-structured academic essays with clear thesis statements, supporting arguments, and proper conclusions.",
-                "context": "Academic writing context with focus on critical thinking and argumentation.",
-                "inputExample": "Topic: Climate change effects on agriculture",
-                "outputFormat": "Structured essay with introduction, body paragraphs, and conclusion",
-                "constraints": "Minimum 500 words, academic tone, cite sources when applicable"
+            "LessonPlan": {
+                "title": "1-Period Lesson Plan",
+                "description": "Create a detailed lesson plan with objectives, activities, and assessment methods.",
+                "instruction": "Create a 1-period lesson plan for a high school lesson based on teacher input, describing objectives, student activities, teacher role, teaching methods, and in-class assessment.",
+                "context": "High school lesson plan, student-centered.",
+                "inputExample": "Lesson: The Great Gatsby, Grade: 11, Duration: 45 mis. Priority: Group discussion.",
+                "outputFormat": "Detailed plan with objectives, materials, procedure (4 activities), and assessment.",
+                "constraints": "Feasible with classroom conditions, reasonable timing."
             },
-            "math": {
-                "title": "Math Problem Solver",
-                "instruction": "Provide step-by-step solutions to mathematical problems, explaining each step clearly.",
-                "context": "Educational mathematics with focus on understanding concepts.",
-                "inputExample": "Solve: 2x + 5 = 13",
-                "outputFormat": "Step-by-step solution with explanations",
-                "constraints": "Show all work, explain reasoning for each step"
+            "WarmUp": {
+                "title": "Warm-Up Activity Design",
+                "description": "Design engaging warm-up activities to start the class.",
+                "instruction": "Design 1–2 warm-up activities to attract attention, connect old and new knowledge, and introduce the main content.",
+                "context": "Beginning of class, 3-7 minutes.",
+                "inputExample": "Lesson: Newton's Laws, Grade: 10, Trait: Energetic. Want a game.",
+                "outputFormat": "Activity name, objective, preparation, procedure steps.",
+                "constraints": "Simple setup, short duration."
             },
-            "code": {
-                "title": "Code Review Assistant",
-                "instruction": "Review code for best practices, bugs, and improvements. Provide constructive feedback.",
-                "context": "Programming education and code quality improvement.",
-                "inputExample": "function calculateSum(a, b) { return a + b; }",
-                "outputFormat": "Detailed review with suggestions and improved code",
-                "constraints": "Focus on readability, efficiency, and best practices"
+            "ConceptFormation": {
+                "title": "Guided Discovery Questions",
+                "description": " Build a sequence of questions to guide students in discovering new concepts.",
+                "instruction": "Design a sequence of guided questions from easy to difficult, helping students self-discover and form new knowledge.",
+                "context": "New concept formation, inductive method.",
+                "inputExample": "Concept: Functions, Grade: 10. Want differentiated questions.",
+                "outputFormat": "Numbered list of questions with purpose notes.",
+                "constraints": "Don't reveal definition immediately, age-appropriate language."
             },
-            "language": {
-                "title": "Language Practice Conversation",
-                "instruction": "Engage in natural conversation to help students practice language skills.",
-                "context": "Language learning environment with supportive feedback.",
-                "inputExample": "Student response in target language",
-                "outputFormat": "Natural conversation with gentle corrections",
-                "constraints": "Appropriate difficulty level, encouraging tone"
+            "Practice": {
+                "title": "Differentiated Practice Exercises",
+                "description": "Create practice exercises with basic, applied, and advanced levels.",
+                "instruction": "Create a set of practice exercises for in-class use, differentiated (basic – applied – advanced).",
+                "context": "In-class practice, 10-20 minutes.",
+                "inputExample": "Lesson: Trigonometric Equations, 15 mins, 3 levels.",
+                "outputFormat": "Groups A, B, C with assignment suggestions and answers.",
+                "constraints": "Aligned with lesson content, fits time limit."
             },
-            "creative": {
-                "title": "Creative Writing Assistant",
-                "instruction": "Help students develop creative writing skills through engaging prompts and feedback.",
-                "context": "Creative writing education with focus on imagination and storytelling.",
-                "inputExample": "Write a short story about a time traveler",
-                "outputFormat": "Creative narrative with character development",
-                "constraints": "Encourage creativity, provide constructive feedback"
+            "ApplicationHomework": {
+                "title": "Application & Homework",
+                "description": "Design real-world application activities and appropriate homework.",
+                "instruction": "Design a short in-class application activity and propose specific homework.",
+                "context": "End of class and home study.",
+                "inputExample": "Lesson: Modern Poetry, 5 mins left. Homework: Moderate.",
+                "outputFormat": "In-class application activity + Homework list.",
+                "constraints": "Short application (5-10m), reasonable homework load."
             },
-            "science": {
-                "title": "Science Explanation Assistant",
-                "instruction": "Explain scientific concepts in clear, accessible language for students.",
-                "context": "Science education with focus on understanding complex concepts.",
-                "inputExample": "Explain photosynthesis in simple terms",
-                "outputFormat": "Clear explanation with examples and analogies",
-                "constraints": "Use appropriate terminology, include visual descriptions"
+            "ReviewLesson": {
+                "title": "Pre-Exam Review Lesson",
+                "description": "Plan a review lesson to systematize knowledge and practice exam types.",
+                "instruction": "Design a review lesson before an exam to systematize knowledge and practice common question types.",
+                "context": "Chapter/Term review, 1 period.",
+                "inputExample": "Review Vectors, upcoming 1-period multiple choice test.",
+                "outputFormat": "Objectives, Knowledge Systematization, Practice Section, Self-study Guide.",
+                "constraints": "Focus on exam format, avoid cramming."
             },
-            "history": {
-                "title": "History Analysis Assistant",
-                "instruction": "Help students analyze historical events and their significance.",
-                "context": "History education with focus on critical analysis and context.',",
-                "inputExample": "Analyze the causes of World War I",
-                "outputFormat": "Structured analysis with multiple perspectives",
-                "constraints": "Cite historical evidence, consider different viewpoints"
-            },
-            "business": {
-                "title": "Business Case Study Assistant",
-                "instruction": "Guide students through business problem analysis and solution development.",
-                "context": "Business education with focus on practical problem-solving.",
-                "inputExample": "Analyze a company's declining sales",
-                "outputFormat": "Comprehensive business analysis with recommendations",
-                "constraints": "Use business frameworks, provide actionable insights"
+            "TechIntegration": {
+                "title": "Tech Integration Script",
+                "description": "Guide on using specific tech tools in a lesson.",
+                "instruction": "Create a script for using technology (slides, software, quiz...) in a specific lesson.",
+                "context": "ICT integration in teaching.",
+                "inputExample": "Use Quizizz for History Grade 12, end of class check.",
+                "outputFormat": "Tool description, role, placement, detailed script.",
+                "constraints": "Fits available devices, tech serves learning goals."
             }
+        },
+        "Wizard": {
+            "title": "Optimization Suggestions",
+            "subtitle": "Answer a few questions to help AI create the best prompt for you.",
+            "groupA": "Your Goals",
+            "groupB": "Detailed Info",
+            "skip": "Skip, use default template",
+            "generate": "Generate Optimized Prompt",
+            "back": "Back",
+            "next": "Next",
+            "placeholder": "Enter your answer...",
+            "selectPlaceholder": "Select..."
+        },
+        "Search": {
+            "pageTitle": "Search & Test Prompts",
+            "searchPlaceholder": "Search prompts...",
+            "search": "Search",
+            "keyword": "Keyword",
+            "semantic": "Semantic",
+            "results": "Search Results",
+            "noResults": "No prompts found for",
+            "myCollections": "My Collections",
+            "emptyCollection": "Empty collection",
+            "emptySlot": "Empty Slot",
+            "select": "Select",
+            "noPromptSelected": "No Prompt Selected",
+            "choosePromptHint": "Choose a prompt from your library to test and compare.",
+            "browsePrompts": "Browse Prompts",
+            "description": "DESCRIPTION",
+            "instruction": "INSTRUCTION",
+            "context": "CONTEXT",
+            "inputExample": "INPUT EXAMPLE",
+            "outputFormat": "OUTPUT FORMAT",
+            "constraints": "CONSTRAINTS",
+            "testing": "Testing...",
+            "run": "Run",
+            "generatingResponse": "Generating response...",
+            "resultPlaceholder": "Result will appear here",
+            "showSettings": "Show Settings",
+            "hideSettings": "Hide Settings",
+            "globalSettings": "GLOBAL TEST SETTINGS",
+            "temperature": "Temperature (Creative)",
+            "topP": "Top P (Diverse)",
+            "maxTokens": "Max Tokens",
+            "runComparison": "Run Comparison",
+            "runningTests": "Running...",
+            "copied": "Copied",
+            "copy": "Copy",
+            "temperatureTooltip": "Controls randomness. Lower (0.1-0.3) = more focused. Higher (0.7-1.0) = more creative.",
+            "topPTooltip": "Controls diversity. Lower = predictable. Higher = diverse.",
+            "maxTokensTooltip": "Max response length. 1000 tokens ≈ 750 words.",
+            "tokens": "tokens",
+            "ms": "ms"
         },
         "OptimizationPanel": {
             "title": "AI Optimization",
@@ -400,6 +564,36 @@
         "dashboard": "Dashboard",
         "logout": "Logout",
         "signIn": "Sign In"
+    },
+    "Profile": {
+        "title": "My Profile",
+        "personalInfo": "Personal Information",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "email": "Email",
+        "phone": "Phone",
+        "teacherProfile": "Teacher Profile",
+        "editProfile": "Edit Profile",
+        "noProfile": "You haven't set up your teacher profile yet.",
+        "createProfile": "Create Profile",
+        "subjectSpecialty": "Subject Specialty",
+        "subjectPlaceholder": "e.g. Mathematics, Physics",
+        "gradeLevels": "Grade Levels",
+        "gradeLevelsPlaceholder": "e.g. 10, 11, 12",
+        "teachingStyle": "Teaching Style",
+        "teachingStylePlaceholder": "Describe your teaching style...",
+        "cancel": "Cancel",
+        "saveChanges": "Save Changes",
+        "na": "N/A",
+        "loginRequired": "Please log in to view this page.",
+        "success": {
+            "created": "Profile created successfully",
+            "updated": "Profile updated successfully"
+        },
+        "error": {
+            "save": "Failed to save profile",
+            "fetch": "Failed to fetch profile"
+        }
     },
     "Footer": {
         "tagline": "Empowering educators with AI-driven teaching tools.",
@@ -424,5 +618,43 @@
         "cancel": "Cancel",
         "delete": "Delete",
         "edit": "Edit"
+    },
+    "Payment": {
+        "processing": "Processing Payment...",
+        "pleaseWait": "Please wait while we verify your transaction.",
+        "paymentSuccessful": "Payment Successful!",
+        "paymentFailed": "Payment Failed",
+        "paymentFailedBackend": "Payment verification failed on server.",
+        "paymentPendingProcessing": "Payment is being processed. Please check back later.",
+        "successMessage": "Your subscription has been upgraded successfully.",
+        "verificationFailed": "Could not verify payment status.",
+        "invalidParams": "Invalid payment return parameters.",
+        "backToSubscription": "Back to Subscription",
+        "supportContact": "If you have issues, contact",
+        "errors": {
+            "00": "Transaction successful",
+            "07": "Deduction successful. Suspected transaction (fraud related).",
+            "09": "Transaction failed: Card/Account not registered for InternetBanking.",
+            "10": "Customer verified incorrect card/account info more than 3 times",
+            "11": "Transaction failed: Payment wait expired.",
+            "12": "Transaction failed: Customer card/account is locked.",
+            "13": "Customer entered incorrect OTP.",
+            "24": "Transaction failed: Customer cancelled transaction",
+            "51": "Transaction failed: Insufficient balance.",
+            "65": "Transaction failed: Account exceeded daily limit.",
+            "75": "Payment bank is under maintenance.",
+            "79": "Transaction failed: Customer entered incorrect password too many times.",
+            "99": "Other errors"
+        },
+        "Checkout": {
+            "title": "Checkout",
+            "subtitle": "Review your subscription plan before proceeding.",
+            "planNotFound": "Plan not found",
+            "goBack": "Go Back",
+            "back": "Back",
+            "payWithVNPay": "Pay {amount} with VNPay",
+            "processing": "Processing...",
+            "legalDisclaimer": "By clicking \"Pay\", you agree to our Terms of Service and Privacy Policy. You will be redirected to VNPay to complete the transaction."
+        }
     }
 }

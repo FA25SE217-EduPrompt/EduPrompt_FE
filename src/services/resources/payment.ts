@@ -1,11 +1,11 @@
 
-import { ApiClient } from '../auth';
-import { BaseResponse } from '@/types/api';
-import { VerifyPaymentResponse } from '@/types/payment.api';
+import { apiClient } from '../auth';
+import { BaseResponse, PaginatedResponse } from '@/types/api';
+import { PaymentRequest, PaymentDetailedResponse, PaymentHistoryResponse } from '@/types/payment.api';
 
-const verifyPayment = async (paymentId: string): Promise<BaseResponse<VerifyPaymentResponse>> => {
+const createPayment = async (data: PaymentRequest): Promise<BaseResponse<string>> => {
     try {
-        const response = await ApiClient.get<BaseResponse<VerifyPaymentResponse>>(`/payment/${paymentId}/verify`);
+        const response = await apiClient.post<BaseResponse<string>>('/api/payments/vnpay/vnpay', data);
         return response.data;
     } catch (error: any) {
         return {
@@ -19,6 +19,57 @@ const verifyPayment = async (paymentId: string): Promise<BaseResponse<VerifyPaym
     }
 };
 
+const getPayment = async (id: string): Promise<BaseResponse<PaymentDetailedResponse>> => {
+    try {
+        const response = await apiClient.get<BaseResponse<PaymentDetailedResponse>>(`/api/payments/vnpay/${id}`);
+        return response.data;
+    } catch (error: any) {
+        return {
+            data: null,
+            error: error.response?.data?.error || {
+                code: 'UNKNOWN_ERROR',
+                messages: [error.message],
+                status: '500'
+            }
+        };
+    }
+};
+
+const getMyPayments = async (page: number = 0, size: number = 20): Promise<BaseResponse<PaginatedResponse<PaymentHistoryResponse>>> => {
+    try {
+        const response = await apiClient.get<BaseResponse<PaginatedResponse<PaymentHistoryResponse>>>(`/api/payments/vnpay/my-payment?page=${page}&size=${size}`);
+        return response.data;
+    } catch (error: any) {
+        return {
+            data: null,
+            error: error.response?.data?.error || {
+                code: 'UNKNOWN_ERROR',
+                messages: [error.message],
+                status: '500'
+            }
+        };
+    }
+};
+
+const processVnPayReturn = async (queryString: string): Promise<BaseResponse<{ rspCode: string; message: string }>> => {
+    try {
+        const response = await apiClient.get<BaseResponse<{ rspCode: string; message: string }>>(`/api/payments/vnpay/vnpay-return?${queryString}`);
+        return response.data;
+    } catch (error: any) {
+        return {
+            data: null,
+            error: error.response?.data?.error || {
+                code: 'UNKNOWN_ERROR',
+                messages: [error.message],
+                status: '500'
+            }
+        };
+    }
+}
+
 export const paymentService = {
-    verifyPayment
+    createPayment,
+    getPayment,
+    getMyPayments,
+    processVnPayReturn
 };

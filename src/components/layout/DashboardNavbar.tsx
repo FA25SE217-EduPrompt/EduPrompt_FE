@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslations } from "next-intl";
 import { UserAvatar } from "./UserAvatar";
 import Button from "../ui/Button";
 import { Bars3Icon } from "@heroicons/react/24/outline"; // hamburgar :v
@@ -20,6 +21,8 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
 }) => {
     const { user, logout } = useAuth();
     const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
+    const tCommon = useTranslations('Dashboard.Common');
+    const tNavbar = useTranslations('Navbar');
 
     return (
         <header
@@ -49,7 +52,7 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                     variant="primary"
                     className="!px-4 !py-2 !text-sm"
                 >
-                    New prompt
+                    {tCommon('createNew')}
                 </Button>
 
                 <div className="relative">
@@ -116,14 +119,14 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                                 className="block px-4 py-2 text-sm text-text-secondary hover:bg-bg-secondary"
                                 onClick={() => setIsDropdownOpen(false)}
                             >
-                                Profile
+                                {tNavbar('profile')}
                             </Link>
                             <Link
                                 href="/dashboard"
                                 className="block px-4 py-2 text-sm text-text-secondary hover:bg-bg-secondary"
                                 onClick={() => setIsDropdownOpen(false)}
                             >
-                                Dashboard
+                                {tNavbar('dashboard')}
                             </Link>
                             <button
                                 onClick={() => {
@@ -132,7 +135,7 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                                 }}
                                 className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-bg-secondary"
                             >
-                                Logout
+                                {tNavbar('logout')}
                             </button>
                         </div>
                     )}

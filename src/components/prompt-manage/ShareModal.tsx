@@ -6,16 +6,33 @@ import { toast } from 'sonner';
 interface ShareModalProps {
     isOpen: boolean;
     onClose: () => void;
-    shareToken?: string; // If already shared
+    shareToken?: string; // If already shared (this might be the full URL from backend)
+    promptId: string;
     onShare: () => void;
     onRevoke: () => void;
     isLoading: boolean;
 }
 
-export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, shareToken, onShare, onRevoke, isLoading }) => {
+export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, shareToken, promptId, onShare, onRevoke, isLoading }) => {
     if (!isOpen) return null;
 
-    const shareUrl = shareToken ? `${window.location.origin}/share/${shareToken}` : '';
+    // The backend might return a full URL like "http://backend/api/prompt-share/shared/{id}?token={token}"
+    // OR just a token. We need to handle both cases to be robust.
+    // If it's a URL, we extract the token.
+
+    let token = shareToken;
+    try {
+        if (shareToken && (shareToken.startsWith('http') || shareToken.includes('?token='))) {
+            const url = new URL(shareToken);
+            token = url.searchParams.get('token') || undefined;
+        }
+    } catch (e) {
+        console.error("Failed to parse share token url", e);
+        // Fallback: if it's not a valid URL but has content, maybe it's just the token or a weird string.
+        // If it looks like a UUID, we assume it's the token.
+    }
+
+    const shareUrl = token ? `${window.location.origin}/share/${promptId}?token=${token}` : '';
 
     const handleCopy = () => {
         navigator.clipboard.writeText(shareUrl);

@@ -7,6 +7,8 @@ import { useTranslations } from 'next-intl';
 interface OptimizationPanelProps {
     onOptimize: (model: PromptAiModel, input: string) => void;
     isOptimizing: boolean;
+    instruction: string;
+    onInstructionChange: (value: string) => void;
 }
 
 const MODEL_OPTIONS = [
@@ -15,13 +17,17 @@ const MODEL_OPTIONS = [
     { label: 'Gemini 2.5 Flash', value: 'GEMINI_2_5_FLASH' },
 ];
 
-export const OptimizationPanel: React.FC<OptimizationPanelProps> = ({ onOptimize, isOptimizing }) => {
+export const OptimizationPanel: React.FC<OptimizationPanelProps> = ({
+    onOptimize,
+    isOptimizing,
+    instruction,
+    onInstructionChange
+}) => {
     const t = useTranslations('Prompt.OptimizationPanel');
     const [selectedModel, setSelectedModel] = useState<PromptAiModel>('GPT_4O_MINI');
-    const [optimizationInput, setOptimizationInput] = useState('');
 
     const handleOptimize = () => {
-        onOptimize(selectedModel, optimizationInput);
+        onOptimize(selectedModel, instruction);
     };
 
     return (
@@ -54,8 +60,8 @@ export const OptimizationPanel: React.FC<OptimizationPanelProps> = ({ onOptimize
                 <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">{t('instructionsLabel')}</label>
                     <textarea
-                        value={optimizationInput}
-                        onChange={(e) => setOptimizationInput(e.target.value)}
+                        value={instruction}
+                        onChange={(e) => onInstructionChange(e.target.value)}
                         placeholder={t('instructionsPlaceholder')}
                         rows={3}
                         className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-none"

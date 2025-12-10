@@ -165,6 +165,7 @@ const TeacherDashboard: React.FC = () => {
                             isTrending={prompt.isTrending}
                             createdAt={prompt.createdAt}
                             lastUpdated={prompt.lastUpdated}
+                            isOwner={true}
                         />
                     ))}
                 </div>
@@ -191,6 +192,7 @@ const TeacherDashboard: React.FC = () => {
                             isTrending={prompt.isTrending}
                             createdAt={prompt.createdAt}
                             lastUpdated={prompt.lastUpdated}
+                            isOwner={false}
                         />
                     ))}
                 </div>

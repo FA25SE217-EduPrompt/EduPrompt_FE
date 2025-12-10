@@ -4,7 +4,7 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Loader2, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import Button from '@/components/ui/Button';
 import { paymentService } from '@/services/resources/payment';
 import { VNPayResponseCode } from '@/types/payment.api';
 
@@ -31,28 +31,33 @@ const PaymentResultContent = () => {
             // Client-side check for response code first
             if (responseCode !== VNPayResponseCode.SUCCESS) {
                 setStatus('error');
-                setMessage(t(`errors.${responseCode}`) || t('errors.unknown'));
+                // Construct error message key
+                const errorKey = `errors.${responseCode}`;
+                // We will use a fallback logic in component rendering if key doesn't exist,
+                // but for now let's set a generic message or specific provided code
+                setMessage(responseCode);
                 return;
             }
 
             try {
-                // Extract paymentId from txnRef (format: userId_tierId_timestamp_paymentId)
-                const parts = txnRef.split('_');
-                const paymentId = parts[parts.length - 1]; // Assume last part is paymentId based on user description
-
-                if (!paymentId) {
-                    throw new Error('Invalid transaction reference format');
-                }
-
-                // Verify with backend
-                const response = await paymentService.verifyPayment(paymentId);
+                // Pass the full query string to the backend to verify and update status
+                const queryString = searchParams.toString();
+                const response = await paymentService.processVnPayReturn(queryString);
 
                 if (response.error) {
                     setStatus('error');
-                    setMessage(response.error.messages[0] || t('verificationFailed'));
-                } else {
-                    setStatus('success');
-                    setMessage(t('successMessage'));
+                    const errorMsg = response.error.messages?.[0] || t('verificationFailed');
+                    setMessage(errorMsg);
+                } else if (response.data) {
+                    // Check rspCode as requested
+                    if (response.data.rspCode === '00') {
+                        setStatus('success');
+                        setMessage(response.data.message || t('successMessage'));
+                    } else {
+                        setStatus('error');
+                        // Use backend message or fallback
+                        setMessage(response.data.message || t('paymentFailedBackend'));
+                    }
                 }
             } catch (err) {
                 console.error(err);
@@ -65,7 +70,7 @@ const PaymentResultContent = () => {
     }, [responseCode, txnRef, t]);
 
     const handleBackToDashboard = () => {
-        router.push('/dashboard/subscription');
+        router.push('/dashboard/subscription'); // Redirect to subscription page
     };
 
     return (
@@ -93,7 +98,7 @@ const PaymentResultContent = () => {
                             {t('backToSubscription')}
                         </Button>
                     </div>
-                )} // Add more robust error handling later
+                )}
 
                 {status === 'error' && (
                     <div className="flex flex-col items-center space-y-4 animate-in fade-in zoom-in duration-300">
@@ -101,7 +106,13 @@ const PaymentResultContent = () => {
                             <XCircle className="w-10 h-10 text-red-600" />
                         </div>
                         <h2 className="text-2xl font-bold text-gray-900">{t('paymentFailed')}</h2>
-                        <p className="text-gray-600">{message}</p>
+                        <p className="text-gray-600">
+                            {/* Try to translate error code, fallback to generic or raw code */}
+                            {['07', '09', '10', '11', '12', '13', '24', '51', '65', '75', '79', '99'].includes(message)
+                                ? t(`errors.${message}`)
+                                : message
+                            }
+                        </p>
                         <div className="p-4 bg-gray-50 rounded-lg text-sm text-gray-500 w-full mb-2">
                             {t('supportContact')}: support@eduprompt.com
                         </div>

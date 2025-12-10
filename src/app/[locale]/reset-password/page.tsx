@@ -1,11 +1,12 @@
 "use client";
-import React, {Suspense, useCallback, useEffect, useRef, useState} from "react";
-import {resetPassword} from "@/services/auth";
-import Link from "next/link";
-import {useRouter, useSearchParams} from "next/navigation";
-import {ErrorInput, mapErrorToUserMessage} from "@/utils/errorMapper";
-import {useAuth} from "@/hooks/useAuth";
-import {BaseResponse} from "@/types/api";
+import React, { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { resetPassword } from "@/services/auth";
+import { Link } from "@/i18n/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ErrorInput, mapErrorToUserMessage } from "@/utils/errorMapper";
+import { useAuth } from "@/hooks/useAuth";
+import { BaseResponse } from "@/types/api";
+import { useTranslations } from "next-intl";
 
 // Helper function to safely extract error message
 function getErrorMessage(error: unknown): string {
@@ -19,7 +20,8 @@ type ResetPasswordResponse = BaseResponse<{ message?: string }>;
 
 function ResetPasswordForm() {
     const router = useRouter();
-    const {isAuthenticated, isLoading} = useAuth();
+    const { isAuthenticated, isLoading } = useAuth();
+    const t = useTranslations('Auth.ResetPassword');
 
     const [token, setToken] = useState("");
     const [newPassword, setNewPassword] = useState("");
@@ -57,9 +59,9 @@ function ResetPasswordForm() {
             if (mountedRef.current) setToken(queryToken);
         } else {
             if (mountedRef.current)
-                setErrorMessage("Invalid or missing reset token. Please request a new reset link.");
+                setErrorMessage(t('invalidToken'));
         }
-    }, [searchParams]);
+    }, [searchParams, t]);
 
     const handleSubmit = useCallback(
         async (e: React.FormEvent) => {
@@ -70,31 +72,31 @@ function ResetPasswordForm() {
             setSuccessMessage("");
 
             if (!token) {
-                setErrorMessage("Reset token is required. Please check your email link.");
+                setErrorMessage(t('tokenRequired'));
                 return;
             }
 
             if (newPassword !== confirmPassword) {
-                setErrorMessage("Mật khẩu không khớp!");
+                setErrorMessage(t('passwordsNotMatch'));
                 return;
             }
 
             setSubmitting(true);
             try {
-                const res = (await resetPassword({token, newPassword})) as ResetPasswordResponse;
+                const res = (await resetPassword({ token, newPassword })) as ResetPasswordResponse;
 
                 // Follow the API envelope contract: `error` is null on success
                 if (res?.error !== null) {
                     const firstMessage =
                         Array.isArray(res.error?.messages) && res.error!.messages!.length > 0
                             ? res.error!.messages![0]
-                            : getErrorMessage(res.error) || "Đặt lại mật khẩu thất bại";
+                            : getErrorMessage(res.error) || t('resetFailed');
                     if (!mountedRef.current) return;
                     setErrorMessage(firstMessage);
                     return;
                 }
 
-                const success = res?.data?.message || "Đặt lại mật khẩu thành công! Bạn có thể đăng nhập với mật khẩu mới.";
+                const success = res?.data?.message || t('resetSuccessMessage');
                 if (!mountedRef.current) return;
                 setSuccessMessage(success);
 
@@ -110,7 +112,7 @@ function ResetPasswordForm() {
                 if (mountedRef.current) setSubmitting(false);
             }
         },
-        [token, newPassword, confirmPassword, router]
+        [token, newPassword, confirmPassword, router, t]
     );
 
     // Show loading while checking authentication
@@ -149,11 +151,11 @@ function ResetPasswordForm() {
                         </div>
                         <span
                             className="ml-4 text-4xl font-bold bg-gradient-to-r from-blue-800 to-indigo-800 bg-clip-text text-transparent">
-              EduPrompt
-            </span>
+                            EduPrompt
+                        </span>
                     </div>
-                    <h1 className="text-4xl font-bold text-blue-800 mb-2">Reset Password</h1>
-                    <p className="text-gray-600 text-lg">Enter your new password</p>
+                    <h1 className="text-4xl font-bold text-blue-800 mb-2">{t('title')}</h1>
+                    <p className="text-gray-600 text-lg">{t('subtitle')}</p>
                 </header>
 
                 {/* Reset Password Form */}
@@ -164,7 +166,7 @@ function ResetPasswordForm() {
                             htmlFor="newPassword"
                             className="block text-sm font-semibold text-gray-700 mb-3 transition-colors group-focus-within:text-blue-600"
                         >
-                            New Password
+                            {t('newPasswordLabel')}
                         </label>
                         <div className="relative">
                             <input
@@ -183,7 +185,7 @@ function ResetPasswordForm() {
                          hover:border-gray-300 hover:bg-white/95
                          ${focusedId === "newPassword" ? "transform scale-[1.02] shadow-lg shadow-blue-100/50" : ""}`}
                                 required
-                                placeholder="Enter new password"
+                                placeholder={t('newPasswordPlaceholder')}
                                 disabled={submitting}
                             />
                             <button
@@ -191,20 +193,20 @@ function ResetPasswordForm() {
                                 onClick={() => setShowPassword(!showPassword)}
                                 className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
                                 aria-pressed={showPassword}
-                                aria-label={showPassword ? "Hide password" : "Show password"}
+                                aria-label={showPassword ? t('hidePassword') : t('showPassword')}
                                 disabled={submitting}
                             >
                                 {showPassword ? (
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                              d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
+                                            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
                                     </svg>
                                 ) : (
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                                     </svg>
                                 )}
                             </button>
@@ -222,7 +224,7 @@ function ResetPasswordForm() {
                             htmlFor="confirmPassword"
                             className="block text-sm font-semibold text-gray-700 mb-3 transition-colors group-focus-within:text-blue-600"
                         >
-                            Confirm New Password
+                            {t('confirmPasswordLabel')}
                         </label>
                         <div className="relative">
                             <input
@@ -239,7 +241,7 @@ function ResetPasswordForm() {
                          hover:border-gray-300 hover:bg-white/95
                          ${focusedId === "confirmPassword" ? "transform scale-[1.02] shadow-lg shadow-blue-100/50" : ""}`}
                                 required
-                                placeholder="Confirm new password"
+                                placeholder={t('confirmPasswordPlaceholder')}
                                 disabled={submitting}
                             />
                             <button
@@ -247,20 +249,20 @@ function ResetPasswordForm() {
                                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                 className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
                                 aria-pressed={showConfirmPassword}
-                                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                                aria-label={showConfirmPassword ? t('hidePassword') : t('showPassword')}
                                 disabled={submitting}
                             >
                                 {showConfirmPassword ? (
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                              d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
+                                            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
                                     </svg>
                                 ) : (
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                                     </svg>
                                 )}
                             </button>
@@ -300,48 +302,48 @@ function ResetPasswordForm() {
                      disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none
                      active:scale-[0.98]
                      ${successMessage ? "bg-green-500 hover:bg-green-600" : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
-                        }`}
+                            }`}
                     >
-            <span className="inline-flex items-center justify-center">
-              {successMessage ? (
-                  <>
-                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                      </svg>
-                      Password Reset!
-                  </>
-              ) : submitting ? (
-                  <>
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg"
-                           fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                  strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Resetting Password...
-                  </>
-              ) : (
-                  "Reset Password"
-              )}
-            </span>
+                        <span className="inline-flex items-center justify-center">
+                            {successMessage ? (
+                                <>
+                                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    {t('success')}
+                                </>
+                            ) : submitting ? (
+                                <>
+                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg"
+                                        fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                            strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    {t('resetting')}
+                                </>
+                            ) : (
+                                t('resetButton')
+                            )}
+                        </span>
                     </button>
                 </form>
 
                 {/* Navigation Links */}
                 <footer className="mt-8 text-center">
                     <p className="text-gray-600">
-                        Remember your password?{" "}
+                        {t('rememberPassword')}{" "}
                         <Link href="/login"
-                              className="text-blue-600 font-semibold hover:text-blue-800 transition-colors duration-200 hover:underline underline-offset-2">
-                            Sign in
+                            className="text-blue-600 font-semibold hover:text-blue-800 transition-colors duration-200 hover:underline underline-offset-2">
+                            {t('signIn')}
                         </Link>
                     </p>
                     <p className="text-gray-600 mt-2">
-                        Need a new reset link?{" "}
+                        {t('needNewLink')}{" "}
                         <Link href="/forgot-password"
-                              className="text-blue-600 font-semibold hover:text-blue-800 transition-colors duration-200 hover:underline underline-offset-2">
-                            Request another
+                            className="text-blue-600 font-semibold hover:text-blue-800 transition-colors duration-200 hover:underline underline-offset-2">
+                            {t('requestLink')}
                         </Link>
                     </p>
                 </footer>
@@ -365,7 +367,7 @@ export default function ResetPasswordPage() {
                 </div>
             </div>
         }>
-            <ResetPasswordForm/>
+            <ResetPasswordForm />
         </Suspense>
     );
 }

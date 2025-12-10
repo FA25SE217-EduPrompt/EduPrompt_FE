@@ -14,12 +14,34 @@ export enum VNPayResponseCode {
     OTHER_ERROR = "99"
 }
 
-export type VerifyPaymentRequest = {
-    paymentId: string;
+export type PaymentRequest = {
+    amount: number;
+    bankCode?: string; // Optional, defaults to empty or specific bank
+    orderDescription?: string;
+    subscriptionTierId: string;
 };
 
-export type VerifyPaymentResponse = {
+export type PaymentDetailedResponse = {
+    paymentId: string;
+    userId: string;
+    tierId: string;
+    amount: number;
+    orderInfo: string;
+    status: string; // e.g., "PENDING", "SUCCESS", "FAILED"
+    createdAt: string;
+};
+
+export type PaymentHistoryResponse = {
+    id: string;
+    txnRef: string;
+    amount: number;
     status: string;
+    createdAt: string;
+    paidAt?: string;
+    tierName?: string;
+};
+
+export type VNPayReturnResponse = {
+    rspCode: string;
     message: string;
-    transactionId?: string;
 };

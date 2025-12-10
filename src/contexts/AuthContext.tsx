@@ -2,6 +2,7 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { decodeJWT } from '@/utils/jwt';
 import { TokenManager } from '@/utils/tokenManager';
 import { BaseResponse } from '@/types/api';
@@ -107,6 +108,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     const router = useRouter();
+    const queryClient = useQueryClient();
 
     // Fetch user data from API
     const fetchUserData = useCallback(async () => {
@@ -379,9 +381,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 isLoading: false,
             });
 
+            // Clear all react-query cache
+            queryClient.removeQueries();
+
             router.push('/');
         }
-    }, [router]);
+    }, [router, queryClient]);
 
     // Refresh token function
     const refreshToken = useCallback(async (): Promise<BaseResponse<RefreshTokenResponse>> => {

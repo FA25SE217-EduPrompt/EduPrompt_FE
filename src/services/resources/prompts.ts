@@ -281,6 +281,17 @@ export const promptsService = {
         );
     },
 
+    // Get User Prompts (My Prompts)
+    async getMyPrompts(page = 0, size = 20, opts?: ApiRequestOptions): Promise<BaseResponse<PaginatedResponse<PromptResponse>>> {
+        return ApiCall<PaginatedResponse<PromptResponse>>(() =>
+            apiClient.request({
+                url: `${BASE}/my-prompt?page=${page}&size=${size}`,
+                method: 'get',
+                ...buildRequestConfig(opts),
+            })
+        );
+    },
+
     // Get non-private prompts
     async getNonPrivatePrompts(page = 0, size = 20, opts?: ApiRequestOptions): Promise<BaseResponse<PaginatedResponse<PromptMetadataResponse>>> {
         return ApiCall<PaginatedResponse<PromptMetadataResponse>>(() =>

@@ -12,6 +12,7 @@ export const collectionKeys = {
     lists: () => [...collectionKeys.all, 'list'] as const,
     myCollections: (page: number, size: number) =>
         [...collectionKeys.lists(), 'my', { page, size }] as const,
+    count: () => [...collectionKeys.all, 'count'] as const,
 };
 
 /* ----------------------------
@@ -26,6 +27,17 @@ export const useGetMyCollections = (page = 0, size = 20) => {
         queryKey: collectionKeys.myCollections(page, size),
         queryFn: () => collectionService.getMyCollections(page, size),
         placeholderData: keepPreviousData,
+        staleTime: 5 * 60 * 1000, // 5 minutes
+    });
+};
+
+/**
+ * Query to get the count of user's collections
+ */
+export const useCountMyCollections = () => {
+    return useQuery({
+        queryKey: collectionKeys.count(),
+        queryFn: () => collectionService.countMyCollections(),
         staleTime: 5 * 60 * 1000, // 5 minutes
     });
 };

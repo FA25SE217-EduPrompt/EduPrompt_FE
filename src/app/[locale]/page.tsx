@@ -10,6 +10,73 @@ import FeatureCard from '@/components/landing/FeatureCard';
 
 import PricingCard from '@/components/landing/PricingCard';
 import { useTranslations } from 'next-intl';
+import { useTierPlans, TierId } from '@/lib/tiers';
+
+// Helper component to render pricing cards to avoid cluttering main component
+const PricingDisplay = () => {
+    const plans = useTierPlans();
+
+    // Filter out plans if needed, e.g. maybe don't show Free on landing if we want to focus on paid?
+    // But usually landing shows all.
+    // The previous hardcoded ones were Free, Standard (Pro?), School.
+    // My tiers.ts has Free, Pro, Premium, School.
+    // Let's show Free, Pro, School or all?
+    // The previous design had 3 columns.
+    // Let's show Free, Pro, School for now to match 3 cols layout, or all 4 if Premium is important.
+    // I will show Free, Pro, Premium. School is usually "Contact Sales".
+
+    // Filtering to show relevant ones. Let's show FREE, PRO, PREMIUM. Or maybe Skip Free?
+    // User request: "update plan card for home page following my tier plan"
+    // I will show Pro, Premium, School (Negotiated). Free is usually implied or separate.
+    // But the previous code showed "Free Trial ($0)".
+    // I'll show Free, Pro, Premium, School - that's 4. Grid cols 3? 
+    // Maybe hide Free? Or make grid cols 4?
+    // The design has `grid md:grid-cols-3`.
+    // Let's skip FREE for the main pricing cards if the user is logged out, but usually you want to show it.
+    // The keys in `tiers.ts`: FREE, PRO, PREMIUM, SCHOOL.
+    // I'll display PRO, PREMIUM, SCHOOL for a paid-focused look, consistent with "Upgrade".
+    // Or if logged out, maybe Free is good.
+    // Let's just map all of them and see how it looks, or stick to 3.
+    // I'll stick to PRO, PREMIUM, SCHOOL for now as "Pricing Plans".
+
+    const displayPlans = plans.filter(p => p.id !== TierId.FREE);
+
+    return (
+        <>
+            {displayPlans.map((plan) => {
+                const buttonProps = plan.href !== '#'
+                    ? { variant: plan.buttonVariant, children: plan.buttonText, href: plan.href }
+                    : { variant: plan.buttonVariant, children: plan.buttonText, onClick: plan.action };
+
+                return (
+                    <PricingCard
+                        key={plan.id}
+                        title={plan.name}
+                        price={plan.priceString}
+                        pricePer={plan.period}
+                        features={plan.features}
+                        popular={plan.recommended}
+                        buttonProps={buttonProps as any}
+                        isCurrent={plan.isCurrent}
+                        details={
+                            plan.limits ? (
+                                <div className="mt-2 text-xs text-gray-500 space-y-1">
+                                    {Object.entries(plan.limits).map(([key, val]) => (
+                                        <div key={key} className="flex justify-between">
+                                            <span className="capitalize">{key}:</span>
+                                            <span className="font-medium">{val}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : undefined
+                        }
+                    />
+                );
+            })}
+        </>
+    );
+};
+
 
 // Define icons for features
 const FeatureIcon1 = () => (
@@ -199,54 +266,7 @@ export default function Home() {
                         />
 
                         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-                            <PricingCard
-                                title={tLanding('Pricing.freeTrial')}
-                                price="$0"
-                                pricePer={tLanding('Pricing.perMonth')}
-                                features={[
-                                    tLanding('Pricing.features.limited'),
-                                    tLanding('Pricing.features.oneTeacher'),
-                                    tLanding('Pricing.features.basic')
-                                ]}
-                                buttonProps={{
-                                    variant: 'neutral',
-                                    href: '/register',
-                                    children: tLanding('Pricing.buttons.startFreeTrial'),
-                                }}
-                            />
-                            <PricingCard
-                                title={tLanding('Pricing.standard')}
-                                price="$29"
-                                pricePer={tLanding('Pricing.perTeacherMonth')}
-                                features={[
-                                    tLanding('Pricing.features.fullAccess'),
-                                    tLanding('Pricing.features.aiPersonalization'),
-                                    tLanding('Pricing.features.collaboration'),
-                                    tLanding('Pricing.features.prioritySupport')
-                                ]}
-                                buttonProps={{
-                                    variant: 'primary',
-                                    href: '/register',
-                                    children: tLanding('Pricing.buttons.getStarted'),
-                                }}
-                                popular={true}
-                            />
-                            <PricingCard
-                                title={tLanding('Pricing.schoolWide')}
-                                price="$499"
-                                pricePer={tLanding('Pricing.perSchoolYear')}
-                                features={[
-                                    tLanding('Pricing.features.unlimited'),
-                                    tLanding('Pricing.features.adminDashboard'),
-                                    tLanding('Pricing.features.analytics'),
-                                    tLanding('Pricing.features.premium')
-                                ]}
-                                buttonProps={{
-                                    variant: 'solid-dark',
-                                    onClick: () => console.log('Contact Sales'),
-                                    children: tLanding('Pricing.buttons.contactSales'),
-                                }}
-                            />
+                            <PricingDisplay />
                         </div>
                     </div>
                 </section>

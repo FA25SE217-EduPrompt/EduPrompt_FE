@@ -14,6 +14,8 @@ import { CreatorNavbar } from '@/components/layout/CreatorNavbar';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import Spinner from '@/components/ui/Spinner';
+import { useTranslations } from 'next-intl';
+import { MarkdownRenderer } from '@/components/ui/MarkdownRenderer';
 
 interface PromptDisplay {
     id: string;
@@ -74,6 +76,8 @@ const PromptSelectionModal = ({
     collectionPromptsData: BaseResponse<PaginatedResponse<PromptMetadataResponse>> | undefined;
     isCollectionPromptsLoading: boolean;
 }) => {
+    const t = useTranslations('Prompt.Search');
+
     if (!isOpen) return null;
 
     return (
@@ -81,7 +85,7 @@ const PromptSelectionModal = ({
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
                 {/* Header */}
                 <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-                    <h2 className="text-lg font-semibold text-gray-900">Select a Prompt</h2>
+                    <h2 className="text-lg font-semibold text-gray-900">{t('pageTitle')}</h2>
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors">
                         <X className="w-5 h-5" />
                     </button>
@@ -96,7 +100,7 @@ const PromptSelectionModal = ({
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                placeholder="Search prompts..."
+                                placeholder={t('searchPlaceholder')}
                                 className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                                 autoFocus
                             />
@@ -105,7 +109,7 @@ const PromptSelectionModal = ({
                             onClick={handleSearch}
                             className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
                         >
-                            Search
+                            {t('search')}
                         </button>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -113,14 +117,14 @@ const PromptSelectionModal = ({
                             onClick={() => setSearchType('keyword')}
                             className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${searchType === 'keyword' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100'}`}
                         >
-                            Keyword
+                            {t('keyword')}
                         </button>
                         <button
                             onClick={() => setSearchType('semantic')}
                             className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center space-x-1 ${searchType === 'semantic' ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:bg-gray-100'}`}
                         >
                             <Sparkles className="w-3 h-3" />
-                            <span>Semantic</span>
+                            <span>{t('semantic')}</span>
                         </button>
                     </div>
                 </div>
@@ -130,11 +134,11 @@ const PromptSelectionModal = ({
                     {/* Search Results */}
                     {searchQuery && (
                         <div className="mb-4">
-                            <div className="text-xs font-semibold text-gray-500 px-3 py-2 uppercase tracking-wide">Search Results</div>
+                            <div className="text-xs font-semibold text-gray-500 px-3 py-2 uppercase tracking-wide">{t('results')}</div>
                             {isLoading ? (
                                 <div className="flex items-center justify-center py-8 text-gray-500">
                                     <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                                    Searching...
+                                    {t('runningTests')}
                                 </div>
                             ) : results.length > 0 ? (
                                 <div className="space-y-1">
@@ -159,7 +163,7 @@ const PromptSelectionModal = ({
                                     ))}
                                 </div>
                             ) : (
-                                <div className="px-4 py-8 text-center text-gray-500 text-sm">No prompts found matching &quot;{searchQuery}&quot;</div>
+                                <div className="px-4 py-8 text-center text-gray-500 text-sm">{t('noResults')} &quot;{searchQuery}&quot;</div>
                             )}
                         </div>
                     )}
@@ -169,7 +173,7 @@ const PromptSelectionModal = ({
                         <div>
                             <div className="text-xs font-semibold text-gray-500 px-3 py-2 uppercase tracking-wide flex items-center">
                                 <BookOpen className="w-3.5 h-3.5 mr-1.5" />
-                                My Collections
+                                {t('myCollections')}
                             </div>
                             <div className="space-y-1">
                                 {collections.map(collection => (
@@ -205,7 +209,7 @@ const PromptSelectionModal = ({
                                                         </button>
                                                     ))
                                                 ) : (
-                                                    <div className="px-3 py-2 text-xs text-gray-400 italic">Empty collection</div>
+                                                    <div className="px-3 py-2 text-xs text-gray-400 italic">{t('emptyCollection')}</div>
                                                 )}
                                             </div>
                                         )}
@@ -232,6 +236,8 @@ const PromptCard = ({ slot, prompt, onClear, onSelect, model, onModelChange, onT
     testResult: PromptTestResponse | null,
     testError: string | null
 }) => {
+    const t = useTranslations('Prompt.Search');
+
     return (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col group">
             {/* Card Header */}
@@ -242,7 +248,7 @@ const PromptCard = ({ slot, prompt, onClear, onSelect, model, onModelChange, onT
                     </div>
                     <div>
                         <h3 className="font-semibold text-gray-900 text-sm truncate max-w-[150px]">
-                            {prompt ? prompt.title : 'Empty Slot'}
+                            {prompt ? prompt.title : t('emptySlot')}
                         </h3>
                     </div>
                 </div>
@@ -260,7 +266,7 @@ const PromptCard = ({ slot, prompt, onClear, onSelect, model, onModelChange, onT
                             onClick={onSelect}
                             className="text-blue-600 hover:text-blue-700 text-xs font-medium px-2 py-1 hover:bg-blue-50 rounded-md transition-colors"
                         >
-                            Select
+                            {t('select')}
                         </button>
                     )}
                 </div>
@@ -273,10 +279,10 @@ const PromptCard = ({ slot, prompt, onClear, onSelect, model, onModelChange, onT
                         <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                             <Search className="w-6 h-6" />
                         </div>
-                        <h4 className="text-sm font-medium text-gray-900 mb-1">No Prompt Selected</h4>
-                        <p className="text-xs text-gray-500 mb-4 max-w-[200px]">Choose a prompt from your library to test and compare.</p>
+                        <h4 className="text-sm font-medium text-gray-900 mb-1">{t('noPromptSelected')}</h4>
+                        <p className="text-xs text-gray-500 mb-4 max-w-[200px]">{t('choosePromptHint')}</p>
                         <button className="px-4 py-2 bg-white border border-gray-200 text-gray-700 text-xs font-medium rounded-lg shadow-sm hover:bg-gray-50 hover:border-gray-300 transition-all">
-                            Browse Prompts
+                            {t('browsePrompts')}
                         </button>
                     </div>
                 ) : (
@@ -285,35 +291,35 @@ const PromptCard = ({ slot, prompt, onClear, onSelect, model, onModelChange, onT
                         <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 text-xs space-y-3 max-h-[250px] overflow-y-auto custom-scrollbar">
                             {prompt.description && (
                                 <div>
-                                    <span className="font-semibold text-gray-500 uppercase tracking-wider text-[10px]">Description</span>
+                                    <span className="font-semibold text-gray-500 uppercase tracking-wider text-[10px]">{t('description')}</span>
                                     <p className="text-gray-700 mt-0.5">{prompt.description}</p>
                                 </div>
                             )}
                             <div>
-                                <span className="font-semibold text-gray-500 uppercase tracking-wider text-[10px]">Instruction</span>
+                                <span className="font-semibold text-gray-500 uppercase tracking-wider text-[10px]">{t('instruction')}</span>
                                 <p className="text-gray-800 mt-0.5 leading-relaxed">{prompt.instruction}</p>
                             </div>
                             {prompt.context && (
                                 <div>
-                                    <span className="font-semibold text-gray-500 uppercase tracking-wider text-[10px]">Context</span>
+                                    <span className="font-semibold text-gray-500 uppercase tracking-wider text-[10px]">{t('context')}</span>
                                     <p className="text-gray-700 mt-0.5">{prompt.context}</p>
                                 </div>
                             )}
                             {prompt.inputExample && (
                                 <div className="pt-2 border-t border-gray-200">
-                                    <span className="font-semibold text-gray-500 uppercase tracking-wider text-[10px]">Input Example</span>
+                                    <span className="font-semibold text-gray-500 uppercase tracking-wider text-[10px]">{t('inputExample')}</span>
                                     <p className="text-gray-600 mt-0.5 italic">{prompt.inputExample}</p>
                                 </div>
                             )}
                             {prompt.outputFormat && (
                                 <div className="pt-2 border-t border-gray-200">
-                                    <span className="font-semibold text-gray-500 uppercase tracking-wider text-[10px]">Output Format</span>
+                                    <span className="font-semibold text-gray-500 uppercase tracking-wider text-[10px]">{t('outputFormat')}</span>
                                     <p className="text-gray-600 mt-0.5 font-mono text-[10px]">{prompt.outputFormat}</p>
                                 </div>
                             )}
                             {prompt.constraints && (
                                 <div className="pt-2 border-t border-gray-200">
-                                    <span className="font-semibold text-gray-500 uppercase tracking-wider text-[10px]">Constraints</span>
+                                    <span className="font-semibold text-gray-500 uppercase tracking-wider text-[10px]">{t('constraints')}</span>
                                     <p className="text-gray-600 mt-0.5">{prompt.constraints}</p>
                                 </div>
                             )}
@@ -338,7 +344,7 @@ const PromptCard = ({ slot, prompt, onClear, onSelect, model, onModelChange, onT
                                 className={`flex items-center justify-center px-4 py-2 rounded-lg text-xs font-medium text-white shadow-sm transition-all ${isTesting ? 'bg-blue-400 cursor-wait' : 'bg-blue-600 hover:bg-blue-700 hover:shadow-md'}`}
                             >
                                 {isTesting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5 fill-current mr-1" />}
-                                {isTesting ? 'Testing' : 'Run'}
+                                {isTesting ? t('testing') : t('run')}
                             </button>
                         </div>
 
@@ -350,7 +356,7 @@ const PromptCard = ({ slot, prompt, onClear, onSelect, model, onModelChange, onT
                                     <button
                                         onClick={() => {
                                             navigator.clipboard.writeText(testResult.output || '');
-                                            toast.success('Copied');
+                                            toast.success(t('copied'));
                                         }}
                                         className="text-gray-400 hover:text-blue-500 transition-colors"
                                     >
@@ -363,19 +369,17 @@ const PromptCard = ({ slot, prompt, onClear, onSelect, model, onModelChange, onT
                                 {isTesting ? (
                                     <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-2">
                                         <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
-                                        <span className="text-xs">Generating response...</span>
+                                        <span className="text-xs">{t('generatingResponse')}</span>
                                     </div>
                                 ) : testError ? (
                                     <div className="text-red-500 text-xs p-2 bg-red-50 rounded border border-red-100">
                                         {testError}
                                     </div>
                                 ) : testResult ? (
-                                    <div className="prose prose-sm max-w-none text-gray-800 leading-relaxed whitespace-pre-wrap">
-                                        {testResult.output}
-                                    </div>
+                                    <MarkdownRenderer content={testResult.output || ''} />
                                 ) : (
                                     <div className="h-full flex items-center justify-center text-gray-300 text-xs italic">
-                                        Result will appear here
+                                        {t('resultPlaceholder')}
                                     </div>
                                 )}
                             </div>
@@ -383,8 +387,8 @@ const PromptCard = ({ slot, prompt, onClear, onSelect, model, onModelChange, onT
                             {/* Metrics */}
                             {(testResult) && (
                                 <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between text-[10px] text-gray-500">
-                                    <span>{testResult.tokensUsed || 0} tokens</span>
-                                    <span>{testResult.executionTimeMs || 0}ms</span>
+                                    <span>{testResult.tokensUsed || 0} {t('tokens')}</span>
+                                    <span>{testResult.executionTimeMs || 0} {t('ms')}</span>
                                 </div>
                             )}
                         </div>
@@ -398,6 +402,7 @@ const PromptCard = ({ slot, prompt, onClear, onSelect, model, onModelChange, onT
 const PromptTestingPage = () => {
     const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
     const router = useRouter();
+    const t = useTranslations('Prompt.Search');
 
     useEffect(() => {
         if (!isAuthLoading && !isAuthenticated) {
@@ -443,9 +448,13 @@ const PromptTestingPage = () => {
     const { data: collectionsData } = useGetMyCollections(0, 100);
     const collections = collectionsData?.data?.content || [];
 
+    const selectedCollectionName = useMemo(() => {
+        return collections.find(c => c.id === expandedCollection)?.name;
+    }, [collections, expandedCollection]);
+
     const { data: collectionPromptsData, isLoading: isCollectionPromptsLoading } = useFilterPrompts(
-        { title: '', page: 0, size: 20 },
-        { enabled: !!expandedCollection }
+        { title: '', collectionName: selectedCollectionName, page: 0, size: 20 },
+        { enabled: !!expandedCollection && !!selectedCollectionName }
     );
 
     // Fetch selected prompts details
@@ -483,7 +492,7 @@ const PromptTestingPage = () => {
         setActivePromptSlot(null);
     };
 
-    const handleTest = async (slot: 'A' | 'B') => {
+    const handleTest = async (slot: 'A' | 'B', onComplete?: () => void) => {
         console.log(`[handleTest] Starting test for slot ${slot}`);
         const prompt = slot === 'A' ? promptA?.data : promptB?.data;
         const model = slot === 'A' ? modelA : modelB;
@@ -518,6 +527,7 @@ const PromptTestingPage = () => {
                 if (!data.data) {
                     console.error('[handleTest] No data in response');
                     setError('No data received from server');
+                    onComplete?.();
                     return;
                 }
 
@@ -542,10 +552,12 @@ const PromptTestingPage = () => {
                                 console.log('[handleTest] Test completed');
                                 setResponse(result.data);
                                 setIsPolling(false);
+                                onComplete?.();
                             } else if (result.data.status === 'FAILED') {
                                 console.error('[handleTest] Test failed:', result.data.errorMessage);
                                 setError(result.data.errorMessage || 'Test failed during processing');
                                 setIsPolling(false);
+                                onComplete?.();
                             } else {
                                 // Continue polling
                                 console.log('[handleTest] Status still ' + result.data.status + ', retrying...');
@@ -555,15 +567,18 @@ const PromptTestingPage = () => {
                             console.error('[handleTest] Poll error:', err);
                             setError('Failed to poll test results');
                             setIsPolling(false);
+                            onComplete?.();
                         }
                     };
                     poll();
                 } else if (data.data.status === 'FAILED') {
                     console.error('[handleTest] Test failed immediately:', data.data.errorMessage);
                     setError(data.data.errorMessage || 'Test failed immediately');
+                    onComplete?.();
                 } else {
                     console.log('[handleTest] Test completed immediately');
                     setResponse(data.data);
+                    onComplete?.();
                 }
             },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -580,6 +595,7 @@ const PromptTestingPage = () => {
                     toast.error('Test Failed', { description: error.message || 'An unexpected error occurred.' });
                 }
                 setError(error.message || 'Test failed');
+                onComplete?.();
             }
         });
     };
@@ -622,8 +638,8 @@ const PromptTestingPage = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 font-sans text-gray-800">
             <CreatorNavbar
-                title="Search & Test"
-                breadcrumbs={[{ label: 'Search & Test' }]}
+                title={t('pageTitle')}
+                breadcrumbs={[{ label: t('pageTitle') }]}
             />
 
             <div className="max-w-7xl mx-auto p-6">
@@ -636,7 +652,7 @@ const PromptTestingPage = () => {
                         className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all shadow-sm border ${showSettings ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
                     >
                         <Filter className="w-4 h-4" />
-                        <span className="text-sm font-medium">{showSettings ? 'Hide Settings' : 'Show Settings'}</span>
+                        <span className="text-sm font-medium">{showSettings ? t('hideSettings') : t('showSettings')}</span>
                     </button>
                 </div>
 
@@ -644,13 +660,13 @@ const PromptTestingPage = () => {
                 {showSettings && (
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6 animate-in fade-in slide-in-from-top-2 duration-300">
                         <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center uppercase tracking-wider">
-                            Global Test Settings
+                            {t('globalSettings')}
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
                                 <div className="flex items-center mb-2">
-                                    <label className="text-xs font-medium text-gray-700">Temperature</label>
-                                    <InfoTooltip text="Controls randomness. Lower (0.1-0.3) = more focused. Higher (0.7-1.0) = more creative." />
+                                    <label className="text-xs font-medium text-gray-700">{t('temperature')}</label>
+                                    <InfoTooltip text={t('temperatureTooltip')} />
                                 </div>
                                 <div className="space-y-2">
                                     <input
@@ -672,8 +688,8 @@ const PromptTestingPage = () => {
 
                             <div>
                                 <div className="flex items-center mb-2">
-                                    <label className="text-xs font-medium text-gray-700">Top P</label>
-                                    <InfoTooltip text="Controls diversity. Lower = predictable. Higher = diverse." />
+                                    <label className="text-xs font-medium text-gray-700">{t('topP')}</label>
+                                    <InfoTooltip text={t('topPTooltip')} />
                                 </div>
                                 <div className="space-y-2">
                                     <input
@@ -695,8 +711,8 @@ const PromptTestingPage = () => {
 
                             <div>
                                 <div className="flex items-center mb-2">
-                                    <label className="text-xs font-medium text-gray-700">Max Tokens</label>
-                                    <InfoTooltip text="Max response length. 1000 tokens ≈ 750 words." />
+                                    <label className="text-xs font-medium text-gray-700">{t('maxTokens')}</label>
+                                    <InfoTooltip text={t('maxTokensTooltip')} />
                                 </div>
                                 <input
                                     type="number"
@@ -752,8 +768,16 @@ const PromptTestingPage = () => {
                 <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-30">
                     <button
                         onClick={() => {
-                            handleTest('A');
-                            handleTest('B');
+                            if (selectedPromptIdA === selectedPromptIdB) {
+                                // Same prompt: Run sequentially to avoid conflicts
+                                handleTest('A', () => {
+                                    setTimeout(() => handleTest('B'), 500);
+                                });
+                            } else {
+                                // Different prompts: Run in parallel for speed
+                                handleTest('A');
+                                handleTest('B');
+                            }
                         }}
                         disabled={isTestingA || isPollingA || isTestingB || isPollingB || (!selectedPromptIdA && !selectedPromptIdB)}
                         className="px-8 py-3 bg-gray-900 text-white rounded-full shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 font-medium flex items-center space-x-3 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
@@ -763,7 +787,7 @@ const PromptTestingPage = () => {
                         ) : (
                             <GitCompare className="w-5 h-5" />
                         )}
-                        <span>{isTestingA || isPollingA || isTestingB || isPollingB ? 'Running Tests...' : 'Run Comparison'}</span>
+                        <span>{isTestingA || isPollingA || isTestingB || isPollingB ? t('runningTests') : t('runComparison')}</span>
                     </button>
                 </div>
             </div>

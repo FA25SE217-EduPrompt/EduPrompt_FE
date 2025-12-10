@@ -11,6 +11,10 @@ import {
 } from "@heroicons/react/24/outline";
 import { toast } from "sonner";
 // import axios from "axios"; // Uncomment when API is ready
+// import axios from "axios"; // Uncomment when API is ready
+import { SchoolAdminService } from "@/services/resources/schoolAdmin";
+import { SchoolService } from "@/services/resources/school";
+import { useAuth } from "@/hooks/useAuth";
 
 const AddEmailPage: React.FC = () => {
     const router = useRouter();
@@ -46,27 +50,31 @@ const AddEmailPage: React.FC = () => {
         setEmailList(emailList.filter(e => e !== emailToRemove));
     };
 
+    const { user } = useAuth(); // Assuming useAuth is available or import it
+
     const handleSubmit = async () => {
         if (emailList.length === 0) {
             toast.error("Please add at least one email address");
             return;
         }
 
+        if (!user || !user.id) {
+            toast.error("User information not available");
+            return;
+        }
+
         setIsLoading(true);
 
         try {
-            // TODO: Get actual schoolId from context/auth
-            const schoolId = 1;
+            // Fetch school ID using the current user's ID
+            const schoolResponse = await SchoolService.getSchoolByUserId(user.id);
+            const schoolId = schoolResponse.data?.id || (schoolResponse as any).id;
 
-            // Mock API call
-            // await axios.post(`/api/school-admin/${schoolId}/new-email`, {
-            //     emails: emailList
-            // });
+            if (!schoolId) {
+                throw new Error("Could not retrieve School ID");
+            }
 
-            // Simulating API delay
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            console.log("Submitting emails:", { emails: emailList });
+            await SchoolAdminService.addEmails(schoolId, emailList);
 
             toast.success(`Successfully assigned ${emailList.length} teachers`);
             setEmailList([]);

@@ -8,6 +8,7 @@ import {
     BookOpenIcon,
     ChartBarIcon,
     Cog6ToothIcon,
+    MagnifyingGlassIcon,
     SparklesIcon,
     WalletIcon,
     XMarkIcon,
@@ -36,6 +37,51 @@ const NavItem: React.FC<{
             {icon}
             <span className="text-sm font-medium">{label}</span>
         </Link>
+    );
+};
+
+// School Badge Component
+import { SchoolService } from "@/services/resources/school";
+import { AcademicCapIcon } from "@heroicons/react/24/solid";
+
+const SchoolBadge: React.FC<{ userId?: string | number }> = ({ userId }) => {
+    const [schoolName, setSchoolName] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+        const fetchSchool = async () => {
+            if (!userId) return;
+            try {
+                const response = await SchoolService.getSchoolByUserId(userId);
+                // Adjust based on actual response structure. 
+                // Assuming response.data contains school info or the response itself is the school object
+                // If response.data.name exists:
+                if (response.data?.name) {
+                    setSchoolName(response.data.name);
+                } else if (response.name) {
+                    setSchoolName(response.name);
+                }
+            } catch (error) {
+                // Silently fail if not part of a school or error
+                console.log("Not part of a school or failed to fetch school info");
+            }
+        };
+        fetchSchool();
+    }, [userId]);
+
+    if (!schoolName) return null;
+
+    return (
+        <div className="mx-4 mb-2 p-3 bg-indigo-50 rounded-xl border border-indigo-100 flex items-center gap-3">
+            <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600">
+                <AcademicCapIcon className="h-5 w-5" />
+            </div>
+            <div className="overflow-hidden">
+                <p className="text-xs text-indigo-600 font-semibold uppercase tracking-wider">School Plan</p>
+                <p className="text-sm font-bold text-indigo-900 truncate" title={schoolName}>
+                    {schoolName}
+                </p>
+            </div>
+        </div>
     );
 };
 
@@ -84,6 +130,11 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                     href="/dashboard/prompts"
                 />
                 <NavItem
+                    icon={<MagnifyingGlassIcon className="h-5 w-5" />}
+                    label={t('searchPrompts')}
+                    href="/prompt/search"
+                />
+                <NavItem
                     icon={<BookOpenIcon className="h-5 w-5" />}
                     label={t('myCollections')}
                     href="/dashboard/collections"
@@ -104,6 +155,9 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                     href="/dashboard/wallet"
                 />
             </nav>
+
+            {/* School Badge */}
+            <SchoolBadge userId={user?.id} />
 
             <div className="p-4 border-t border-gray-100">
                 <div className="flex items-center gap-3">

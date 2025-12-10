@@ -7,8 +7,10 @@ import Spinner from "@/components/ui/Spinner";
 import { Toaster, toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { promptsService } from "@/services/resources/prompts";
-import { useGetPrompt, useRequestOptimization } from "@/hooks/queries/prompt";
+import { useGetPrompt, useRequestOptimization, useGetOptimizationStatus } from "@/hooks/queries/prompt";
 import { PromptDetailView } from "@/components/prompt-manage/PromptDetailView";
+
+
 import { VersionHistory } from "@/components/prompt-manage/VersionHistory";
 import { MetadataEditor } from "@/components/prompt-manage/MetadataEditor";
 import { OptimizationPanel } from "@/components/prompt-manage/OptimizationPanel";
@@ -16,6 +18,8 @@ import { ShareModal } from "@/components/prompt-manage/ShareModal";
 import { PromptAiModel, UpdatePromptMetadataRequest } from "@/types/prompt.api";
 import { ShareIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { Link } from "@/i18n/navigation";
+
+import { parseOptimizationOutput, OptimizedPromptFields } from "@/utils/prompt-optimization";
 import { useTranslations } from "next-intl";
 
 export default function PromptManagePage() {
@@ -29,6 +33,11 @@ export default function PromptManagePage() {
 
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const [shareToken, setShareToken] = useState<string | undefined>(undefined);
+    const [optimizationInstruction, setOptimizationInstruction] = useState('');
+    const [optimizedSuggestions, setOptimizedSuggestions] = useState<OptimizedPromptFields | null>(null);
+
+    const [pollingOptimizeId, setPollingOptimizeId] = useState<string | null>(null);
+    const [optimizationError, setOptimizationError] = useState<string | null>(null);
 
     // --- Queries ---
     const { data: promptData, isLoading: isPromptLoading, error: promptError } = useGetPrompt(promptId);
@@ -52,6 +61,24 @@ export default function PromptManagePage() {
     });
 
     const optimizeMutation = useRequestOptimization();
+
+    const { data: pollingOptimizeResult } = useGetOptimizationStatus(
+        pollingOptimizeId!,
+        undefined,
+        {
+            enabled: !!pollingOptimizeId,
+            refetchInterval: (query) => {
+                const data = query.state.data;
+                if (!data || !data.data) return 3000;
+                const status = data.data.status;
+                if (status === 'COMPLETED' || status === 'FAILED') {
+                    return false;
+                }
+                return 3000;
+            },
+            refetchOnWindowFocus: false,
+        }
+    );
 
     const shareMutation = useMutation({
         mutationFn: () => promptsService.sharePrompt(promptId), onSuccess: (response) => {
@@ -87,6 +114,37 @@ export default function PromptManagePage() {
         }
     }, [isAuthenticated, isAuthLoading, router]);
 
+    useEffect(() => {
+        if (!pollingOptimizeResult || !pollingOptimizeResult.data) return;
+
+        const queueEntry = pollingOptimizeResult.data;
+        const { status, errorMessage, output } = queueEntry;
+
+        if (status === 'COMPLETED' && output) {
+            const parsedSuggestions = parseOptimizationOutput(output);
+            setOptimizedSuggestions(parsedSuggestions);
+            // In Manage Page, we probably want to update the Prompt form or show suggestions.
+            // For now, let's just show a success message and maybe log it.
+            // The logic to apply suggestions is more complex in Manage page (MetadataEditor etc.)
+            // Assuming for now the user just wants to see it finished.
+            // TODO: How to handle the output in Manage Page?
+            // The Create Page uses `setOptimizedSuggestions`.
+            // The Manage Page has `PromptDetailView` and `MetadataEditor`.
+            // Maybe we just toast success and perhaps show a modal or apply it?
+
+            // For this specific bug fix, the goal is to keep the loading state correct.
+            setPollingOptimizeId(null);
+            toast.success(tManage('optimizationComplete') || "Optimization complete");
+        } else if (status === 'COMPLETED') {
+            setPollingOptimizeId(null);
+            toast.success(tManage('optimizationComplete') || "Optimization complete");
+        } else if (status === 'FAILED') {
+            setOptimizationError(errorMessage || "Optimization failed.");
+            setPollingOptimizeId(null);
+            toast.error(errorMessage || "Optimization failed.");
+        }
+    }, [pollingOptimizeResult, tManage]);
+
     // Check for existing share token (this would typically come from the prompt details if the backend returned it,
     // but for now we might need a separate call or just rely on generating a new one if needed.
     // Assuming prompt details might contain it in the future, but currently they don't seem to.)
@@ -94,6 +152,33 @@ export default function PromptManagePage() {
     // --- Handlers ---
     const handleUpdateMetadata = (data: UpdatePromptMetadataRequest) => {
         updateMetadataMutation.mutate(data);
+    };
+
+    const handleApplySuggestion = (field: keyof OptimizedPromptFields, value: string) => {
+        if (!prompt) return;
+
+        // Construct the full update payload
+        const updatePayload: UpdatePromptMetadataRequest = {
+            title: field === 'title' ? value : prompt.title,
+            description: field === 'description' ? value : prompt.description,
+            instruction: field === 'instruction' ? value : prompt.instruction,
+            context: field === 'context' ? value : prompt.context,
+            inputExample: field === 'inputExample' ? value : prompt.inputExample,
+            outputFormat: field === 'outputFormat' ? value : prompt.outputFormat,
+            constraints: field === 'constraints' ? value : prompt.constraints,
+        };
+
+        updateMetadataMutation.mutate(updatePayload, {
+            onSuccess: () => {
+                toast.success(tManage('appliedSuggestion') || `Applied ${field} suggestion`);
+                setOptimizedSuggestions(prev => {
+                    if (!prev) return null;
+                    const next = { ...prev };
+                    delete next[field];
+                    return Object.keys(next).length > 0 ? next : null;
+                });
+            }
+        });
     };
 
     const handleOptimize = (model: PromptAiModel, input: string) => {
@@ -104,12 +189,17 @@ export default function PromptManagePage() {
                 optimizationInput: input,
             }
         }, {
-            onSuccess: () => {
+            onSuccess: (response) => {
+                if (response.data) {
+                    setPollingOptimizeId(response.data.id);
+                }
                 toast.success(tManage('optimizationStarted'));
             },
             onError: () => toast.error(tManage('optimizationFailed')),
         });
     };
+
+    const isOptimizing = optimizeMutation.isPending || !!pollingOptimizeId;
 
     const handleRollback = (versionId: string) => {
         if (confirm(tManage('confirmRollback'))) {
@@ -197,9 +287,10 @@ export default function PromptManagePage() {
 
                         {/* Optimization Panel */}
                         <OptimizationPanel
-                            prompt={prompt}
                             onOptimize={handleOptimize}
-                            isOptimizing={optimizeMutation.isPending}
+                            isOptimizing={isOptimizing}
+                            instruction={optimizationInstruction}
+                            onInstructionChange={setOptimizationInstruction}
                         />
                     </div>
 
@@ -229,6 +320,7 @@ export default function PromptManagePage() {
                 isOpen={isShareModalOpen}
                 onClose={() => setIsShareModalOpen(false)}
                 shareToken={shareToken}
+                promptId={promptId}
                 onShare={() => shareMutation.mutate()}
                 onRevoke={() => revokeShareMutation.mutate()}
                 isLoading={shareMutation.isPending || revokeShareMutation.isPending}

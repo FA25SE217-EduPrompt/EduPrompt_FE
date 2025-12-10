@@ -76,6 +76,7 @@ export type PromptResponse = {
     temperature?: number;
     maxTokens?: number;
     topP?: number;
+    ownerId?: string;
 };
 
 export type PromptTestRequest = {
@@ -149,6 +150,7 @@ export type PromptMetadataResponse = {
     createdAt: string;
     updatedAt?: string;
     averageRating?: number;
+    ownerId?: string;
 };
 
 export type PromptViewLogResponse = {
@@ -196,6 +198,7 @@ export type SemanticSearchResult = {
     createdBy: string;
     createdByName: string;
     averageRating?: number;
+    ownerId?: string;
 };
 
 export type SemanticSearchResponse = {

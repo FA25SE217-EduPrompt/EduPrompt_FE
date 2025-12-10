@@ -113,6 +113,24 @@ export const useGetPromptsByCollection = (
     });
 };
 
+/**
+ * Query to get the current user's prompts (My Prompts)
+ */
+export const useGetMyPrompts = (
+    page = 0,
+    size = 20,
+    opts?: ApiRequestOptions,
+    queryOptions?: { enabled?: boolean }
+) => {
+    return useQuery({
+        queryKey: [...promptKeys.all, 'my-prompt', { page, size }],
+        queryFn: () => promptsService.getMyPrompts(page, size, opts),
+        placeholderData: keepPreviousData,
+        staleTime: 5 * 60 * 1000,
+        enabled: queryOptions?.enabled !== false,
+    });
+};
+
 /* ----------------------------
    Test Queries & Mutations
    ---------------------------- */

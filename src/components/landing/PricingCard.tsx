@@ -1,4 +1,7 @@
+"use client";
+
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import Button, { ButtonProps } from '@/components/ui/Button';
 
 interface PricingCardProps {
@@ -9,11 +12,12 @@ interface PricingCardProps {
     buttonProps: ButtonProps;
     popular?: boolean;
     details?: React.ReactNode;
+    isCurrent?: boolean;
 }
 
-const CheckIcon = () => (
+const CheckIcon = ({ className }: { className?: string }) => (
     <svg
-        className="w-5 h-5 text-brand-secondary mr-3 flex-shrink-0"
+        className={className || "w-5 h-5 text-brand-secondary mr-3 flex-shrink-0"}
         fill="currentColor"
         viewBox="0 0 20 20"
     >
@@ -25,14 +29,20 @@ const CheckIcon = () => (
     </svg>
 );
 
-const PricingCard: React.FC<PricingCardProps> = ({ title, price, pricePer, features, buttonProps, popular, details }) => {
+const PricingCard: React.FC<PricingCardProps> = ({ title, price, pricePer, features, buttonProps, popular, details, isCurrent }) => {
     const [isExpanded, setIsExpanded] = React.useState(false);
+    const t = useTranslations('LandingPage.PricingCard');
 
     return (
-        <div className={`bg-white rounded-xl shadow-sm border ${popular ? 'border-brand-primary ring-1 ring-brand-primary' : 'border-gray-200'} p-6 flex flex-col h-full relative transition-all duration-300 hover:shadow-md`}>
-            {popular && (
+        <div className={`bg-white rounded-xl shadow-sm border ${popular ? 'border-brand-primary ring-1 ring-brand-primary' : isCurrent ? 'border-green-500 bg-green-50/30' : 'border-gray-200'} p-6 flex flex-col h-full relative transition-all duration-300 hover:shadow-md`}>
+            {popular && !isCurrent && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-brand-primary text-white px-3 py-1 rounded-full text-xs font-medium">
-                    Most Popular
+                    {t('mostPopular')}
+                </div>
+            )}
+            {isCurrent && (
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-medium shadow-sm">
+                    {t('currentPlan') || "Current Plan"}
                 </div>
             )}
             <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
@@ -57,7 +67,7 @@ const PricingCard: React.FC<PricingCardProps> = ({ title, price, pricePer, featu
                         onClick={() => setIsExpanded(!isExpanded)}
                         className="w-full text-xs text-center text-gray-500 hover:text-gray-900 flex items-center justify-center gap-1 transition-colors"
                     >
-                        {isExpanded ? "Show Less" : "View Plan Details"}
+                        {isExpanded ? t('showLess') : t('viewPlanDetails')}
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="16"

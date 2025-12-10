@@ -8,11 +8,13 @@ import { CheckCircleIcon } from "@heroicons/react/24/solid";
 import PricingCard from "@/components/landing/PricingCard";
 
 import { useTranslations } from "next-intl";
+import { useTierPlans, TierId } from "@/lib/tiers";
 
 const SubscriptionPage: React.FC = () => {
     const { user } = useAuth();
     const { data: quotaData, isLoading } = useGetQuota();
     const t = useTranslations('Dashboard.Subscription');
+    const plans = useTierPlans();
 
     const planName = React.useMemo(() => {
         if (user?.hasSchoolSubscription) return t('plans.school');
@@ -67,6 +69,10 @@ const SubscriptionPage: React.FC = () => {
                             </div>
                             <div className="flex items-center text-sm text-gray-600">
                                 <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
+                                <span>{t('features.tokensLimit', { count: quotaData?.data?.individualTokenLimit?.toLocaleString() || '0' })}</span>
+                            </div>
+                            <div className="flex items-center text-sm text-gray-600">
+                                <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
                                 <span>{t('features.optimizationsPerMonth', { count: quotaData?.data?.optimizationQuotaLimit || 0 })}</span>
                             </div>
                             <div className="flex items-center text-sm text-gray-600">
@@ -84,6 +90,25 @@ const SubscriptionPage: React.FC = () => {
                         <div className="space-y-6">
                             {!user?.hasSchoolSubscription && (
                                 <>
+                                    {/* Tokens */}
+                                    <div>
+                                        <div className="flex justify-between text-sm mb-1">
+                                            <span className="font-medium text-gray-700">{t('tokens')}</span>
+                                            <span className="font-medium text-gray-900">
+                                                {quotaData?.data ?
+                                                    <span><span className="text-green-600 font-bold">{quotaData.data.individualTokenRemaining.toLocaleString()}</span> / {quotaData.data.individualTokenLimit.toLocaleString()}</span>
+                                                    : "Loading..."}
+                                            </span>
+                                        </div>
+                                        <div className="w-full bg-gray-200 rounded-full h-2 mb-1 relative">
+                                            <div
+                                                className="bg-green-500 h-2 rounded-full transition-all duration-500 relative z-10"
+                                                style={{ width: quotaData?.data ? `${(quotaData.data.individualTokenRemaining / quotaData.data.individualTokenLimit) * 100}%` : '0%' }}
+                                            ></div>
+                                        </div>
+                                        <p className="text-xs text-gray-500">{t('tokensDesc')}</p>
+                                    </div>
+
                                     {/* Optimizations */}
                                     <div>
                                         <div className="flex justify-between text-sm mb-1">
@@ -187,79 +212,39 @@ const SubscriptionPage: React.FC = () => {
             <section>
                 <h2 className="text-xl font-bold text-gray-900 mb-6">{t('upgrade.title')}</h2>
                 <div className="grid md:grid-cols-3 gap-6">
-                    {/* Free Plan (Optional to show, mostly for reference if upgrade is from Free) 
-                        For now we focus on Pro and Premium as "Upgrade" targets if user is Free.
-                        But user requested "we need pro plan card", so showing both is good.
-                    */}
-                    <PricingCard
-                        title={t('upgrade.proDesc')}
-                        price="$4.99"
-                        pricePer={t('pricing.perMonth') || "/month"}
-                        popular={true}
-                        features={[
-                            t('upgrade.fullRepository'),
-                            t('upgrade.aiPersonalization'),
-                            t('upgrade.oneMillionTokens')
-                        ]}
-                        buttonProps={{
-                            variant: 'primary',
-                            children: t('upgrade.upgradeNow'),
-                            onClick: () => console.log('Upgrade to Pro')
-                        }}
-                        details={
-                            <div className="mt-2 space-y-1">
-                                <DetailRow label={t('upgrade.limits.tokens')} value="1,000,000" />
-                                <DetailRow label={t('upgrade.limits.promptUnlocks')} value="100" />
-                                <DetailRow label={t('upgrade.limits.promptExecutions')} value="2,000" />
-                                <DetailRow label={t('upgrade.limits.collections')} value="200" />
-                            </div>
-                        }
-                    />
-                    <PricingCard
-                        title={t('upgrade.premiumDesc')}
-                        price="$29.99"
-                        pricePer={t('pricing.perMonth') || "/month"}
-                        features={[
-                            t('upgrade.unlimitedTeachers'), // Reusing keys where appropriate or add new ones if distinct
-                            t('upgrade.adminDashboard'),
-                            t('upgrade.tenMillionTokens'),
-                            t('upgrade.prioritySupport')
-                        ]}
-                        buttonProps={{
-                            variant: 'solid-dark',
-                            children: t('upgrade.upgradeNow'),
-                            onClick: () => console.log('Upgrade to Premium')
-                        }}
-                        details={
-                            <div className="mt-2 space-y-1">
-                                <DetailRow label={t('upgrade.limits.tokens')} value="10,000,000" />
-                                <DetailRow label={t('upgrade.limits.promptUnlocks')} value="1,000" />
-                                <DetailRow label={t('upgrade.limits.promptExecutions')} value="50,000" />
-                                <DetailRow label={t('upgrade.limits.collections')} value="5,000" />
-                            </div>
-                        }
-                    />
-                    <PricingCard
-                        title={t('upgrade.schoolWideDesc')}
-                        price={t('pricing.negotiated')}
-                        pricePer=""
-                        features={[
-                            t('upgrade.unlimitedTeachers'),
-                            t('upgrade.adminDashboard'),
-                            t('upgrade.analytics'),
-                            t('upgrade.premiumAddons')
-                        ]}
-                        buttonProps={{
-                            variant: 'outline',
-                            children: t('upgrade.contactSales'),
-                            onClick: () => console.log('Contact Sales')
-                        }}
-                        details={
-                            <div className="mt-2 p-2 bg-gray-50 text-xs text-gray-600 rounded">
-                                {t('upgrade.customSchoolLimits')}
-                            </div>
-                        }
-                    />
+                    {/* Filter out Free plan and current plan ideally, but simple list for now. */}
+                    {/* Actually, Subscription page usually shows upgrades. */}
+                    {/* Logic: if user is Pro, show Premium. If Free, show Pro and Premium. */}
+                    {/* For simplicity, show Pro, Premium, School. */}
+
+                    {plans.filter(p => p.id !== TierId.FREE).map((plan) => {
+                        const buttonProps = plan.href !== '#'
+                            ? { variant: plan.buttonVariant, children: plan.buttonText, href: plan.href }
+                            : { variant: plan.buttonVariant, children: plan.buttonText, onClick: plan.action };
+
+                        return (
+                            <PricingCard
+                                key={plan.id}
+                                title={plan.name}
+                                price={plan.priceString}
+                                pricePer={plan.period || "/month"}
+                                popular={plan.recommended}
+                                features={plan.features}
+                                buttonProps={buttonProps as any} // Cast to any to bypass the union type complexity temporarily or generic mismatch
+                                isCurrent={plan.isCurrent}
+                                details={
+                                    plan.limits && (
+                                        <div className="mt-2 space-y-1">
+                                            <DetailRow label={t('upgrade.limits.tokens')} value={plan.limits.tokens} />
+                                            <DetailRow label={t('upgrade.limits.promptUnlocks')} value={plan.limits.unlocks} />
+                                            <DetailRow label={t('upgrade.limits.promptExecutions')} value={plan.limits.executions} />
+                                            <DetailRow label={t('upgrade.limits.collections')} value={plan.limits.collections} />
+                                        </div>
+                                    )
+                                }
+                            />
+                        );
+                    })}
                 </div>
             </section>
         </main>

@@ -5,6 +5,7 @@ import {
     AcademicCapIcon,
     BoltIcon,
     BookOpenIcon,
+    CircleStackIcon,
     PlusCircleIcon,
     SparklesIcon,
     WalletIcon,
@@ -14,6 +15,8 @@ import { PromptCard } from "@/components/dashboard/PromptCard";
 import { Link } from '@/i18n/navigation';
 import { useTranslations } from "next-intl";
 import { useFilterPrompts, useSemanticSearch } from '@/hooks/queries/search';
+import { useGetMyPrompts } from '@/hooks/queries/prompt'; // Added
+import { useCountMyCollections } from '@/hooks/queries/collection';
 import { Loader2, Search, Sparkles } from "lucide-react";
 import { PromptMetadataResponse, SemanticSearchResult } from "@/types/prompt.api";
 import { useAuth } from "@/hooks/useAuth";
@@ -33,6 +36,7 @@ const promptData = [
         isTrending: true,
         createdAt: "2025-11-13T10:00:00Z",
         lastUpdated: "2025-11-14T01:30:00Z",
+        tags: []
     },
     {
         id: "2",
@@ -46,6 +50,7 @@ const promptData = [
         isTrending: false,
         createdAt: "2025-11-01T14:20:00Z",
         lastUpdated: "2025-11-10T09:15:00Z",
+        tags: []
     },
     {
         id: "3",
@@ -59,6 +64,7 @@ const promptData = [
         isTrending: false,
         createdAt: "2025-11-12T11:00:00Z",
         lastUpdated: "2025-11-12T11:00:00Z",
+        tags: []
     },
     {
         id: "4",
@@ -72,6 +78,7 @@ const promptData = [
         isTrending: true,
         createdAt: "2025-10-28T08:00:00Z",
         lastUpdated: "2025-11-05T16:45:00Z",
+        tags: []
     },
 ];
 
@@ -90,6 +97,7 @@ const suggestedData = [
         isTrending: true,
         createdAt: new Date().toISOString(),
         lastUpdated: new Date().toISOString(),
+        tags: []
     },
     {
         id: 's2',
@@ -103,6 +111,7 @@ const suggestedData = [
         isTrending: true,
         createdAt: new Date().toISOString(),
         lastUpdated: new Date().toISOString(),
+        tags: []
     },
     {
         id: 's3',
@@ -116,6 +125,7 @@ const suggestedData = [
         isTrending: false,
         createdAt: new Date().toISOString(),
         lastUpdated: new Date().toISOString(),
+        tags: []
     },
     {
         id: 's4',
@@ -129,6 +139,7 @@ const suggestedData = [
         isTrending: false,
         createdAt: new Date().toISOString(),
         lastUpdated: new Date().toISOString(),
+        tags: []
     }
 ];
 
@@ -144,9 +155,11 @@ const PromptsPage: React.FC = () => {
 
     // Queries
     // Fetch "My Prompts" (all prompts created by user) initially
-    const { data: myPromptsData, isLoading: isMyPromptsLoading } = useFilterPrompts(
-        { createdBy: user?.id, page: 0, size: 20 },
-        { enabled: !!user?.id && !isSearching }
+    // Fetch "My Prompts" (all prompts created by user) initially
+    // Updated to use the dedicated endpoint
+    const { data: myPromptsData, isLoading: isMyPromptsLoading } = useGetMyPrompts(
+        0, 20, undefined,
+        { enabled: !isSearching }
     );
 
     const { data: keywordResults, isLoading: isKeywordLoading } = useFilterPrompts(
@@ -156,6 +169,8 @@ const PromptsPage: React.FC = () => {
 
     const { mutate: performSemanticSearch, data: semanticResults, isPending: isSemanticLoading } = useSemanticSearch();
     const { data: quotaData, isLoading: isQuotaLoading } = useGetQuota();
+
+    const { data: collectionCountData } = useCountMyCollections();
 
     const handleSearch = () => {
         if (!searchQuery.trim()) {
@@ -179,20 +194,33 @@ const PromptsPage: React.FC = () => {
     // Map API results to PromptCardProps
     const displayPrompts = useMemo(() => {
         if (!isSearching) {
-            const apiPrompts = (myPromptsData?.data?.content || []).map((p: PromptMetadataResponse) => ({
-                id: p.id,
-                title: p.title,
-                description: p.description || '',
-                author: p.fullName || 'Unknown',
-                subject: 'General', // TODO: Extract from tags
-                grade: 'N/A', // TODO: Extract from tags
-                type: 'Prompt', // TODO: Extract from tags
-                rating: p.averageRating || 0,
-                isTrending: false,
-                createdAt: p.createdAt,
-                lastUpdated: p.updatedAt || p.createdAt,
-            }));
-            return [...promptData, ...apiPrompts];
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const apiPrompts = (myPromptsData?.data?.content || []).map((p: any) => {
+                const subjectTag = p.tags?.find((t: any) => t.type === 'Môn' || t.type === 'Subject')?.value || 'General';
+                const gradeTag = p.tags?.find((t: any) => t.type === 'Khối' || t.type === 'Grade')?.value || 'N/A';
+
+                // Filter out subject and grade tags to show others separately if needed
+                const otherTags = p.tags?.filter((t: any) =>
+                    t.type !== 'Môn' && t.type !== 'Subject' && t.type !== 'Khối' && t.type !== 'Grade'
+                ).map((t: any) => `${t.type}: ${t.value}`) || [];
+
+                return {
+                    id: p.id,
+                    title: p.title,
+                    description: p.description || '',
+                    author: p.fullName || 'Unknown',
+                    subject: subjectTag,
+                    grade: gradeTag,
+                    type: 'Prompt',
+                    rating: p.averageRating || 0,
+                    isTrending: false,
+                    createdAt: p.createdAt,
+                    lastUpdated: p.updatedAt || p.createdAt,
+                    tags: otherTags,
+                    isOwner: true
+                };
+            });
+            return [...promptData.map(p => ({ ...p, isOwner: false })), ...apiPrompts];
         } else if (searchType === 'keyword') {
             return (keywordResults?.data?.content || []).map((p: PromptMetadataResponse) => ({
                 id: p.id,
@@ -206,6 +234,8 @@ const PromptsPage: React.FC = () => {
                 isTrending: false,
                 createdAt: p.createdAt,
                 lastUpdated: p.updatedAt || p.createdAt,
+                tags: [],
+                isOwner: p.ownerId === user?.id
             }));
         } else {
             return (semanticResults?.data?.results || []).map((p: SemanticSearchResult) => ({
@@ -220,9 +250,11 @@ const PromptsPage: React.FC = () => {
                 isTrending: false,
                 createdAt: new Date().toISOString(),
                 lastUpdated: new Date().toISOString(),
+                tags: [],
+                isOwner: p.ownerId === user?.id
             }));
         }
-    }, [isSearching, searchType, myPromptsData, keywordResults, semanticResults]);
+    }, [isSearching, searchType, myPromptsData, keywordResults, semanticResults, user]);
 
     const isLoading = isSearching
         ? (searchType === 'keyword' ? isKeywordLoading : isSemanticLoading)
@@ -241,13 +273,20 @@ const PromptsPage: React.FC = () => {
 
                 <StatCard
                     title={t('collectionsOwned')}
-                    // TODO: Replace with real collection count from useGetCollections() if available, or just mock for now as 0
-                    value="0"
+                    value={collectionCountData?.data?.toString() || "0"}
                     icon={<BookOpenIcon />}
                     gradientClass="from-brand-primary to-brand-primary/70" // Dark Slate
                 />
                 {!user?.hasSchoolSubscription && (
                     <>
+                        <StatCard
+                            title={t('tokensRemaining')}
+                            value={quotaData?.data?.individualTokenRemaining !== undefined
+                                ? `${quotaData.data.individualTokenRemaining.toLocaleString()} / ${quotaData.data.individualTokenLimit.toLocaleString()}`
+                                : "Loading..."}
+                            icon={<CircleStackIcon />}
+                            gradientClass="from-brand-primary to-brand-primary/70" // Dark Slate
+                        />
                         <StatCard
                             title={t('optimizationQuota')}
                             value={quotaData?.data?.optimizationQuotaRemaining !== undefined
@@ -382,6 +421,8 @@ const PromptsPage: React.FC = () => {
                                 isTrending={prompt.isTrending}
                                 createdAt={prompt.createdAt}
                                 lastUpdated={prompt.lastUpdated}
+                                tags={prompt.tags}
+                                isOwner={prompt.isOwner}
                             />
                         ))}
                     </div>
