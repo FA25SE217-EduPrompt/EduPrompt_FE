@@ -7,7 +7,7 @@ import { UserGroupIcon, CalendarIcon } from "@heroicons/react/24/outline";
 import { GroupResponse } from "@/types/group.api";
 import { useTranslations } from "next-intl";
 
-interface GroupCardProps extends GroupResponse { }
+type GroupCardProps = GroupResponse;
 
 export const GroupCard: React.FC<GroupCardProps> = ({
     id,

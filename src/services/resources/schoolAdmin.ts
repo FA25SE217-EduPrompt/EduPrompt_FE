@@ -11,7 +11,7 @@ export const SchoolAdminService = {
         return response.data;
     },
 
-    removeTeacher: async (teacherId: number) => {
+    removeTeacher: async (teacherId: string) => {
         // Based on typical REST patterns and the Swagger endpoint path, assuming usage.
         // If it fails, I'll adjust.
         const response = await apiClient.delete(`/api/school-admin/teachers/remove`, {

@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import { StatCard } from "@/components/dashboard/StatCard";
 import {
     UserGroupIcon,
-    DocumentTextIcon,
     ChartBarIcon,
     PlusIcon,
     TrashIcon
@@ -13,9 +12,14 @@ import { useRouter } from "next/navigation";
 import { SchoolAdminService } from "@/services/resources/schoolAdmin";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { SchoolService } from "@/services/resources/school";
+import { School } from "@/types/school.api";
+import { BuildingLibraryIcon } from "@heroicons/react/24/outline";
+import { useTranslations } from "next-intl";
 
 interface Teacher {
-    id: number;
+    id: string;
     firstName: string;
     lastName: string;
     email: string;
@@ -31,32 +35,49 @@ interface SubscriptionUsage {
 
 const SchoolAdminDashboard: React.FC = () => {
     const router = useRouter();
+    const { user, isLoading } = useAuth();
+    const t = useTranslations('SchoolAdmin');
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState<SubscriptionUsage | null>(null);
     const [teachers, setTeachers] = useState<Teacher[]>([]);
+    const [school, setSchool] = useState<School | null>(null);
+
+    useEffect(() => {
+        if (!isLoading && user) {
+            if (!user.isSchoolAdmin && !user.isSystemAdmin) {
+                router.push('/dashboard');
+                return;
+            }
+        }
+    }, [user, isLoading, router]);
 
     const fetchData = async () => {
+        if (!user?.id) return;
         try {
             setLoading(true);
-            const [usageData, teachersData] = await Promise.all([
+            const [usageData, teachersData, schoolData] = await Promise.all([
                 SchoolAdminService.getSubscriptionUsage(),
-                SchoolAdminService.getTeachers()
+                SchoolAdminService.getTeachers(),
+                SchoolService.getSchoolByUserId(user.id)
             ]);
 
-            // Adapt response to state
-            // Assuming usageData.data contains the metrics
             setStats({
                 activeTeachers: usageData.data?.activeMembers || 0,
                 maxTeachers: usageData.data?.maxMembers || 0,
-                // totalPrompts: usageData.data?.totalPrompts || 0,
-                // usagePercentage: usageData.data?.usagePercentage || 0,
             });
+
+            if (schoolData.data) {
+                setSchool(schoolData.data);
+            }
 
             console.log("Teachers API Response:", teachersData);
 
             // Handle different possible response structures
             if (Array.isArray(teachersData)) {
                 setTeachers(teachersData);
+            } else if (teachersData?.data?.content && Array.isArray(teachersData.data.content)) {
+                // Handle Spring Boot Page<T> wrapped in BaseResponse
+                setTeachers(teachersData.data.content);
             } else if (teachersData?.data && Array.isArray(teachersData.data)) {
                 setTeachers(teachersData.data);
             } else {
@@ -65,26 +86,28 @@ const SchoolAdminDashboard: React.FC = () => {
             }
         } catch (error) {
             console.error("Failed to fetch dashboard data:", error);
-            toast.error("Failed to load dashboard data");
+            toast.error(t('fetchFailed') || "Failed to load dashboard data");
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchData();
-    }, []);
+        if (user) {
+            fetchData();
+        }
+    }, [user]);
 
-    const handleRemoveTeacher = async (teacherId: number) => {
-        if (!confirm("Are you sure you want to remove this teacher?")) return;
+    const handleRemoveTeacher = async (teacherId: string) => {
+        if (!confirm(t('confirmRemove'))) return;
 
         try {
             await SchoolAdminService.removeTeacher(teacherId);
-            toast.success("Teacher removed successfully");
+            toast.success(t('removeSuccess'));
             fetchData(); // Refresh list
         } catch (error) {
             console.error("Failed to remove teacher:", error);
-            toast.error("Failed to remove teacher");
+            toast.error(t('removeFailed'));
         }
     };
 
@@ -100,35 +123,35 @@ const SchoolAdminDashboard: React.FC = () => {
         <main className="flex-1 overflow-y-auto p-6 space-y-8">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-text-primary">School Dashboard</h1>
-                    <p className="text-gray-600">Overview of your school&apos;s usage and performance</p>
+                    <h1 className="text-2xl font-bold text-text-primary">{t('title')}</h1>
+                    <p className="text-gray-600">{t('description')}</p>
                 </div>
                 <button
                     onClick={() => router.push('/school-admin/add-email')}
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm shadow-sm btn-primary transition-colors"
                 >
                     <PlusIcon className="h-5 w-5" />
-                    <span>Assign Teachers</span>
+                    <span>{t('assignTeachers')}</span>
                 </button>
             </div>
 
             {/* Stats Overview */}
             <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <StatCard
-                    title="Active Teachers"
-                    value={`${stats?.activeTeachers || 0} / ${stats?.maxTeachers || 'Unlimited'}`}
+                    title={t('stats.activeTeachers')}
+                    value={`${teachers.length} / ${stats?.maxTeachers || 'Unlimited'}`}
                     icon={<UserGroupIcon />}
                     gradientClass="from-brand-secondary to-brand-secondary/70"
                 />
                 <StatCard
-                    title="Total Prompts"
-                    value="--" // Not available in current API
-                    icon={<DocumentTextIcon />}
+                    title={t('stats.schoolName')}
+                    value={school?.name || "Loading..."}
+                    icon={<BuildingLibraryIcon />}
                     gradientClass="from-brand-primary to-brand-primary/70"
                 />
                 <StatCard
-                    title="Subscription Status"
-                    value="Active" // Hardcoded for now, or derive from stats
+                    title={t('stats.subscriptionStatus')}
+                    value="Active"
                     icon={<ChartBarIcon />}
                     gradientClass="from-brand-secondary to-brand-secondary/70"
                 />
@@ -138,12 +161,12 @@ const SchoolAdminDashboard: React.FC = () => {
             <section className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div className="p-6 border-b border-gray-200 flex items-center gap-2">
                     <UserGroupIcon className="h-5 w-5 text-brand-primary" />
-                    <h2 className="text-lg font-semibold text-text-primary">Managed Teachers</h2>
+                    <h2 className="text-lg font-semibold text-text-primary">{t('managedTeachers')}</h2>
                 </div>
                 <div className="divide-y divide-gray-200">
                     {teachers.length === 0 ? (
                         <div className="p-8 text-center text-gray-500">
-                            No teachers assigned yet.
+                            {t('noTeachers')}
                         </div>
                     ) : (
                         teachers.map((teacher) => (
@@ -164,7 +187,7 @@ const SchoolAdminDashboard: React.FC = () => {
                                     className="text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors text-sm font-medium flex items-center gap-1"
                                 >
                                     <TrashIcon className="h-4 w-4" />
-                                    Remove
+                                    {t('remove')}
                                 </button>
                             </div>
                         ))

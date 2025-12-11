@@ -4,7 +4,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import Button from '@/components/ui/Button';
+import Button, { ButtonProps } from '@/components/ui/Button';
 import SectionHeader from '@/components/landing/SectionHeader';
 import FeatureCard from '@/components/landing/FeatureCard';
 
@@ -56,7 +56,7 @@ const PricingDisplay = () => {
                         pricePer={plan.period}
                         features={plan.features}
                         popular={plan.recommended}
-                        buttonProps={buttonProps as any}
+                        buttonProps={buttonProps as ButtonProps}
                         isCurrent={plan.isCurrent}
                         details={
                             plan.limits ? (

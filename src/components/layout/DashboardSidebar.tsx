@@ -57,8 +57,6 @@ const SchoolBadge: React.FC<{ userId?: string | number }> = ({ userId }) => {
                 // If response.data.name exists:
                 if (response.data?.name) {
                     setSchoolName(response.data.name);
-                } else if (response.name) {
-                    setSchoolName(response.name);
                 }
             } catch (error) {
                 // Silently fail if not part of a school or error

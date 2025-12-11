@@ -58,6 +58,10 @@ const PaymentResultContent = () => {
                         // Use backend message or fallback
                         setMessage(response.data.message || t('paymentFailedBackend'));
                     }
+                } else {
+                    // Fallback for unexpected response structure
+                    setStatus('error');
+                    setMessage(t('verificationFailed'));
                 }
             } catch (err) {
                 console.error(err);

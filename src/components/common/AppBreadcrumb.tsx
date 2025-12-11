@@ -1,5 +1,5 @@
 import React from 'react';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { ChevronRightIcon } from '@heroicons/react/24/solid';
 
 export interface BreadcrumbItem {

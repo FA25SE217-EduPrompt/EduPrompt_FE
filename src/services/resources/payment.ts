@@ -7,6 +7,7 @@ const createPayment = async (data: PaymentRequest): Promise<BaseResponse<string>
     try {
         const response = await apiClient.post<BaseResponse<string>>('/api/payments/vnpay/vnpay', data);
         return response.data;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         return {
             data: null,
@@ -23,6 +24,7 @@ const getPayment = async (id: string): Promise<BaseResponse<PaymentDetailedRespo
     try {
         const response = await apiClient.get<BaseResponse<PaymentDetailedResponse>>(`/api/payments/vnpay/${id}`);
         return response.data;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         return {
             data: null,
@@ -39,6 +41,7 @@ const getMyPayments = async (page: number = 0, size: number = 20): Promise<BaseR
     try {
         const response = await apiClient.get<BaseResponse<PaginatedResponse<PaymentHistoryResponse>>>(`/api/payments/vnpay/my-payment?page=${page}&size=${size}`);
         return response.data;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         return {
             data: null,
@@ -53,8 +56,13 @@ const getMyPayments = async (page: number = 0, size: number = 20): Promise<BaseR
 
 const processVnPayReturn = async (queryString: string): Promise<BaseResponse<{ rspCode: string; message: string }>> => {
     try {
-        const response = await apiClient.get<BaseResponse<{ rspCode: string; message: string }>>(`/api/payments/vnpay/vnpay-return?${queryString}`);
-        return response.data;
+        const response = await apiClient.get<{ rspCode: string; message: string }>(`/api/payments/vnpay/vnpay-return?${queryString}`);
+        // Backend returns raw object, so we wrap it to match the expected BaseResponse structure
+        return {
+            data: response.data,
+            error: null
+        };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         return {
             data: null,

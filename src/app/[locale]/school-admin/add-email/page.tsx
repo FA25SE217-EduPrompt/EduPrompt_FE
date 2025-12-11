@@ -68,7 +68,7 @@ const AddEmailPage: React.FC = () => {
         try {
             // Fetch school ID using the current user's ID
             const schoolResponse = await SchoolService.getSchoolByUserId(user.id);
-            const schoolId = schoolResponse.data?.id || (schoolResponse as any).id;
+            const schoolId = schoolResponse.data?.id;
 
             if (!schoolId) {
                 throw new Error("Could not retrieve School ID");

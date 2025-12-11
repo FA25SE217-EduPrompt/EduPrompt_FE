@@ -128,6 +128,15 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                             >
                                 {tNavbar('dashboard')}
                             </Link>
+                            {(user?.isSchoolAdmin || user?.isSystemAdmin) && (
+                                <Link
+                                    href="/school-admin"
+                                    className="block px-4 py-2 text-sm text-text-secondary hover:bg-bg-secondary"
+                                    onClick={() => setIsDropdownOpen(false)}
+                                >
+                                    {tNavbar('schoolDashboard')}
+                                </Link>
+                            )}
                             <button
                                 onClick={() => {
                                     logout();

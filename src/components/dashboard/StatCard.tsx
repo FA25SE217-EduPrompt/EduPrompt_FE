@@ -2,17 +2,17 @@ import React from "react";
 
 interface StatCardProps {
     title: string;
-    value: string;
+    value: React.ReactNode;
     icon: React.ReactElement<{ className?: string }>;
     gradientClass: string;
 }
 
 export const StatCard: React.FC<StatCardProps> = ({
-                                                      title,
-                                                      value,
-                                                      icon,
-                                                      gradientClass,
-                                                  }) => (
+    title,
+    value,
+    icon,
+    gradientClass,
+}) => (
     <div
         className={`bg-gradient-to-br ${gradientClass} p-5 rounded-xl shadow-sm text-text-on-brand
                 transition-all duration-300 ease-in-out hover:shadow-lg hover:-translate-y-1 cursor-pointer`}

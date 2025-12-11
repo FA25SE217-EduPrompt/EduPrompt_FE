@@ -153,6 +153,7 @@
             "searchPrompts": "Tìm kiếm Prompt",
             "myCollections": "Bộ sưu tập của tôi",
             "myGroups": "Nhóm của tôi",
+            "mySchool": "Trường của tôi",
             "subscription": "Gói đăng ký",
             "myWallet": "Ví của tôi"
         },
@@ -560,6 +561,44 @@
             "optimizeButton": "Tối ưu hóa Prompt"
         }
     },
+    "SchoolAdmin": {
+        "title": "Bảng điều khiển Trường học",
+        "description": "Tổng quan về việc sử dụng và hiệu suất của trường",
+        "assignTeachers": "Gán Giáo viên",
+        "stats": {
+            "activeTeachers": "Giáo viên Đang hoạt động",
+            "schoolName": "Tên Trường",
+            "subscriptionStatus": "Trạng thái Đăng ký"
+        },
+        "managedTeachers": "Giáo viên được quản lý",
+        "noTeachers": "Chưa có giáo viên nào được gán.",
+        "remove": "Xóa",
+        "confirmRemove": "Bạn có chắc chắn muốn xóa giáo viên này không?",
+        "removeSuccess": "Đã xóa giáo viên thành công",
+        "removeFailed": "Không thể xóa giáo viên",
+        "Info": {
+            "title": "Thông tin Trường học",
+            "contactDetails": "Chi tiết Liên hệ",
+            "additionalInfo": "Thông tin Bổ sung",
+            "noAddress": "Chưa cung cấp địa chỉ",
+            "noPhone": "Chưa có số điện thoại",
+            "noEmail": "Chưa cung cấp email",
+            "noWebsite": "Chưa cung cấp website",
+            "noDescription": "Không có mô tả.",
+            "notAvailable": "Thông tin trường học không khả dụng.",
+            "goBack": "Quay lại"
+        },
+        "Sidebar": {
+            "dashboard": "Bảng điều khiển",
+            "mySchool": "Trường của tôi",
+            "teachers": "Giáo viên",
+            "subscription": "Gói đăng ký",
+            "settings": "Cài đặt",
+            "signOut": "Đăng xuất",
+            "adminTitle": "Quản trị EduPrompt",
+            "role": "Quản trị viên Trường học"
+        }
+    },
     "Navbar": {
         "features": "Tính năng",
         "pricing": "Bảng giá",
@@ -567,7 +606,8 @@
         "profile": "Hồ sơ",
         "dashboard": "Bảng điều khiển",
         "logout": "Đăng xuất",
-        "signIn": "Đăng nhập"
+        "signIn": "Đăng nhập",
+        "schoolDashboard": "Trang quản trị trường học"
     },
     "Profile": {
         "title": "Hồ sơ của tôi",

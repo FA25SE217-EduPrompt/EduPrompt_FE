@@ -5,7 +5,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
     let locale = await requestLocale;
 
     // Validate that the incoming `locale` parameter is valid
-    // @ts-ignore
+    // @ts-expect-error -- Validate incoming locale
     if (!locale || !locales.includes(locale)) {
         locale = 'vi'; // Default to vietnamese
     }

@@ -14,6 +14,7 @@ import {
     Bars3Icon
 } from "@heroicons/react/24/outline";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 
 const NavItem: React.FC<{
@@ -28,8 +29,8 @@ const NavItem: React.FC<{
         <Link
             href={href}
             className={`flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer transition ${isActive
-                    ? "bg-blue-800 text-white"
-                    : "text-blue-100 hover:bg-blue-800/50 hover:text-white"
+                ? "bg-blue-800 text-white"
+                : "text-blue-100 hover:bg-blue-800/50 hover:text-white"
                 }`}
         >
             {icon}
@@ -46,6 +47,7 @@ export default function SchoolAdminLayout({
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const { user, logout } = useAuth();
     const router = useRouter();
+    const t = useTranslations('SchoolAdmin.Sidebar');
 
     const handleLogout = async () => {
         await logout();
@@ -60,7 +62,7 @@ export default function SchoolAdminLayout({
                     } lg:relative lg:translate-x-0`}
             >
                 <div className="flex items-center justify-between p-5 border-b border-blue-800">
-                    <span className="text-xl font-bold">EduPrompt Admin</span>
+                    <span className="text-xl font-bold">{t('adminTitle')}</span>
                     <button
                         onClick={() => setIsSidebarOpen(false)}
                         className="lg:hidden text-blue-200 hover:text-white"
@@ -72,27 +74,27 @@ export default function SchoolAdminLayout({
                 <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
                     <NavItem
                         icon={<HomeIcon className="h-5 w-5" />}
-                        label="Dashboard"
+                        label={t('dashboard')}
                         href="/school-admin"
                     />
                     <NavItem
                         icon={<AcademicCapIcon className="h-5 w-5" />}
-                        label="My School"
-                        href="/school-admin/school"
+                        label={t('mySchool')}
+                        href="/school-admin/info"
                     />
                     <NavItem
                         icon={<UserGroupIcon className="h-5 w-5" />}
-                        label="Teachers"
+                        label={t('teachers')}
                         href="/school-admin/teachers"
                     />
                     <NavItem
                         icon={<CreditCardIcon className="h-5 w-5" />}
-                        label="Subscription"
+                        label={t('subscription')}
                         href="/school-admin/subscription"
                     />
                     <NavItem
                         icon={<Cog6ToothIcon className="h-5 w-5" />}
-                        label="Settings"
+                        label={t('settings')}
                         href="/school-admin/settings"
                     />
                 </nav>
@@ -107,7 +109,7 @@ export default function SchoolAdminLayout({
                                 {user?.firstName || "Admin"}
                             </p>
                             <p className="text-xs text-blue-300 truncate">
-                                School Administrator
+                                {t('role')}
                             </p>
                         </div>
                     </div>
@@ -116,7 +118,7 @@ export default function SchoolAdminLayout({
                         className="flex items-center gap-2 w-full px-3 py-2 text-sm text-blue-200 hover:text-white hover:bg-blue-800 rounded-md transition-colors"
                     >
                         <ArrowLeftOnRectangleIcon className="h-5 w-5" />
-                        <span>Sign Out</span>
+                        <span>{t('signOut')}</span>
                     </button>
                 </div>
             </aside>
@@ -131,11 +133,11 @@ export default function SchoolAdminLayout({
                         >
                             <Bars3Icon className="h-6 w-6" />
                         </button>
-                        <span className="ml-4 text-lg font-semibold text-gray-900">EduPrompt Admin</span>
+                        <span className="ml-4 text-lg font-semibold text-gray-900">{t('adminTitle')}</span>
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-y-auto p-6">
+                <main className="flex-1 overflow-y-auto px-6 py-6 scrollbar-hide">
                     {children}
                 </main>
             </div>

@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import {
-    AcademicCapIcon,
+    // AcademicCapIcon,
     BoltIcon,
     BookOpenIcon,
     CircleStackIcon,
@@ -18,7 +18,8 @@ import { useFilterPrompts, useSemanticSearch } from '@/hooks/queries/search';
 import { useGetMyPrompts } from '@/hooks/queries/prompt'; // Added
 import { useCountMyCollections } from '@/hooks/queries/collection';
 import { Loader2, Search, Sparkles } from "lucide-react";
-import { PromptMetadataResponse, SemanticSearchResult } from "@/types/prompt.api";
+import { PromptMetadataResponse, SemanticSearchResult, PromptResponse } from "@/types/prompt.api";
+import { TagResponse } from "@/types/tag.api";
 import { useAuth } from "@/hooks/useAuth";
 import { useGetQuota } from "@/hooks/queries/quota";
 
@@ -168,7 +169,7 @@ const PromptsPage: React.FC = () => {
     );
 
     const { mutate: performSemanticSearch, data: semanticResults, isPending: isSemanticLoading } = useSemanticSearch();
-    const { data: quotaData, isLoading: isQuotaLoading } = useGetQuota();
+    const { data: quotaData } = useGetQuota();
 
     const { data: collectionCountData } = useCountMyCollections();
 
@@ -194,15 +195,14 @@ const PromptsPage: React.FC = () => {
     // Map API results to PromptCardProps
     const displayPrompts = useMemo(() => {
         if (!isSearching) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const apiPrompts = (myPromptsData?.data?.content || []).map((p: any) => {
-                const subjectTag = p.tags?.find((t: any) => t.type === 'Môn' || t.type === 'Subject')?.value || 'General';
-                const gradeTag = p.tags?.find((t: any) => t.type === 'Khối' || t.type === 'Grade')?.value || 'N/A';
+            const apiPrompts = (myPromptsData?.data?.content || []).map((p: PromptResponse) => {
+                const subjectTag = p.tags?.find((t: TagResponse) => t.type === 'Môn' || t.type === 'Subject')?.value || 'General';
+                const gradeTag = p.tags?.find((t: TagResponse) => t.type === 'Khối' || t.type === 'Grade')?.value || 'N/A';
 
                 // Filter out subject and grade tags to show others separately if needed
-                const otherTags = p.tags?.filter((t: any) =>
+                const otherTags = p.tags?.filter((t: TagResponse) =>
                     t.type !== 'Môn' && t.type !== 'Subject' && t.type !== 'Khối' && t.type !== 'Grade'
-                ).map((t: any) => `${t.type}: ${t.value}`) || [];
+                ).map((t: TagResponse) => `${t.type}: ${t.value}`) || [];
 
                 return {
                     id: p.id,

@@ -14,22 +14,22 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
                 remarkPlugins={[remarkGfm]}
                 components={{
                     // Ensure tables have nice scrolling if they are too wide
-                    table: ({ node, ...props }) => (
+                    table: ({ ...props }) => (
                         <div className="overflow-x-auto my-4">
                             <table className="min-w-full divide-y divide-gray-200 border border-gray-200" {...props} />
                         </div>
                     ),
-                    thead: ({ node, ...props }) => <thead className="bg-gray-50" {...props} />,
-                    th: ({ node, ...props }) => <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b" {...props} />,
-                    td: ({ node, ...props }) => <td className="px-3 py-2 text-sm text-gray-500 border-b whitespace-pre-wrap" {...props} />, // whitespace-pre-wrap handles newlines in cells if any
-                    p: ({ node, ...props }) => <p className="leading-relaxed mb-2 last:mb-0" {...props} />,
-                    ul: ({ node, ...props }) => <ul className="list-disc list-outside ml-4 mb-2 space-y-1" {...props} />,
-                    ol: ({ node, ...props }) => <ol className="list-decimal list-outside ml-4 mb-2 space-y-1" {...props} />,
-                    li: ({ node, ...props }) => <li className="pl-1" {...props} />,
-                    h1: ({ node, ...props }) => <h1 className="text-xl font-bold mt-4 mb-2 text-gray-900" {...props} />,
-                    h2: ({ node, ...props }) => <h2 className="text-lg font-bold mt-3 mb-2 text-gray-800" {...props} />,
-                    h3: ({ node, ...props }) => <h3 className="text-md font-semibold mt-3 mb-1 text-gray-800" {...props} />,
-                    blockquote: ({ node, ...props }) => <blockquote className="border-l-4 border-gray-300 pl-4 italic text-gray-600 my-2" {...props} />,
+                    thead: ({ ...props }) => <thead className="bg-gray-50" {...props} />,
+                    th: ({ ...props }) => <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b" {...props} />,
+                    td: ({ ...props }) => <td className="px-3 py-2 text-sm text-gray-500 border-b whitespace-pre-wrap" {...props} />, // whitespace-pre-wrap handles newlines in cells if any
+                    p: ({ ...props }) => <p className="leading-relaxed mb-2 last:mb-0" {...props} />,
+                    ul: ({ ...props }) => <ul className="list-disc list-outside ml-4 mb-2 space-y-1" {...props} />,
+                    ol: ({ ...props }) => <ol className="list-decimal list-outside ml-4 mb-2 space-y-1" {...props} />,
+                    li: ({ ...props }) => <li className="pl-1" {...props} />,
+                    h1: ({ ...props }) => <h1 className="text-xl font-bold mt-4 mb-2 text-gray-900" {...props} />,
+                    h2: ({ ...props }) => <h2 className="text-lg font-bold mt-3 mb-2 text-gray-800" {...props} />,
+                    h3: ({ ...props }) => <h3 className="text-md font-semibold mt-3 mb-1 text-gray-800" {...props} />,
+                    blockquote: ({ ...props }) => <blockquote className="border-l-4 border-gray-300 pl-4 italic text-gray-600 my-2" {...props} />,
                     code: ({ className, children, node, ...props }) => { // Correctly typed props
                         const match = /language-(\w+)/.exec(className || '');
                         const isInline = !match && !parsedIsBlock(node); // simplified check
@@ -57,6 +57,7 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
 // Let's refine the type if needed or just use simple styling.
 // For now, I'll assume standard usage.
 // Note: `react-markdown` v9 `components` prop `code` receives `inline?: boolean`.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parsedIsBlock(node: any) {
     // This is a naive check; relying on class `language-` is usually safer for highlighting.
     // But `react-markdown` passes `inline` prop.

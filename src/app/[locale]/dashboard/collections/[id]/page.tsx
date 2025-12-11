@@ -10,7 +10,8 @@ import { PromptCard } from "@/components/dashboard/PromptCard";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { CreateCollectionRequest } from "@/types/collection.api";
-import { AppBreadcrumb } from "@/components/common/AppBreadcrumb"; // Verify path if needed, added in previous step
+import { PromptResponse } from "@/types/prompt.api";
+import { TagResponse } from "@/types/tag.api";
 
 const CollectionDetailPage: React.FC = () => {
     const params = useParams();
@@ -92,21 +93,26 @@ const CollectionDetailPage: React.FC = () => {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {prompts.map((prompt: any) => (
-                            <PromptCard
-                                key={prompt.id}
-                                id={prompt.id}
-                                title={prompt.title}
-                                description={prompt.description}
-                                author={prompt.ownerName || "Unknown"}
-                                subject="General" // Data missing in verified schema
-                                grade="All Levels" // Data missing in verified schema
-                                type="Prompt" // Data missing in verified schema
-                                rating={prompt.averageRating || 0}
-                                createdAt={prompt.createdAt}
-                                lastUpdated={prompt.updatedAt || prompt.createdAt}
-                            />
-                        ))}
+                        {prompts.map((prompt: PromptResponse) => {
+                            const subject = prompt.tags?.find(t => t.type === 'Subject' || t.type === 'Môn')?.value || 'General';
+                            const grade = prompt.tags?.find(t => t.type === 'Grade' || t.type === 'Khối')?.value || 'All Levels';
+
+                            return (
+                                <PromptCard
+                                    key={prompt.id}
+                                    id={prompt.id}
+                                    title={prompt.title}
+                                    description={prompt.description || ''}
+                                    author={prompt.fullName || "Unknown"} // PromptResponse has fullName, check type definition
+                                    subject={subject}
+                                    grade={grade}
+                                    type="Prompt"
+                                    rating={prompt.averageRating || 0}
+                                    createdAt={prompt.createdAt}
+                                    lastUpdated={prompt.updatedAt || prompt.createdAt}
+                                />
+                            );
+                        })}
                     </div>
                 )}
             </main>
@@ -121,7 +127,7 @@ const CollectionDetailPage: React.FC = () => {
                     name: collection.name,
                     description: collection.description,
                     visibility: collection.visibility?.toLowerCase() as 'private' | 'public' | 'group',
-                    tags: collection.tags?.map((t: any) => t.id) || []
+                    tags: collection.tags?.map((t: TagResponse) => t.id) || []
                 }}
                 title="Edit Collection"
                 submitLabel="Save Changes"

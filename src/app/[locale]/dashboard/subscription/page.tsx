@@ -9,6 +9,7 @@ import PricingCard from "@/components/landing/PricingCard";
 
 import { useTranslations } from "next-intl";
 import { useTierPlans, TierId } from "@/lib/tiers";
+import { ButtonProps } from "@/components/ui/Button";
 
 const SubscriptionPage: React.FC = () => {
     const { user } = useAuth();
@@ -24,13 +25,6 @@ const SubscriptionPage: React.FC = () => {
         return t('plans.unknown');
     }, [user, t]);
 
-    const optimizationUsage = quotaData?.data ?
-        ((quotaData.data.optimizationQuotaLimit - quotaData.data.optimizationQuotaRemaining) / quotaData.data.optimizationQuotaLimit) * 100
-        : 0;
-
-    const testingUsage = quotaData?.data ?
-        ((quotaData.data.testingQuotaLimit - quotaData.data.testingQuotaRemaining) / quotaData.data.testingQuotaLimit) * 100
-        : 0;
 
     if (isLoading) {
         return <div className="flex justify-center p-12"><Loader2 className="animate-spin h-8 w-8 text-brand-primary" /></div>;
@@ -230,7 +224,7 @@ const SubscriptionPage: React.FC = () => {
                                 pricePer={plan.period || "/month"}
                                 popular={plan.recommended}
                                 features={plan.features}
-                                buttonProps={buttonProps as any} // Cast to any to bypass the union type complexity temporarily or generic mismatch
+                                buttonProps={buttonProps as ButtonProps}
                                 isCurrent={plan.isCurrent}
                                 details={
                                     plan.limits && (

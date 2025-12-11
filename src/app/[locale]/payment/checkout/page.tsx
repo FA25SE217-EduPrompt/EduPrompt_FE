@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { Loader2, CheckCircle, ArrowLeft } from 'lucide-react';
 import Button from '@/components/ui/Button';
-import { useTierPlans, TierId } from '@/lib/tiers';
+import { useTierPlans, TierPlan } from '@/lib/tiers';
 import { paymentService } from '@/services/resources/payment';
 import { toast } from 'sonner';
 
@@ -126,7 +126,7 @@ const CheckoutContent = () => {
 };
 
 // Helper components to use hooks
-const PriceDisplay = ({ selectedPlan }: { selectedPlan: any }) => {
+const PriceDisplay = ({ selectedPlan }: { selectedPlan: TierPlan }) => {
     const activeLocale = useLocale();
     const EXCHANGE_RATE = 25000;
 
@@ -137,7 +137,7 @@ const PriceDisplay = ({ selectedPlan }: { selectedPlan: any }) => {
     return <span className="text-3xl font-bold text-gray-900">{selectedPlan.priceString}</span>;
 }
 
-const PaymentButtonText = ({ loading, selectedPlan }: { loading: boolean, selectedPlan: any }) => {
+const PaymentButtonText = ({ loading, selectedPlan }: { loading: boolean, selectedPlan: TierPlan }) => {
     const activeLocale = useLocale();
     const t = useTranslations('Payment.Checkout');
     const EXCHANGE_RATE = 25000;

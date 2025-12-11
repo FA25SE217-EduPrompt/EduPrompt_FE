@@ -1,5 +1,4 @@
 
-import { PromptFormModel } from "@/types/prompt.api";
 
 export type OptimizedPromptFields = {
     title?: string;

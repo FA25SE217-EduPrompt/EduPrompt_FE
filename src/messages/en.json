@@ -152,6 +152,7 @@
             "searchPrompts": "Search Prompts",
             "myCollections": "My Collections",
             "myGroups": "My Groups",
+            "mySchool": "My School",
             "subscription": "Subscription",
             "myWallet": "My Wallet"
         },
@@ -556,6 +557,44 @@
             "optimizeButton": "Optimize Prompt"
         }
     },
+    "SchoolAdmin": {
+        "title": "School Dashboard",
+        "description": "Overview of your school's usage and performance",
+        "assignTeachers": "Assign Teachers",
+        "stats": {
+            "activeTeachers": "Active Teachers",
+            "schoolName": "School Name",
+            "subscriptionStatus": "Subscription Status"
+        },
+        "managedTeachers": "Managed Teachers",
+        "noTeachers": "No teachers assigned yet.",
+        "remove": "Remove",
+        "confirmRemove": "Are you sure you want to remove this teacher?",
+        "removeSuccess": "Teacher removed successfully",
+        "removeFailed": "Failed to remove teacher",
+        "Info": {
+            "title": "School Information",
+            "contactDetails": "Contact Details",
+            "additionalInfo": "Additional Info",
+            "noAddress": "No address provided",
+            "noPhone": "No phone number",
+            "noEmail": "No email provided",
+            "noWebsite": "No website provided",
+            "noDescription": "No description available.",
+            "notAvailable": "School information not available.",
+            "goBack": "Go Back"
+        },
+        "Sidebar": {
+            "dashboard": "Dashboard",
+            "mySchool": "My School",
+            "teachers": "Teachers",
+            "subscription": "Subscription",
+            "settings": "Settings",
+            "signOut": "Sign Out",
+            "adminTitle": "EduPrompt Admin",
+            "role": "School Administrator"
+        }
+    },
     "Navbar": {
         "features": "Features",
         "pricing": "Pricing",
@@ -563,7 +602,8 @@
         "profile": "Profile",
         "dashboard": "Dashboard",
         "logout": "Logout",
-        "signIn": "Sign In"
+        "signIn": "Sign In",
+        "schoolDashboard": "School Dashboard"
     },
     "Profile": {
         "title": "My Profile",

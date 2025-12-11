@@ -9,12 +9,34 @@ export enum TierId {
 }
 
 import { useAuth } from '@/hooks/useAuth';
+import { ButtonProps } from "@/components/ui/Button";
+
+export type TierPlan = {
+    id: string;
+    name: string;
+    price: number;
+    priceString: string;
+    period: string;
+    features: string[];
+    limits?: {
+        tokens: string;
+        unlocks: string;
+        executions: string;
+        collections: string;
+    };
+    buttonText: string;
+    buttonVariant: ButtonProps['variant'];
+    href?: string;
+    action?: () => void;
+    recommended: boolean;
+    isCurrent: boolean;
+};
 
 export const useTierPlans = () => {
     const t = useTranslations('LandingPage.Pricing');
     const { user } = useAuth();
 
-    const allPlans = [
+    const allPlans: TierPlan[] = [
         {
             id: TierId.FREE,
             name: t('freeTrial'),
