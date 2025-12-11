@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
+import { Link } from '@/i18n/navigation';
+import { useTranslations } from "next-intl";
 import { UserAvatar } from "./UserAvatar";
 import Button from "../ui/Button";
 import { ChevronRightIcon } from "@heroicons/react/24/solid";
@@ -31,6 +32,7 @@ export const CreatorNavbar: React.FC<CreatorNavbarProps> = ({
     isTesting = false,
 }) => {
     const { user } = useAuth();
+    const t = useTranslations('Dashboard.Common');
 
     return (
         <header className="bg-white/90 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-40 shadow-sm">
@@ -42,14 +44,14 @@ export const CreatorNavbar: React.FC<CreatorNavbarProps> = ({
                             href="/dashboard/teacher"
                             className="text-gray-500 hover:text-gray-900 transition-colors"
                         >
-                            Dashboard
+                            {t('dashboard')}
                         </Link>
                         <ChevronRightIcon className="h-4 w-4 text-gray-400" />
                         <Link
                             href="/dashboard/prompts"
                             className="text-gray-500 hover:text-gray-900 transition-colors"
                         >
-                            Prompts
+                            {t('prompts')}
                         </Link>
                         <ChevronRightIcon className="h-4 w-4 text-gray-400" />
                         {breadcrumbs.map((crumb, index) => (
@@ -97,7 +99,7 @@ export const CreatorNavbar: React.FC<CreatorNavbarProps> = ({
                                             variant="secondary"
                                             className="!px-4 !py-2 !text-sm"
                                         >
-                                            {isSaving ? "Saving..." : "Save Draft"}
+                                            {isSaving ? t('saving') : t('saveDraft')}
                                         </Button>
                                     )}
                                     {onTest && (
@@ -107,7 +109,7 @@ export const CreatorNavbar: React.FC<CreatorNavbarProps> = ({
                                             variant="primary"
                                             className="!px-4 !py-2 !text-sm"
                                         >
-                                            {isTesting ? "Testing..." : "Run Test"}
+                                            {isTesting ? t('testing') : t('runTest')}
                                         </Button>
                                     )}
                                 </>

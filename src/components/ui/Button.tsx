@@ -1,5 +1,5 @@
-import Link, {LinkProps} from 'next/link';
-import React, {AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode,} from 'react';
+import { Link } from '@/i18n/navigation';
+import React, { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode, ComponentProps } from 'react';
 
 // Define the variant types
 type ButtonVariant =
@@ -8,7 +8,10 @@ type ButtonVariant =
     | 'outline-light'
     | 'solid-dark'
     | 'neutral'
-    | 'solid';
+    | 'solid'
+    | 'outline'
+    | 'ghost'
+    | 'destructive';
 
 // --- TYPE DEFINITIONS ---
 
@@ -22,26 +25,26 @@ interface BaseProps {
 // Props for a standard <button>
 type ButtonAsButton = BaseProps &
     Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'className'> & {
-    href?: never;
-};
+        href?: never;
+    };
 
 // Props for a Next.js <Link>
 type ButtonAsLink = BaseProps &
     Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'className' | 'href'> & {
-    href: LinkProps['href']; // Use the exact href type from Next.js
-    onClick?: never;
-};
+        href: ComponentProps<typeof Link>['href']; // Use the exact href type from next-intl Link
+        onClick?: never;
+    };
 
 export type ButtonProps = ButtonAsButton | ButtonAsLink;
 
 // --- COMPONENT IMPLEMENTATION ---
 
 const Button: React.FC<ButtonProps> = ({
-                                           variant = 'primary',
-                                           children,
-                                           className = '',
-                                           ...props
-                                       }) => {
+    variant = 'primary',
+    children,
+    className = '',
+    ...props
+}) => {
     // Base classes (shared by all variants)
     const baseClasses =
         'px-8 py-4 rounded-lg text-lg font-semibold transition-all duration-300 ease-in-out inline-flex items-center justify-center';
@@ -71,12 +74,24 @@ const Button: React.FC<ButtonProps> = ({
             variantClasses =
                 'bg-brand-secondary text-text-on-brand hover:bg-brand-primary';
             break;
+        case 'outline':
+            variantClasses =
+                'bg-transparent border-2 border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white';
+            break;
+        case 'ghost':
+            variantClasses =
+                'bg-transparent text-gray-700 hover:bg-gray-100';
+            break;
+        case 'destructive':
+            variantClasses =
+                'bg-red-500 text-white hover:bg-red-600';
+            break;
     }
 
     const combinedClasses = `${baseClasses} ${variantClasses} ${className}`;
 
     if ('href' in props && props.href !== undefined) {
-        const {href, ...rest} = props;
+        const { href, ...rest } = props;
         return (
             <Link href={href} className={combinedClasses} {...rest}>
                 {children}

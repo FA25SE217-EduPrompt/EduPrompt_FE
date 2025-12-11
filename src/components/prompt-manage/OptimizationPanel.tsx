@@ -1,0 +1,91 @@
+import React, { useState } from 'react';
+import { PromptAiModel } from '@/types/prompt.api';
+import { BoltIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+
+interface OptimizationPanelProps {
+    onOptimize: (model: PromptAiModel, input: string) => void;
+    isOptimizing: boolean;
+    instruction: string;
+    onInstructionChange: (value: string) => void;
+}
+
+const MODEL_OPTIONS = [
+    { label: 'GPT-4o mini', value: 'GPT_4O_MINI' },
+    { label: 'Claude 3.5 Sonnet', value: 'CLAUDE_3_5_SONNET' },
+    { label: 'Gemini 2.5 Flash', value: 'GEMINI_2_5_FLASH' },
+];
+
+export const OptimizationPanel: React.FC<OptimizationPanelProps> = ({
+    onOptimize,
+    isOptimizing,
+    instruction,
+    onInstructionChange
+}) => {
+    const t = useTranslations('Prompt.OptimizationPanel');
+    const [selectedModel, setSelectedModel] = useState<PromptAiModel>('GPT_4O_MINI');
+
+    const handleOptimize = () => {
+        onOptimize(selectedModel, instruction);
+    };
+
+    return (
+        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-100 p-6 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+                <div className="p-2 bg-white rounded-lg shadow-sm text-indigo-600">
+                    <SparklesIcon className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">{t('title')}</h3>
+            </div>
+
+            <p className="text-sm text-gray-600 mb-6">
+                {t('description')}
+            </p>
+
+            <div className="space-y-4">
+                <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">{t('modelLabel')}</label>
+                    <select
+                        value={selectedModel}
+                        onChange={(e) => setSelectedModel(e.target.value as PromptAiModel)}
+                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                    >
+                        {MODEL_OPTIONS.map(opt => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">{t('instructionsLabel')}</label>
+                    <textarea
+                        value={instruction}
+                        onChange={(e) => onInstructionChange(e.target.value)}
+                        placeholder={t('instructionsPlaceholder')}
+                        rows={3}
+                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-none"
+                    />
+                </div>
+
+                <button
+                    onClick={handleOptimize}
+                    disabled={isOptimizing}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-all shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                    {isOptimizing ? (
+                        <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>{t('optimizing')}</span>
+                        </>
+                    ) : (
+                        <>
+                            <BoltIcon className="w-4 h-4" />
+                            <span>{t('optimizeButton')}</span>
+                        </>
+                    )}
+                </button>
+            </div>
+        </div>
+    );
+};
