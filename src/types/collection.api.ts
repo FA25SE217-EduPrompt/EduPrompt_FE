@@ -10,8 +10,8 @@
 // }
 
 // src/types/collection.api.ts
-import {BaseResponse, PaginatedResponse} from '@/types/api';
-import {TagResponse} from '@/types/tag.api';
+import { BaseResponse, PaginatedResponse } from '@/types/api';
+import { TagResponse } from '@/types/tag.api';
 
 export type CollectionResponse = {
     id: string; // it should have an ID
@@ -32,3 +32,5 @@ export type CreateCollectionRequest = {
 export type GetMyCollectionsResponse = BaseResponse<PaginatedResponse<CollectionResponse>>;
 
 export type CreateCollectionResponse = BaseResponse<CollectionResponse>;
+
+export type CountMyCollectionsResponse = BaseResponse<number>;

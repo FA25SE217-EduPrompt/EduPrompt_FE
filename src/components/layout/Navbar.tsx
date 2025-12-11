@@ -1,11 +1,13 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslations } from "next-intl";
 
 export default function Navbar() {
+    const t = useTranslations('Navbar');
     const { isAuthenticated, user, logout } = useAuth();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -70,11 +72,11 @@ export default function Navbar() {
                     <div className="hidden md:block">
                         <div className="ml-10 flex items-baseline space-x-8">
                             <a href="#features"
-                                className="text-gray-600 hover:text-sky-700 px-3 py-2 text-sm font-medium transition-colors">Features</a>
+                                className="text-gray-600 hover:text-sky-700 px-3 py-2 text-sm font-medium transition-colors">{t('features')}</a>
                             <a href="#pricing"
-                                className="text-gray-600 hover:text-sky-700 px-3 py-2 text-sm font-medium transition-colors">Pricing</a>
+                                className="text-gray-600 hover:text-sky-700 px-3 py-2 text-sm font-medium transition-colors">{t('pricing')}</a>
                             <a href="#about"
-                                className="text-gray-600 hover:text-sky-700 px-3 py-2 text-sm font-medium transition-colors">About</a>
+                                className="text-gray-600 hover:text-sky-700 px-3 py-2 text-sm font-medium transition-colors">{t('about')}</a>
 
                             {isAuthenticated ? (
                                 <div className="relative" ref={dropdownRef}>
@@ -117,7 +119,7 @@ export default function Navbar() {
                                                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                                                 onClick={() => setIsDropdownOpen(false)}
                                             >
-                                                Profile
+                                                {t('profile')}
                                             </Link>
                                             <Link
                                                 href="/dashboard"
@@ -125,7 +127,7 @@ export default function Navbar() {
                                                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                                                 onClick={() => setIsDropdownOpen(false)}
                                             >
-                                                Dashboard
+                                                {t('dashboard')}
                                             </Link>
                                             <button
                                                 onClick={handleLogout}
@@ -133,7 +135,7 @@ export default function Navbar() {
                                                 role="menuitem"
                                                 className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                                             >
-                                                Logout
+                                                {t('logout')}
                                             </button>
                                         </div>
                                     )}
@@ -141,7 +143,7 @@ export default function Navbar() {
                             ) : (
                                 <Link href="/login"
                                     className="bg-sky-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-sky-700 transition-colors">
-                                    Sign In
+                                    {t('signIn')}
                                 </Link>
                             )}
                         </div>
