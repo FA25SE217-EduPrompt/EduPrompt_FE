@@ -101,13 +101,14 @@ export default function TeachersUsagePage() {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                    {teachers.map((teacher) => (
-                                        <tr key={teacher.teacherId} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm font-medium text-gray-900">
-                                                    {teacher.teacherName}
-                                                </div>
-                                            </td>
+                                    {teachers && teachers.length > 0 ? (
+                                        teachers.map((teacher) => (
+                                            <tr key={teacher.teacherId} className="hover:bg-gray-50">
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="text-sm font-medium text-gray-900">
+                                                        {teacher.teacherName}
+                                                    </div>
+                                                </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="text-sm text-gray-500">{teacher.teacherEmail}</div>
                                             </td>
@@ -131,7 +132,14 @@ export default function TeachersUsagePage() {
                                                 </div>
                                             </td>
                                         </tr>
-                                    ))}
+                                    ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                                                No teachers data available
+                                            </td>
+                                        </tr>
+                                    )}
                                 </tbody>
                             </table>
                         </div>
@@ -157,11 +165,11 @@ export default function TeachersUsagePage() {
                             <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                                 <div>
                                     <p className="text-sm text-gray-700">
-                                        Showing <span className="font-medium">{page * size + 1}</span> to{' '}
+                                        Showing <span className="font-medium">{totalElements > 0 ? page * size + 1 : 0}</span> to{' '}
                                         <span className="font-medium">
-                                            {Math.min((page + 1) * size, totalElements)}
+                                            {totalElements > 0 ? Math.min((page + 1) * size, totalElements) : 0}
                                         </span>{' '}
-                                        of <span className="font-medium">{totalElements}</span> results
+                                        of <span className="font-medium">{totalElements || 0}</span> results
                                     </p>
                                 </div>
                                 <div>

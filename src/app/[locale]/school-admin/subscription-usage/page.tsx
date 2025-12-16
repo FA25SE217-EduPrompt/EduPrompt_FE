@@ -72,9 +72,9 @@ export default function SubscriptionUsagePage() {
         );
     }
 
-    const tokenPercentage = calculatePercentage(usage.tokensUsed, usage.totalTokensLimit);
-    const testsPercentage = calculatePercentage(usage.testsUsed, usage.testsLimit);
-    const optimizationsPercentage = calculatePercentage(usage.optimizationsUsed, usage.optimizationsLimit);
+    const tokenPercentage = calculatePercentage(usage?.tokensUsed ?? 0, usage?.totalTokensLimit ?? 0);
+    const testsPercentage = calculatePercentage(usage?.testsUsed ?? 0, usage?.testsLimit ?? 0);
+    const optimizationsPercentage = calculatePercentage(usage?.optimizationsUsed ?? 0, usage?.optimizationsLimit ?? 0);
 
     return (
         <div className="p-6">
@@ -90,17 +90,17 @@ export default function SubscriptionUsagePage() {
                 <div className="flex items-center justify-between mb-4">
                     <div>
                         <h2 className="text-lg font-semibold text-gray-900">Subscription Plan</h2>
-                        <p className="text-sm text-gray-500">ID: {usage.subscriptionId}</p>
+                        <p className="text-sm text-gray-500">ID: {usage?.subscriptionId ?? 'N/A'}</p>
                     </div>
                     <div className="flex items-center">
                         <span
                             className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                usage.isActive
+                                usage?.isActive
                                     ? 'bg-green-100 text-green-800'
                                     : 'bg-red-100 text-red-800'
                             }`}
                         >
-                            {usage.isActive ? 'Active' : 'Inactive'}
+                            {usage?.isActive ? 'Active' : 'Inactive'}
                         </span>
                     </div>
                 </div>
@@ -108,12 +108,12 @@ export default function SubscriptionUsagePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <p className="text-sm text-gray-500">Plan Type</p>
-                        <p className="text-lg font-semibold text-gray-900">{usage.subscriptionType}</p>
+                        <p className="text-lg font-semibold text-gray-900">{usage?.subscriptionType ?? 'N/A'}</p>
                     </div>
                     <div>
                         <p className="text-sm text-gray-500">Reset Date</p>
                         <p className="text-lg font-semibold text-gray-900">
-                            {new Date(usage.resetDate).toLocaleDateString()}
+                            {usage?.resetDate ? new Date(usage.resetDate).toLocaleDateString() : 'N/A'}
                         </p>
                     </div>
                 </div>
@@ -129,8 +129,8 @@ export default function SubscriptionUsagePage() {
                     </div>
                     <div className="mb-4">
                         <div className="flex justify-between text-sm text-gray-600 mb-2">
-                            <span>Used: {usage.tokensUsed.toLocaleString()}</span>
-                            <span>Limit: {usage.totalTokensLimit.toLocaleString()}</span>
+                            <span>Used: {(usage?.tokensUsed ?? 0).toLocaleString()}</span>
+                            <span>Limit: {(usage?.totalTokensLimit ?? 0).toLocaleString()}</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2.5">
                             <div
@@ -140,7 +140,7 @@ export default function SubscriptionUsagePage() {
                         </div>
                     </div>
                     <p className="text-sm text-gray-500">
-                        Remaining: {usage.tokensRemaining.toLocaleString()}
+                        Remaining: {(usage?.tokensRemaining ?? 0).toLocaleString()}
                     </p>
                 </div>
 
@@ -152,8 +152,8 @@ export default function SubscriptionUsagePage() {
                     </div>
                     <div className="mb-4">
                         <div className="flex justify-between text-sm text-gray-600 mb-2">
-                            <span>Used: {usage.testsUsed.toLocaleString()}</span>
-                            <span>Limit: {usage.testsLimit.toLocaleString()}</span>
+                            <span>Used: {(usage?.testsUsed ?? 0).toLocaleString()}</span>
+                            <span>Limit: {(usage?.testsLimit ?? 0).toLocaleString()}</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2.5">
                             <div
@@ -163,7 +163,7 @@ export default function SubscriptionUsagePage() {
                         </div>
                     </div>
                     <p className="text-sm text-gray-500">
-                        Remaining: {usage.testsRemaining.toLocaleString()}
+                        Remaining: {(usage?.testsRemaining ?? 0).toLocaleString()}
                     </p>
                 </div>
 
@@ -175,8 +175,8 @@ export default function SubscriptionUsagePage() {
                     </div>
                     <div className="mb-4">
                         <div className="flex justify-between text-sm text-gray-600 mb-2">
-                            <span>Used: {usage.optimizationsUsed.toLocaleString()}</span>
-                            <span>Limit: {usage.optimizationsLimit.toLocaleString()}</span>
+                            <span>Used: {(usage?.optimizationsUsed ?? 0).toLocaleString()}</span>
+                            <span>Limit: {(usage?.optimizationsLimit ?? 0).toLocaleString()}</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2.5">
                             <div
@@ -186,7 +186,7 @@ export default function SubscriptionUsagePage() {
                         </div>
                     </div>
                     <p className="text-sm text-gray-500">
-                        Remaining: {usage.optimizationsRemaining.toLocaleString()}
+                        Remaining: {(usage?.optimizationsRemaining ?? 0).toLocaleString()}
                     </p>
                 </div>
             </div>
