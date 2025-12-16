@@ -11,7 +11,10 @@ import {
     Cog6ToothIcon,
     ArrowLeftOnRectangleIcon,
     XMarkIcon,
-    Bars3Icon
+    Bars3Icon,
+    ChartBarIcon,
+    ClipboardDocumentListIcon,
+    UsersIcon
 } from "@heroicons/react/24/outline";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslations } from "next-intl";
@@ -88,9 +91,24 @@ export default function SchoolAdminLayout({
                         href="/school-admin/teachers"
                     />
                     <NavItem
+                        icon={<ChartBarIcon className="h-5 w-5" />}
+                        label="Teachers Usage"
+                        href="/school-admin/teachers-usage"
+                    />
+                    <NavItem
                         icon={<CreditCardIcon className="h-5 w-5" />}
                         label={t('subscription')}
                         href="/school-admin/subscription"
+                    />
+                    <NavItem
+                        icon={<ClipboardDocumentListIcon className="h-5 w-5" />}
+                        label="Subscription Usage"
+                        href="/school-admin/subscription-usage"
+                    />
+                    <NavItem
+                        icon={<UsersIcon className="h-5 w-5" />}
+                        label="All Teachers Subscription"
+                        href="/school-admin/all-teachers-subscription"
                     />
                     <NavItem
                         icon={<Cog6ToothIcon className="h-5 w-5" />}
