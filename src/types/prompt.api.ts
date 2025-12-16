@@ -76,6 +76,7 @@ export type PromptResponse = {
     temperature?: number;
     maxTokens?: number;
     topP?: number;
+    ownerId?: string;
 };
 
 export type PromptTestRequest = {
@@ -149,6 +150,7 @@ export type PromptMetadataResponse = {
     createdAt: string;
     updatedAt?: string;
     averageRating?: number;
+    ownerId?: string;
 };
 
 export type PromptViewLogResponse = {
@@ -196,6 +198,7 @@ export type SemanticSearchResult = {
     createdBy: string;
     createdByName: string;
     averageRating?: number;
+    ownerId?: string;
 };
 
 export type SemanticSearchResponse = {
@@ -203,4 +206,64 @@ export type SemanticSearchResponse = {
     totalFound: number;
     searchId: string;
     executionTimeMs: number;
+};
+
+export type CreatePromptVersionRequest = {
+    instruction: string;
+    context?: string;
+    inputExample?: string;
+    outputFormat?: string;
+    constraints?: string;
+    isAiGenerated: boolean;
+};
+
+export type PromptVersionResponse = {
+    id: string;
+    promptId: string;
+    instruction: string;
+    context?: string;
+    inputExample?: string;
+    outputFormat?: string;
+    constraints?: string;
+    editorId: string;
+    versionNumber: number;
+    isAiGenerated: boolean;
+    createdAt: string;
+};
+
+export type UpdatePromptMetadataRequest = {
+    title: string;
+    description?: string;
+    instruction?: string;
+    context?: string;
+    inputExample?: string;
+    outputFormat?: string;
+    constraints?: string;
+    tagIds?: string[];
+};
+
+export type UpdatePromptVisibilityRequest = {
+    visibility: "private" | "group" | "public" | "school";
+    collectionId?: string;
+};
+
+export type PromptRatingCreateRequest = {
+    promptId: string;
+    rating: number;
+};
+
+export type PromptRatingResponse = {
+    isDone: boolean;
+};
+
+export type PromptShareResponse = {
+    id: string;
+    title: string;
+    description: string;
+    instruction: string;
+    context?: string;
+    inputExample?: string;
+    outputFormat?: string;
+    constraints?: string;
+    shareToken: string;
 };

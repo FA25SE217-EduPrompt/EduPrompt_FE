@@ -1,6 +1,7 @@
 // services/resources/tag.ts
-import {apiClient} from "@/services/auth";
-import {CreateTagsBatchRequest, CreateTagsBatchResponse, GetTagsResponse, TagResponse,} from "@/types/tag.api";
+import { apiClient } from "@/services/auth";
+import { CreateTagsBatchRequest, CreateTagsBatchResponse, GetTagsResponse, TagResponse, } from "@/types/tag.api";
+import { BaseResponse } from "@/types/api";
 import ApiCall from "@/utils/apiCall";
 
 const BASE = "/api/tags";
@@ -24,12 +25,12 @@ export const TagService = {
      */
     async getAll(params?: { type?: string[]; page?: number; size?: number; }): Promise<GetTagsResponse> {
         const query = {
-            ...(params?.type ? {type: params.type} : {}),
-            ...(typeof params?.page === "number" ? {page: params.page} : {}),
-            ...(typeof params?.size === "number" ? {size: params.size} : {}),
+            ...(params?.type ? { type: params.type } : {}),
+            ...(typeof params?.page === "number" ? { page: params.page } : {}),
+            ...(typeof params?.size === "number" ? { size: params.size } : {}),
         };
 
-        return ApiCall(() => apiClient.get<GetTagsResponse>(BASE, {params: query}));
+        return ApiCall(() => apiClient.get<GetTagsResponse>(BASE, { params: query }));
     },
 
     /**
@@ -38,6 +39,26 @@ export const TagService = {
     async getAllContent(params?: { type?: string[]; page?: number; size?: number; }): Promise<TagResponse[] | null> {
         const r = await TagService.getAll(params);
         return r.data ? r.data.content : null;
+    },
+
+    /**
+     * POST /api/tags/prompts/{promptId}/batch
+     */
+    async addTagsToPrompt(promptId: string, tagIds: string[]): Promise<BaseResponse<void>> {
+        return ApiCall<void>(() =>
+            apiClient.post(`${BASE}/prompts/${encodeURIComponent(promptId)}/batch`, { tagIds })
+        );
+    },
+
+    /**
+     * DELETE /api/tags/prompts/{promptId}
+     */
+    async removeTagFromPrompt(promptId: string, tagId: string): Promise<BaseResponse<void>> {
+        return ApiCall<void>(() =>
+            apiClient.delete(`${BASE}/prompts/${encodeURIComponent(promptId)}`, {
+                data: { tagId }
+            })
+        );
     },
 };
 

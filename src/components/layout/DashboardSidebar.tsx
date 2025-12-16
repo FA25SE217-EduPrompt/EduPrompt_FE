@@ -1,19 +1,21 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
     BookOpenIcon,
     ChartBarIcon,
     Cog6ToothIcon,
+    MagnifyingGlassIcon,
     SparklesIcon,
     WalletIcon,
     XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { UserAvatar } from "./UserAvatar";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslations } from "next-intl";
 
 // NavItem
 const NavItem: React.FC<{
@@ -38,6 +40,49 @@ const NavItem: React.FC<{
     );
 };
 
+// School Badge Component
+import { SchoolService } from "@/services/resources/school";
+import { AcademicCapIcon } from "@heroicons/react/24/solid";
+
+const SchoolBadge: React.FC<{ userId?: string | number }> = ({ userId }) => {
+    const [schoolName, setSchoolName] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+        const fetchSchool = async () => {
+            if (!userId) return;
+            try {
+                const response = await SchoolService.getSchoolByUserId(userId);
+                // Adjust based on actual response structure. 
+                // Assuming response.data contains school info or the response itself is the school object
+                // If response.data.name exists:
+                if (response.data?.name) {
+                    setSchoolName(response.data.name);
+                }
+            } catch (error) {
+                // Silently fail if not part of a school or error
+                console.log("Not part of a school or failed to fetch school info");
+            }
+        };
+        fetchSchool();
+    }, [userId]);
+
+    if (!schoolName) return null;
+
+    return (
+        <div className="mx-4 mb-2 p-3 bg-indigo-50 rounded-xl border border-indigo-100 flex items-center gap-3">
+            <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600">
+                <AcademicCapIcon className="h-5 w-5" />
+            </div>
+            <div className="overflow-hidden">
+                <p className="text-xs text-indigo-600 font-semibold uppercase tracking-wider">School Plan</p>
+                <p className="text-sm font-bold text-indigo-900 truncate" title={schoolName}>
+                    {schoolName}
+                </p>
+            </div>
+        </div>
+    );
+};
+
 interface DashboardSidebarProps {
     isSidebarOpen: boolean;
     setIsSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -47,6 +92,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     isSidebarOpen,
     setIsSidebarOpen,
 }) => {
+    const t = useTranslations('Dashboard.Sidebar');
     const { user } = useAuth();
 
     return (
@@ -78,30 +124,38 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
                 <NavItem
                     icon={<SparklesIcon className="h-5 w-5" />}
-                    label="My Prompts"
+                    label={t('myPrompts')}
                     href="/dashboard/prompts"
                 />
                 <NavItem
+                    icon={<MagnifyingGlassIcon className="h-5 w-5" />}
+                    label={t('searchPrompts')}
+                    href="/prompt/search"
+                />
+                <NavItem
                     icon={<BookOpenIcon className="h-5 w-5" />}
-                    label="My Collections"
+                    label={t('myCollections')}
                     href="/dashboard/collections"
                 />
                 <NavItem
                     icon={<ChartBarIcon className="h-5 w-5" />}
-                    label="My Groups"
+                    label={t('myGroups')}
                     href="/dashboard/groups"
                 />
                 <NavItem
                     icon={<WalletIcon className="h-5 w-5" />}
-                    label="Subscription"
+                    label={t('subscription')}
                     href="/dashboard/subscription"
                 />
                 <NavItem
                     icon={<Cog6ToothIcon className="h-5 w-5" />}
-                    label="My Wallet"
+                    label={t('myWallet')}
                     href="/dashboard/wallet"
                 />
             </nav>
+
+            {/* School Badge */}
+            <SchoolBadge userId={user?.id} />
 
             <div className="p-4 border-t border-gray-100">
                 <div className="flex items-center gap-3">

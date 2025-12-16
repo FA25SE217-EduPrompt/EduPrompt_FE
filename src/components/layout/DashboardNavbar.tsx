@@ -2,10 +2,11 @@
 
 import React from "react";
 import Link from "next/link";
-import {useAuth} from "@/hooks/useAuth";
-import {UserAvatar} from "./UserAvatar";
+import { useAuth } from "@/hooks/useAuth";
+import { useTranslations } from "next-intl";
+import { UserAvatar } from "./UserAvatar";
 import Button from "../ui/Button";
-import {Bars3Icon} from "@heroicons/react/24/outline"; // hamburgar :v
+import { Bars3Icon } from "@heroicons/react/24/outline"; // hamburgar :v
 
 interface DashboardNavbarProps {
     children?: React.ReactNode;
@@ -14,18 +15,19 @@ interface DashboardNavbarProps {
 }
 
 export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
-                                                                    children,
-                                                                    isSidebarOpen,
-                                                                    setIsSidebarOpen,
-                                                                }) => {
-    const {user, logout} = useAuth();
+    children,
+    isSidebarOpen,
+    setIsSidebarOpen,
+}) => {
+    const { user, logout } = useAuth();
     const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
+    const tCommon = useTranslations('Dashboard.Common');
+    const tNavbar = useTranslations('Navbar');
 
     return (
         <header
-            className={`flex items-center justify-between bg-bg-primary/90 backdrop-blur-md shadow-sm px-6 py-3 h-16 fixed top-0 right-0 z-20 transition-all duration-300 ease-in-out ${
-                isSidebarOpen ? "lg:left-64" : "left-0"
-            }`}
+            className={`flex items-center justify-between bg-bg-primary/90 backdrop-blur-md shadow-sm px-6 py-3 h-16 fixed top-0 right-0 z-20 transition-all duration-300 ease-in-out ${isSidebarOpen ? "lg:left-64" : "left-0"
+                }`}
         >
             <div className="flex items-center gap-4">
                 {/* Hamburger Menu Toggle Button */}
@@ -34,7 +36,7 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                     className="text-text-secondary hover:text-text-primary"
                     aria-label="Toggle menu"
                 >
-                    <Bars3Icon className="h-6 w-6"/>
+                    <Bars3Icon className="h-6 w-6" />
                 </button>
 
                 {children || (
@@ -50,7 +52,7 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                     variant="primary"
                     className="!px-4 !py-2 !text-sm"
                 >
-                    New prompt
+                    {tCommon('createNew')}
                 </Button>
 
                 <div className="relative">
@@ -58,10 +60,32 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                         className="flex items-center gap-2"
                     >
-                        <UserAvatar/>
-                        <span className="text-sm font-medium text-text-secondary hidden sm:block">
-              {user?.firstName || "User"}
-            </span>
+                        <UserAvatar />
+                        <div className="hidden sm:flex flex-col items-start bg-transparent">
+                            <span className="text-sm font-medium text-text-secondary line-clamp-1 text-left">
+                                {user?.firstName} {user?.lastName}
+                            </span>
+                            {user?.hasSchoolSubscription && (
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-100 text-indigo-800 border border-indigo-200">
+                                    School Pro
+                                </span>
+                            )}
+                            {!user?.hasSchoolSubscription && user?.isPremiumTier && (
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-800 border border-amber-200">
+                                    Premium
+                                </span>
+                            )}
+                            {!user?.hasSchoolSubscription && user?.isProTier && (
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                                    Pro
+                                </span>
+                            )}
+                            {!user?.hasSchoolSubscription && user?.isFreeTier && (
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                                    Free
+                                </span>
+                            )}
+                        </div>
                         <svg
                             className="w-4 h-4 text-text-secondary"
                             fill="none"
@@ -95,15 +119,24 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                                 className="block px-4 py-2 text-sm text-text-secondary hover:bg-bg-secondary"
                                 onClick={() => setIsDropdownOpen(false)}
                             >
-                                Profile
+                                {tNavbar('profile')}
                             </Link>
                             <Link
                                 href="/dashboard"
                                 className="block px-4 py-2 text-sm text-text-secondary hover:bg-bg-secondary"
                                 onClick={() => setIsDropdownOpen(false)}
                             >
-                                Dashboard
+                                {tNavbar('dashboard')}
                             </Link>
+                            {(user?.isSchoolAdmin || user?.isSystemAdmin) && (
+                                <Link
+                                    href="/school-admin"
+                                    className="block px-4 py-2 text-sm text-text-secondary hover:bg-bg-secondary"
+                                    onClick={() => setIsDropdownOpen(false)}
+                                >
+                                    {tNavbar('schoolDashboard')}
+                                </Link>
+                            )}
                             <button
                                 onClick={() => {
                                     logout();
@@ -111,7 +144,7 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                                 }}
                                 className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-bg-secondary"
                             >
-                                Logout
+                                {tNavbar('logout')}
                             </button>
                         </div>
                     )}

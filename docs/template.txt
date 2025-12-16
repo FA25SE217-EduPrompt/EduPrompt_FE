@@ -1,0 +1,318 @@
+TEMPLATE 1 — Soạn Giáo Án Hoàn Chỉnh (LESSON PLAN)
+
+→ Task: Soạn giáo án chuẩn theo CT 2018 + CV 5512
+
+1. INSTRUCTION
+
+Bạn là chuyên gia thiết kế giáo án THPT theo Chương trình GDPT 2018 và Công văn 5512.
+
+Nhiệm vụ: Soạn giáo án hoàn chỉnh cho bài học, theo định dạng chuyên nghiệp, gồm các phần: mục tiêu, năng lực, thiết bị, tiến trình dạy học, đánh giá, phụ lục.
+Phương pháp: gợi mở – vấn đáp, hoạt động nhóm, học sinh tự kiến tạo ≥70% kiến thức.
+
+2. CONTEXT
+
+Thông tin lớp học, sách giáo khoa, mức độ học sinh, yêu cầu cần đạt.
+
+3. INPUT_EXAMPLE
+ten_bai: "Mệnh đề và Tập hợp"
+chuong: "Chương 1"
+sach_giao_khoa: "KNTT"
+lop: 10
+cap_do_lop: "Lớp chất lượng cao"
+so_tiet: "2 tiết"
+yeu_cau_can_dat:
+  - "Nhận biết được khái niệm mệnh đề"
+  - "Phân biệt mệnh đề đúng sai"
+  - "Hiểu phép toán tập hợp"
+
+4. OUTPUT_FORMAT
+
+Trang thông tin chung
+
+Mục tiêu
+
+Thiết bị dạy học
+
+Tiến trình 4 hoạt động (Khởi động – Hình thành kiến thức – Luyện tập – Vận dụng)
+
+Đánh giá
+
+Phụ lục
+
+5. CONSTRAINTS
+
+Ngôn ngữ chính thống
+
+Phải có câu hỏi gợi mở, phân hóa 4 mức độ
+
+Không giảng quá 5 phút liên tục
+
+Sản phẩm cụ thể mỗi hoạt động
+
+Tuân thủ chuẩn đánh giá năng lực 4 mức
+
+Danh sách câu hỏi để App gợi ý
+
+Thầy/cô dạy môn gì?
+
+Lớp học (khối, chất lượng học sinh)?
+
+Sách giáo khoa sử dụng?
+
+Tên bài + số tiết?
+
+Yêu cầu cần đạt?
+
+Học sinh yếu — mạnh như thế nào?
+
+Muốn nhấn mạnh năng lực nào?
+
+Có yêu cầu về hoạt động nhóm không?
+
+Có muốn gợi ý phiếu học tập?
+
+TEMPLATE 2 — Tạo Đề Kiểm Tra / Bài Kiểm Tra 15’ – 45’ (TEST/QUIZ)
+
+→ Task: Tạo đề kiểm tra chuẩn hóa, phân mức, có đáp án – ma trận
+
+1. INSTRUCTION
+
+Tạo đề kiểm tra theo chuẩn Bộ GD&ĐT, có ma trận + đáp án + thang điểm, đảm bảo phù hợp thời lượng.
+
+2. CONTEXT
+
+Thông tin bài học, mục tiêu kiểm tra, mức độ học sinh, dạng bài mong muốn.
+
+3. INPUT_EXAMPLE
+khoi: 10
+mon: Toán
+thoi_luong: "15 phút"
+hinh_thuc: "5 trắc nghiệm + 1 tự luận"
+noi_dung: "Hàm số bậc nhất"
+muc_do_phan_bo:
+  nhan_biet: 30
+  thong_hieu: 40
+  van_dung: 20
+  van_dung_cao: 10
+
+4. OUTPUT_FORMAT
+
+Ma trận 4 mức
+
+Đề bài
+
+Hướng dẫn chấm
+
+Rubric
+
+File đáp án ngắn gọn
+
+5. CONSTRAINTS
+
+Các câu hỏi phải đảm bảo phân hóa
+
+Giọng văn trung tính, chính xác
+
+Không vượt quá phạm vi chương trình
+
+Danh sách câu hỏi để App gợi ý
+
+Kiểm tra bao nhiêu phút?
+
+Số câu trắc nghiệm/tự luận?
+
+Nội dung cần kiểm tra?
+
+Tỷ lệ phân mức?
+
+Có muốn đề 2 mã khác nhau?
+
+TEMPLATE 3 — Tạo Hoạt Động Học Nhóm / Phiếu Học Tập
+
+→ Task: Giáo viên cần thiết kế hoạt động / worksheet cho HS
+
+1. INSTRUCTION
+
+Thiết kế phiếu học tập có mục tiêu – nhiệm vụ – sản phẩm – câu hỏi gợi mở theo CV 5512.
+
+2. CONTEXT
+
+Môn học, bài học, số lượng nhóm, mức độ lớp.
+
+3. INPUT_EXAMPLE
+mon: Toán
+bai: "Phương trình đường thẳng"
+so_nhom: 6
+muc_tieu: "HS viết được phương trình tổng quát"
+cap_do_lop: "Trung bình"
+
+4. OUTPUT_FORMAT
+
+Tiêu đề phiếu
+
+Mục tiêu
+
+Nhiệm vụ nhóm
+
+Câu hỏi dẫn dắt
+
+Sản phẩm kỳ vọng
+
+Tiêu chí đánh giá
+
+5. CONSTRAINTS
+
+Ngôn ngữ ngắn gọn
+
+Tối đa 1 trang A4
+
+Có gợi ý cho HS yếu
+
+Danh sách câu hỏi để App gợi ý
+
+Hoạt động này thuộc phần nào của bài học?
+
+Mục tiêu hoạt động?
+
+Muốn nhóm làm việc bao lâu?
+
+Kết quả sản phẩm là gì?
+
+Cần mức độ khó như thế nào?
+
+TEMPLATE 4 — Tạo Bài Tập & Đáp Án (HOMEWORK / PRACTICE)
+
+→ Task: Tạo bài tập đa mức độ + lời giải chi tiết + phân hóa
+
+1. INSTRUCTION
+
+Tạo bộ bài tập có 4 mức độ: Nhận biết – Thông hiểu – Vận dụng – Vận dụng cao.
+Mỗi bài gồm đề – gợi ý – lời giải – đáp án.
+
+2. CONTEXT
+
+Chương, nội dung, số lượng bài, mục tiêu rèn luyện.
+
+3. INPUT_EXAMPLE
+mon: Toán
+chuong: "Vectơ"
+noi_dung: "Tổng hai vectơ"
+so_bai: 6
+yeu_cau: "Phân hóa 4 mức độ rõ ràng"
+
+4. OUTPUT_FORMAT
+
+Danh sách bài tập
+
+Lời giải chi tiết
+
+Gợi ý cho HS yếu
+
+Bài nâng cao cho HS giỏi
+
+5. CONSTRAINTS
+
+Không vượt chương trình
+
+Biểu thức toán phải rõ ràng
+
+Lời giải mạch lạc
+
+Danh sách câu hỏi để App gợi ý
+
+Bao nhiêu bài?
+
+Mức độ khó mong muốn?
+
+Có muốn giải chi tiết hay gợi ý thôi?
+
+Có cần bài nâng cao không?
+
+TEMPLATE 5 — Tạo Đề Cương Ôn Tập / Mindmap / Tóm Tắt Bài
+
+→ Task: Tóm tắt bài học thành đề cương chi tiết
+
+1. INSTRUCTION
+
+Tạo đề cương ôn tập gồm: tóm tắt lý thuyết, công thức, bài tập ví dụ, sơ đồ tư duy.
+
+2. CONTEXT
+
+Tên chương, mục tiêu ôn tập, mức độ học sinh.
+
+3. INPUT_EXAMPLE
+mon: Toán 10
+chuong: "Hàm số"
+yeu_cau: "Tóm tắt dễ hiểu cho HS trung bình – khá"
+kieu_trinh_bay: "Mindmap + lý thuyết + ví dụ mẫu"
+
+4. OUTPUT_FORMAT
+
+Lý thuyết trọng tâm
+
+Công thức cần nhớ
+
+Sơ đồ tư duy dạng text
+
+Ví dụ minh họa
+
+Bài tập tự luyện
+
+5. CONSTRAINTS
+
+Ngắn gọn
+
+Không lan man
+
+Phải có ví dụ mẫu
+
+Danh sách câu hỏi để App gợi ý
+
+Chương/bài nào?
+
+Muốn tóm tắt theo dạng mindmap hay bullet?
+
+Học sinh mức độ nào?
+
+Có cần ví dụ mẫu?
+
+TEMPLATE 6 — Chuyển Đổi Ngôn Ngữ / Rewrite Chuyên Môn
+
+→ Task: Dịch/Viết lại nội dung chuyên môn theo phong cách sư phạm
+
+1. INSTRUCTION
+
+Viết lại nội dung theo phong cách sư phạm: dễ hiểu, chính xác, phù hợp THPT.
+
+2. CONTEXT
+
+Nội dung gốc, đối tượng học sinh.
+
+3. INPUT_EXAMPLE
+noi_dung: "Định nghĩa đạo hàm..."
+doi_tuong: "HS khá giỏi"
+yeu_cau: "Viết lại sao cho trực quan hơn"
+
+4. OUTPUT_FORMAT
+
+Bản viết lại
+
+Giải thích dễ hiểu
+
+Ví dụ minh họa
+
+Gợi ý trực quan
+
+5. CONSTRAINTS
+
+Không được sai kiến thức
+
+Không được rút gọn quá mức
+
+Danh sách câu hỏi để App gợi ý
+
+Nội dung cần viết lại?
+
+Viết cho đối tượng học sinh nào?
+
+Muốn phong cách: chính thống – thân thiện – đơn giản hóa?
