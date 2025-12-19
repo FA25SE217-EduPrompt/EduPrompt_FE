@@ -453,6 +453,40 @@ export const promptsService = {
             })
         );
     },
+
+    // ========== ADMIN FUNCTIONS ==========
+    // Get all prompts (admin only)
+    async getAllPromptsAdmin(page = 0, size = 20, opts?: ApiRequestOptions): Promise<any> {
+        return ApiCall<any>(() =>
+            apiClient.request({
+                url: `/api/v1/admin/prompts?page=${page}&size=${size}`,
+                method: 'get',
+                ...buildRequestConfig(opts),
+            })
+        );
+    },
+
+    // Get prompt by ID (admin)
+    async getPromptByIdAdmin(promptId: string, opts?: ApiRequestOptions): Promise<BaseResponse<PromptResponse>> {
+        return ApiCall<PromptResponse>(() =>
+            apiClient.request({
+                url: `/api/v1/admin/prompts/${encodeURIComponent(promptId)}`,
+                method: 'get',
+                ...buildRequestConfig(opts),
+            })
+        );
+    },
+
+    // Delete prompt (admin)
+    async deletePromptAdmin(promptId: string, opts?: ApiRequestOptions): Promise<BaseResponse<void>> {
+        return ApiCall<void>(() =>
+            apiClient.request({
+                url: `/api/v1/admin/prompts/${encodeURIComponent(promptId)}`,
+                method: 'delete',
+                ...buildRequestConfig(opts),
+            })
+        );
+    },
 };
 
 export default promptsService;
