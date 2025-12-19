@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import schoolAdminService from '@/services/resources/school-admin';
+import SchoolAdminService from '@/services/resources/schoolAdmin';
 import { SubscriptionUsageDto } from '@/types/school-admin.api';
 import { mapErrorToUserMessage } from '@/utils/errorMapper';
 
@@ -18,7 +18,7 @@ export default function SubscriptionUsagePage() {
         setLoading(true);
         setError(null);
 
-        const result = await schoolAdminService.getSubscriptionUsage();
+        const result = await SchoolAdminService.getSubscriptionUsage();
 
         if (result.error) {
             setError(mapErrorToUserMessage(result.error));
@@ -48,7 +48,7 @@ export default function SubscriptionUsagePage() {
             <div className="p-6">
                 <div className="flex items-center justify-center h-64">
                     <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    <p className="ml-3 text-gray-600">Loading subscription usage...</p>
+                    <p className="ml-3 text-gray-600">Đang tải thông tin gói dịch vụ...</p>
                 </div>
             </div>
         );
@@ -67,7 +67,7 @@ export default function SubscriptionUsagePage() {
     if (!usage) {
         return (
             <div className="p-6">
-                <div className="text-center text-gray-600">No subscription data available</div>
+                <div className="text-center text-gray-600">Không có thông tin gói dịch vụ</div>
             </div>
         );
     }
@@ -79,9 +79,9 @@ export default function SubscriptionUsagePage() {
     return (
         <div className="p-6">
             <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">Subscription Usage Overview</h1>
+                <h1 className="text-2xl font-bold text-gray-900">Tổng Quan Mức Sử Dụng Gói Dịch Vụ</h1>
                 <p className="text-gray-600 mt-1">
-                    Monitor your school&apos;s subscription limits and usage
+                    Theo dõi giới hạn và mức sử dụng gói dịch vụ của trường
                 </p>
             </div>
 
@@ -89,8 +89,8 @@ export default function SubscriptionUsagePage() {
             <div className="bg-white rounded-lg shadow p-6 mb-6">
                 <div className="flex items-center justify-between mb-4">
                     <div>
-                        <h2 className="text-lg font-semibold text-gray-900">Subscription Plan</h2>
-                        <p className="text-sm text-gray-500">ID: {usage?.subscriptionId ?? 'N/A'}</p>
+                        <h2 className="text-lg font-semibold text-gray-900">Gói Dịch Vụ</h2>
+                        <p className="text-sm text-gray-500">Mã số: {usage?.subscriptionId ?? 'N/A'}</p>
                     </div>
                     <div className="flex items-center">
                         <span
@@ -100,20 +100,20 @@ export default function SubscriptionUsagePage() {
                                     : 'bg-red-100 text-red-800'
                             }`}
                         >
-                            {usage?.isActive ? 'Active' : 'Inactive'}
+                            {usage?.isActive ? 'Đang hoạt động' : 'Không hoạt động'}
                         </span>
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <p className="text-sm text-gray-500">Plan Type</p>
+                        <p className="text-sm text-gray-500">Loại gói</p>
                         <p className="text-lg font-semibold text-gray-900">{usage?.subscriptionType ?? 'N/A'}</p>
                     </div>
                     <div>
-                        <p className="text-sm text-gray-500">Reset Date</p>
+                        <p className="text-sm text-gray-500">Ngày đặt lại</p>
                         <p className="text-lg font-semibold text-gray-900">
-                            {usage?.resetDate ? new Date(usage.resetDate).toLocaleDateString() : 'N/A'}
+                            {usage?.resetDate ? new Date(usage.resetDate).toLocaleDateString('vi-VN') : 'N/A'}
                         </p>
                     </div>
                 </div>
@@ -124,13 +124,13 @@ export default function SubscriptionUsagePage() {
                 {/* Tokens */}
                 <div className="bg-white rounded-lg shadow p-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-gray-900">Tokens</h3>
+                        <h3 className="text-lg font-semibold text-gray-900">Token</h3>
                         <span className="text-sm text-gray-500">{tokenPercentage}%</span>
                     </div>
                     <div className="mb-4">
                         <div className="flex justify-between text-sm text-gray-600 mb-2">
-                            <span>Used: {(usage?.tokensUsed ?? 0).toLocaleString()}</span>
-                            <span>Limit: {(usage?.totalTokensLimit ?? 0).toLocaleString()}</span>
+                            <span>Đã dùng: {(usage?.tokensUsed ?? 0).toLocaleString()}</span>
+                            <span>Giới hạn: {(usage?.totalTokensLimit ?? 0).toLocaleString()}</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2.5">
                             <div
@@ -140,20 +140,20 @@ export default function SubscriptionUsagePage() {
                         </div>
                     </div>
                     <p className="text-sm text-gray-500">
-                        Remaining: {(usage?.tokensRemaining ?? 0).toLocaleString()}
+                        Còn lại: {(usage?.tokensRemaining ?? 0).toLocaleString()}
                     </p>
                 </div>
 
                 {/* Tests */}
                 <div className="bg-white rounded-lg shadow p-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-gray-900">Tests</h3>
+                        <h3 className="text-lg font-semibold text-gray-900">Bài Kiểm Tra</h3>
                         <span className="text-sm text-gray-500">{testsPercentage}%</span>
                     </div>
                     <div className="mb-4">
                         <div className="flex justify-between text-sm text-gray-600 mb-2">
-                            <span>Used: {(usage?.testsUsed ?? 0).toLocaleString()}</span>
-                            <span>Limit: {(usage?.testsLimit ?? 0).toLocaleString()}</span>
+                            <span>Đã dùng: {(usage?.testsUsed ?? 0).toLocaleString()}</span>
+                            <span>Giới hạn: {(usage?.testsLimit ?? 0).toLocaleString()}</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2.5">
                             <div
@@ -163,20 +163,20 @@ export default function SubscriptionUsagePage() {
                         </div>
                     </div>
                     <p className="text-sm text-gray-500">
-                        Remaining: {(usage?.testsRemaining ?? 0).toLocaleString()}
+                        Còn lại: {(usage?.testsRemaining ?? 0).toLocaleString()}
                     </p>
                 </div>
 
                 {/* Optimizations */}
                 <div className="bg-white rounded-lg shadow p-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-gray-900">Optimizations</h3>
+                        <h3 className="text-lg font-semibold text-gray-900">Tối Ưu Hóa</h3>
                         <span className="text-sm text-gray-500">{optimizationsPercentage}%</span>
                     </div>
                     <div className="mb-4">
                         <div className="flex justify-between text-sm text-gray-600 mb-2">
-                            <span>Used: {(usage?.optimizationsUsed ?? 0).toLocaleString()}</span>
-                            <span>Limit: {(usage?.optimizationsLimit ?? 0).toLocaleString()}</span>
+                            <span>Đã dùng: {(usage?.optimizationsUsed ?? 0).toLocaleString()}</span>
+                            <span>Giới hạn: {(usage?.optimizationsLimit ?? 0).toLocaleString()}</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2.5">
                             <div
@@ -186,7 +186,7 @@ export default function SubscriptionUsagePage() {
                         </div>
                     </div>
                     <p className="text-sm text-gray-500">
-                        Remaining: {(usage?.optimizationsRemaining ?? 0).toLocaleString()}
+                        Còn lại: {(usage?.optimizationsRemaining ?? 0).toLocaleString()}
                     </p>
                 </div>
             </div>
@@ -209,9 +209,9 @@ export default function SubscriptionUsagePage() {
                             </svg>
                         </div>
                         <div className="ml-3">
-                            <h3 className="text-sm font-medium text-yellow-800">Warning</h3>
+                            <h3 className="text-sm font-medium text-yellow-800">Cảnh báo</h3>
                             <div className="mt-2 text-sm text-yellow-700">
-                                <p>You are approaching your subscription limits. Consider upgrading your plan.</p>
+                                <p>Bạn đang tiến gần giới hạn gói dịch vụ. Hãy cân nhắc nâng cấp gói của bạn.</p>
                             </div>
                         </div>
                     </div>

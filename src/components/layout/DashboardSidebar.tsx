@@ -44,12 +44,12 @@ const NavItem: React.FC<{
 import { SchoolService } from "@/services/resources/school";
 import { AcademicCapIcon } from "@heroicons/react/24/solid";
 
-const SchoolBadge: React.FC<{ userId?: string | number }> = ({ userId }) => {
+const SchoolBadge: React.FC<{ userId?: string | number; userRole?: string }> = ({ userId, userRole }) => {
     const [schoolName, setSchoolName] = React.useState<string | null>(null);
 
     React.useEffect(() => {
         const fetchSchool = async () => {
-            if (!userId) return;
+            if (!userId || userRole !== 'SCHOOL_ADMIN') return;
             try {
                 const response = await SchoolService.getSchoolByUserId(userId);
                 // Adjust based on actual response structure. 
@@ -64,7 +64,7 @@ const SchoolBadge: React.FC<{ userId?: string | number }> = ({ userId }) => {
             }
         };
         fetchSchool();
-    }, [userId]);
+    }, [userId, userRole]);
 
     if (!schoolName) return null;
 
@@ -155,7 +155,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             </nav>
 
             {/* School Badge */}
-            <SchoolBadge userId={user?.id} />
+            <SchoolBadge userId={user?.id} userRole={user?.role} />
 
             <div className="p-4 border-t border-gray-100">
                 <div className="flex items-center gap-3">

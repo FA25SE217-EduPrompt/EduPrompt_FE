@@ -1,27 +1,30 @@
-// School Admin API Types
+// School Admin API Types - Matching Backend Response
 import { BaseResponse, PaginatedResponse } from './api';
 
-// Teacher Usage Types
-export interface TeacherUsageDto {
-    teacherId: string;
-    teacherName: string;
-    teacherEmail: string;
-    totalPrompts: number;
-    totalTests: number;
-    totalOptimizations: number;
-    tokensUsed: number;
-    lastActivity: string;
+// SchoolUsageSummaryResponse - GET /api/school-admin/teachers-usage
+export interface UserUsageResponse {
+    userId: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber: string | null;
+    schoolTokensUsed: number;
+    individualTokensUsed: number | null;
 }
 
-export interface TeacherUsageParams {
-    page?: number;
-    size?: number;
-    sort?: string;
+export interface SchoolUsageSummaryDto {
+    schoolName: string;
+    totalTeachers: number;
+    schoolTokenPool: number;
+    schoolTokensUsed: number;
+    schoolTokensRemaining: number;
+    totalTeachersId: number;
+    users: UserUsageResponse[];
 }
 
-export type GetTeachersUsageResponse = BaseResponse<PaginatedResponse<TeacherUsageDto>>;
+export type GetTeachersUsageResponse = BaseResponse<SchoolUsageSummaryDto>;
 
-// Subscription Usage Types
+// SchoolSubscriptionUsageResponse - GET /api/school-admin/subscription/usage
 export interface SubscriptionUsageDto {
     subscriptionId: string;
     subscriptionType: string;
@@ -40,31 +43,31 @@ export interface SubscriptionUsageDto {
 
 export type GetSubscriptionUsageResponse = BaseResponse<SubscriptionUsageDto>;
 
-// Teacher Subscription Usage Types
-export interface TeacherSubscriptionUsageDto {
-    teacherId: string;
-    teacherName: string;
-    teacherEmail: string;
+// TeacherTokenUsageLogResponse - GET /api/school-admin/subscription/usage/teacher
+export interface TeacherTokenUsageLogDto {
+    id: string;
+    userId: string;
+    userName: string;
+    actionType: string; // TEST, OPTIMIZATION, etc.
     tokensUsed: number;
-    testsUsed: number;
-    optimizationsUsed: number;
-    percentage: number;
+    createdAt: string;
 }
 
 export interface TeacherSubscriptionUsageParams {
-    teacherId: string;
+    userId: string;
+    page?: number;
+    size?: number;
 }
 
-export type GetTeacherSubscriptionUsageResponse = BaseResponse<TeacherSubscriptionUsageDto>;
+export type GetTeacherSubscriptionUsageResponse = BaseResponse<PaginatedResponse<TeacherTokenUsageLogDto>>;
 
-// All Teachers Subscription Usage Types
+// PaginatedTeacherTokenUsageLogResponse - GET /api/school-admin/subscription/usage/all-teacher
 export interface AllTeachersSubscriptionUsageParams {
     page?: number;
     size?: number;
-    sort?: string;
 }
 
-export type GetAllTeachersSubscriptionUsageResponse = BaseResponse<PaginatedResponse<TeacherSubscriptionUsageDto>>;
+export type GetAllTeachersSubscriptionUsageResponse = BaseResponse<PaginatedResponse<TeacherTokenUsageLogDto>>;
 
 // Request Options
 export interface SchoolAdminRequestOptions {
