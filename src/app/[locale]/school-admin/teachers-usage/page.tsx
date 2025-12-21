@@ -10,6 +10,72 @@ export default function TeachersUsagePage() {
     const [schoolInfo, setSchoolInfo] = useState<SchoolUsageSummaryDto | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [useMockData, setUseMockData] = useState(false);
+
+    const generateMockData = () => {
+        const mockUsers: UserUsageResponse[] = [
+            {
+                userId: '1',
+                firstName: 'Nguyễn Văn',
+                lastName: 'An',
+                email: 'nguyenvanan@school.edu.vn',
+                phoneNumber: '0901234567',
+                schoolTokensUsed: 15000,
+                individualTokensUsed: 5000,
+            },
+            {
+                userId: '2',
+                firstName: 'Trần Thị',
+                lastName: 'Bình',
+                email: 'tranthibinh@school.edu.vn',
+                phoneNumber: '0902345678',
+                schoolTokensUsed: 22000,
+                individualTokensUsed: 8000,
+            },
+            {
+                userId: '3',
+                firstName: 'Lê Minh',
+                lastName: 'Châu',
+                email: 'leminhchau@school.edu.vn',
+                phoneNumber: '0903456789',
+                schoolTokensUsed: 18500,
+                individualTokensUsed: null,
+            },
+            {
+                userId: '4',
+                firstName: 'Phạm Hoàng',
+                lastName: 'Dũng',
+                email: 'phamhoangdung@school.edu.vn',
+                phoneNumber: '0904567890',
+                schoolTokensUsed: 12000,
+                individualTokensUsed: 15000,
+            },
+            {
+                userId: '5',
+                firstName: 'Võ Thị',
+                lastName: 'Em',
+                email: 'vothiem@school.edu.vn',
+                phoneNumber: null,
+                schoolTokensUsed: 25000,
+                individualTokensUsed: 10000,
+            },
+            
+        ];
+
+        const mockSchoolInfo: SchoolUsageSummaryDto = {
+            schoolName: 'THPT Chuyên Lê Hồng Phong',
+            totalTeachers: mockUsers.length,
+            schoolTokenPool: 100000,
+            schoolTokensUsed: mockUsers.reduce((sum, u) => sum + u.schoolTokensUsed, 0),
+            schoolTokensRemaining: 7500,
+            totalTeachersId: mockUsers.length,
+            users: mockUsers,
+        };
+
+        setSchoolInfo(mockSchoolInfo);
+        setUsers(mockUsers);
+        setLoading(false);
+    };
 
     const fetchTeachers = async () => {
         setLoading(true);
@@ -31,16 +97,34 @@ export default function TeachersUsagePage() {
     };
 
     useEffect(() => {
-        fetchTeachers();
-    }, []);
+        if (useMockData) {
+            generateMockData();
+        } else {
+            fetchTeachers();
+        }
+    }, [useMockData]);
 
     return (
         <div className="p-6">
             <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">Thống Kê Sử Dụng Của Giáo Viên</h1>
-                <p className="text-gray-600 mt-1">
-                    Theo dõi hoạt động và mức độ sử dụng tài nguyên của giáo viên
-                </p>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900">Thống Kê Sử Dụng Của Giáo Viên</h1>
+                        <p className="text-gray-600 mt-1">
+                            Theo dõi hoạt động và mức độ sử dụng tài nguyên của giáo viên
+                        </p>
+                    </div>
+                    <button
+                        onClick={() => setUseMockData(!useMockData)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                            useMockData
+                                ? 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                                : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                        }`}
+                    >
+                        {useMockData ? ' Mock Data (Click để dùng Real API)' : ' Real API (Click để dùng Mock Data)'}
+                    </button>
+                </div>
             </div>
 
             {error && (
