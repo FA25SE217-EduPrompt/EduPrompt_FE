@@ -31,8 +31,8 @@ adminClient.interceptors.request.use(
  * Get all users from the admin endpoint
  * Requires authentication token
  */
-export async function getAllUsers(): Promise<any> {
-    const response = await adminClient.get('/api/v1/admin/users');
+export async function getAllUsers(page: number = 0, size: number = 20): Promise<unknown> {
+    const response = await adminClient.get(`/api/v1/admin/users?page=${page}&size=${size}`);
     return response.data;
 }
 

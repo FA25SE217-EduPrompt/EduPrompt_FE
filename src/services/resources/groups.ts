@@ -2,8 +2,8 @@ import { apiClient } from '@/services/auth';
 import { Group, GroupsResponse, CreateGroupRequest, UpdateGroupRequest } from '@/types/group.types';
 
 // Get all groups (admin)
-export async function getAllGroups(): Promise<any> {
-    const response = await apiClient.get('/api/v1/admin/groups?page=0&size=20');
+export async function getAllGroups(page: number = 0, size: number = 20): Promise<unknown> {
+    const response = await apiClient.get(`/api/v1/admin/groups?page=${page}&size=${size}`);
     return response.data;
 }
 

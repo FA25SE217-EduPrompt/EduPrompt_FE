@@ -33,39 +33,57 @@ export default function UsersManagementPage() {
         setLoading(true);
         setError("");
         try {
-            const response = await getAllUsers();
-            console.log("API Response:", response);
+            // Fetch first page to get total pages info
+            const firstResponse = await getAllUsers(0, 20);
+            console.log("=== USERS API DEBUG ===");
+            console.log("First page response:", firstResponse);
 
-            // Handle different response structures
-            let usersData: User[] = [];
-            if (response && response.data && Array.isArray(response.data.content)) {
-                // Paginated response: { data: { content: [...], totalElements, totalPages, ... } }
-                usersData = response.data.content;
-                console.log("Total elements:", response.data.totalElements);
-                console.log("Total pages:", response.data.totalPages);
-            } else if (Array.isArray(response)) {
-                // Direct array response
-                usersData = response;
-            } else if (response && Array.isArray(response.data)) {
-                // Response with data property
-                usersData = response.data;
+            let allUsers: User[] = [];
+            let totalPages = 1;
+
+            // Extract first page data and total pages
+            if (firstResponse && firstResponse.data && Array.isArray(firstResponse.data.content)) {
+                allUsers = [...firstResponse.data.content];
+                totalPages = firstResponse.data.totalPages || 1;
+                console.log(`✅ Found ${allUsers.length} users on page 1 of ${totalPages}`);
+                console.log(`📊 Total elements in DB: ${firstResponse.data.totalElements}`);
+            } else if (Array.isArray(firstResponse)) {
+                allUsers = firstResponse;
+            } else if (firstResponse && Array.isArray(firstResponse.data)) {
+                allUsers = firstResponse.data;
             } else {
-                console.error("Unexpected response structure:", response);
-                console.error("Response keys:", response ? Object.keys(response) : "null");
-                usersData = [];
-                setError("Cấu trúc response không đúng. Vui lòng kiểm tra console.");
+                console.error("Unexpected response structure:", firstResponse);
+                setError("Cấu trúc response không đúng.");
             }
 
-            console.log("Users data:", usersData);
-            console.log("Users count:", usersData.length);
-            setUsers(usersData);
+            // Fetch remaining pages if there are more
+            if (totalPages > 1) {
+                console.log(`📥 Fetching ${totalPages - 1} more pages...`);
+                const pagePromises = [];
 
-            if (usersData.length > 0) {
-                toast.success(`Đã tải ${usersData.length} người dùng thành công`);
+                for (let page = 1; page < totalPages; page++) {
+                    pagePromises.push(getAllUsers(page, 20));
+                }
+
+                const remainingResponses = await Promise.all(pagePromises);
+
+                remainingResponses.forEach((response, index) => {
+                    if (response?.data?.content && Array.isArray(response.data.content)) {
+                        allUsers = [...allUsers, ...response.data.content];
+                        console.log(`✅ Loaded page ${index + 2}: +${response.data.content.length} users`);
+                    }
+                });
+            }
+
+            console.log(`✅ Total users loaded: ${allUsers.length}`);
+            setUsers(allUsers);
+
+            if (allUsers.length > 0) {
+                toast.success(`Đã tải ${allUsers.length} người dùng thành công`);
             } else {
                 toast.warning("Không tìm thấy người dùng");
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Failed to fetch users:", err);
             console.error("Error details:", err.response?.data);
             setError(err.message || "Không thể tải danh sách người dùng. Vui lòng thử lại.");

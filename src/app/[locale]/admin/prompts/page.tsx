@@ -34,42 +34,49 @@ export default function PromptsManagementPage() {
         setLoading(true);
         setError("");
         try {
-            const response = await promptsService.getAllPromptsAdmin();
+            // Fetch first page to get total pages info
+            const firstResponse = await promptsService.getAllPromptsAdmin(0, 20);
             console.log("=== PROMPTS API DEBUG ===");
-            console.log("Full API Response:", response);
-            console.log("Response type:", typeof response);
-            console.log("Is Array?:", Array.isArray(response));
-            console.log("Has data?:", response?.data);
-            console.log("Has content?:", response?.content);
-            console.log("Has data.content?:", response?.data?.content);
+            console.log("First page response:", firstResponse);
 
-            let promptsData: Prompt[] = [];
+            let allPrompts: Prompt[] = [];
+            let totalPages = 1;
 
-            // Handle different response structures
-            if (Array.isArray(response)) {
-                console.log("✅ Using: Direct array");
-                promptsData = response;
-            } else if (response && response.data) {
-                if (Array.isArray(response.data.content)) {
-                    console.log("✅ Using: response.data.content");
-                    promptsData = response.data.content;
-                } else if (Array.isArray(response.data)) {
-                    console.log("✅ Using: response.data");
-                    promptsData = response.data;
+            // Extract first page data and total pages
+            if (firstResponse && firstResponse.data) {
+                if (Array.isArray(firstResponse.data.content)) {
+                    allPrompts = [...firstResponse.data.content];
+                    totalPages = firstResponse.data.totalPages || 1;
+                    console.log(`✅ Found ${allPrompts.length} prompts on page 1 of ${totalPages}`);
                 }
-            } else if (response && Array.isArray(response.content)) {
-                console.log("✅ Using: response.content");
-                promptsData = response.content;
             }
 
-            console.log("Extracted prompts count:", promptsData.length);
-            console.log("First prompt:", promptsData[0]);
-            setPrompts(promptsData);
+            // Fetch remaining pages if there are more
+            if (totalPages > 1) {
+                console.log(`📥 Fetching ${totalPages - 1} more pages...`);
+                const pagePromises = [];
 
-            if (promptsData.length > 0) {
-                toast.success(`Đã tải ${promptsData.length} prompts`);
+                for (let page = 1; page < totalPages; page++) {
+                    pagePromises.push(promptsService.getAllPromptsAdmin(page, 20));
+                }
+
+                const remainingResponses = await Promise.all(pagePromises);
+
+                remainingResponses.forEach((response, index) => {
+                    if (response?.data?.content && Array.isArray(response.data.content)) {
+                        allPrompts = [...allPrompts, ...response.data.content];
+                        console.log(`✅ Loaded page ${index + 2}: +${response.data.content.length} prompts`);
+                    }
+                });
             }
-        } catch (err: any) {
+
+            console.log(`✅ Total prompts loaded: ${allPrompts.length}`);
+            setPrompts(allPrompts);
+
+            if (allPrompts.length > 0) {
+                toast.success(`Đã tải ${allPrompts.length} prompts`);
+            }
+        } catch (err: unknown) {
             console.error("❌ Error fetching prompts:", err);
             console.error("Error response:", err.response);
             const errorMsg = err.response?.status === 403
@@ -447,7 +454,7 @@ export default function PromptsManagementPage() {
                             <p className="text-gray-700 text-lg">
                                 Bạn có chắc chắn muốn xóa prompt{" "}
                                 <span className="font-bold text-gray-900">
-                                    "{promptToDelete.title}"
+                                    &quot;{promptToDelete.title}&quot;
                                 </span>?
                             </p>
                             <p className="text-gray-500 mt-2">Hành động này không thể hoàn tác.</p>

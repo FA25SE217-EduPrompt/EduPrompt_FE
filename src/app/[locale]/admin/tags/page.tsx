@@ -65,7 +65,7 @@ export default function TagsManagementPage() {
             } else {
                 toast.warning("Không tìm thấy tags");
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Failed to fetch tags:", err);
             setError(err.message || "Không thể tải danh sách tags. Vui lòng thử lại.");
             toast.error("Không thể tải tags");
@@ -159,7 +159,7 @@ export default function TagsManagementPage() {
                 setShowEditModal(false);
             }
             setFormData({ type: "", value: "" });
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Failed to save tag:", err);
             toast.error(err.response?.data?.message || "Không thể lưu tag. Vui lòng thử lại.");
         } finally {
@@ -393,7 +393,7 @@ export default function TagsManagementPage() {
                             <p className="text-gray-700 text-lg">
                                 Bạn có chắc chắn muốn xóa tag{" "}
                                 <span className="font-bold text-gray-900">
-                                    "{tagToDelete.value}" ({tagToDelete.type})
+                                    &quot;{tagToDelete.value}&quot; ({tagToDelete.type})
                                 </span>?
                             </p>
                             <p className="text-gray-500 mt-2">Hành động này không thể hoàn tác.</p>

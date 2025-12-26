@@ -2,8 +2,8 @@ import { apiClient } from '@/services/auth';
 import { Collection, CollectionsResponse, CreateCollectionRequest, UpdateCollectionRequest } from '@/types/collection.types';
 
 // Get all collections (admin)
-export async function getAllCollections(): Promise<any> {
-    const response = await apiClient.get('/api/v1/admin/collections?page=0&size=20');
+export async function getAllCollections(page: number = 0, size: number = 20): Promise<unknown> {
+    const response = await apiClient.get(`/api/v1/admin/collections?page=${page}&size=${size}`);
     return response.data;
 }
 

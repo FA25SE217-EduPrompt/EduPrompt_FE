@@ -59,7 +59,7 @@ export default function GroupsManagementPage() {
             if (groupsData.length > 0) {
                 toast.success(`Đã tải ${groupsData.length} nhóm`);
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("❌ Error fetching groups:", err);
             const errorMsg = err.response?.status === 403
                 ? "Bạn không có quyền truy cập. Vui lòng đăng nhập với tài khoản ADMIN."
@@ -405,7 +405,7 @@ export default function GroupsManagementPage() {
                             <p className="text-gray-700 text-lg">
                                 Bạn có chắc chắn muốn xóa nhóm{" "}
                                 <span className="font-bold text-gray-900">
-                                    "{groupToDelete.name}"
+                                    &quot;{groupToDelete.name}&quot;
                                 </span>?
                             </p>
                             <p className="text-gray-500 mt-2">Hành động này không thể hoàn tác.</p>

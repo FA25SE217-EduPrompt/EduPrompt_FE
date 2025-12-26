@@ -456,10 +456,10 @@ export const promptsService = {
 
     // ========== ADMIN FUNCTIONS ==========
     // Get all prompts (admin only)
-    async getAllPromptsAdmin(page = 0, size = 20, opts?: ApiRequestOptions): Promise<any> {
-        return ApiCall<any>(() =>
+    async getAllPromptsAdmin(page = 0, size = 20, opts?: ApiRequestOptions): Promise<unknown> {
+        return ApiCall<unknown>(() =>
             apiClient.request({
-                url: `/api/v1/admin/prompts?page=${page}&size=${size}`,
+                url: `/api/v1/admin/prompts?page=${page}&size=20`,
                 method: 'get',
                 ...buildRequestConfig(opts),
             })
