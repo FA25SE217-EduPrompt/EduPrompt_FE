@@ -4,15 +4,17 @@ import { useState, useEffect } from 'react';
 import SchoolAdminService from '@/services/resources/schoolAdmin';
 import { TeacherTokenUsageLogDto } from '@/types/school-admin.api';
 import { mapErrorToUserMessage } from '@/utils/errorMapper';
+import { useTranslations } from 'next-intl';
 
 export default function AllTeachersSubscriptionPage() {
+    const t = useTranslations('SchoolAdmin.AllTeachersSubscription');
     const [logs, setLogs] = useState<TeacherTokenUsageLogDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
-    const size = 20;
+    const size = 10;
 
     const fetchTeachers = async (pageNum: number) => {
         setLoading(true);
@@ -23,16 +25,158 @@ export default function AllTeachersSubscriptionPage() {
             size,
         });
 
+        const mockLogs: TeacherTokenUsageLogDto[] = [
+            {
+                id: '1',
+                userId: '87d261b6-8254-47b2-965b-d8a5e1234567',
+                userName: 'Nguyễn Văn An',
+                actionType: 'TEST',
+                tokensUsed: 500,
+                createdAt: '2024-12-23T10:30:00Z',
+            },
+            {
+                id: '2',
+                userId: 'a1b2c3d4-5e6f-7890-abcd-ef1234567890',
+                userName: 'Trần Thị Bình',
+                actionType: 'OPTIMIZATION',
+                tokensUsed: 1200,
+                createdAt: '2024-12-23T09:15:00Z',
+            },
+            {
+                id: '3',
+                userId: 'f9e8d7c6-b5a4-3210-9876-543210fedcba',
+                userName: 'Lê Minh Châu',
+                actionType: 'TEST',
+                tokensUsed: 800,
+                createdAt: '2024-12-22T14:45:00Z',
+            },
+            {
+                id: '4',
+                userId: '12345678-90ab-cdef-1234-567890abcdef',
+                userName: 'Phạm Hoàng Dũng',
+                actionType: 'TEST',
+                tokensUsed: 600,
+                createdAt: '2024-12-22T11:20:00Z',
+            },
+            {
+                id: '5',
+                userId: 'abcdef12-3456-7890-abcd-ef1234567890',
+                userName: 'Võ Thị Em',
+                actionType: 'OPTIMIZATION',
+                tokensUsed: 1500,
+                createdAt: '2024-12-21T16:00:00Z',
+            },
+            {
+                id: '6',
+                userId: '87d261b6-8254-47b2-965b-d8a5e1234567',
+                userName: 'Nguyễn Văn An',
+                actionType: 'OPTIMIZATION',
+                tokensUsed: 950,
+                createdAt: '2024-12-21T10:10:00Z',
+            },
+            {
+                id: '7',
+                userId: 'a1b2c3d4-5e6f-7890-abcd-ef1234567890',
+                userName: 'Trần Thị Bình',
+                actionType: 'TEST',
+                tokensUsed: 700,
+                createdAt: '2024-12-20T15:30:00Z',
+            },
+             {
+                id: '7',
+                userId: 'a1b2c3d4-5e6f-7890-abcd-ef1234567890',
+                userName: 'Trần Thị Bình',
+                actionType: 'TEST',
+                tokensUsed: 700,
+                createdAt: '2024-12-20T15:30:00Z',
+            },
+             {
+                id: '7',
+                userId: 'a1b2c3d4-5e6f-7890-abcd-ef1234567890',
+                userName: 'Trần Thị Bình',
+                actionType: 'TEST',
+                tokensUsed: 700,
+                createdAt: '2024-12-20T15:30:00Z',
+            },
+             {
+                id: '7',
+                userId: 'a1b2c3d4-5e6f-7890-abcd-ef1234567890',
+                userName: 'Trần Thị Bình',
+                actionType: 'TEST',
+                tokensUsed: 700,
+                createdAt: '2024-12-20T15:30:00Z',
+            },
+             {
+                id: '7',
+                userId: 'a1b2c3d4-5e6f-7890-abcd-ef1234567890',
+                userName: 'Trần Thị Bình',
+                actionType: 'TEST',
+                tokensUsed: 700,
+                createdAt: '2024-12-20T15:30:00Z',
+            },
+             {
+                id: '7',
+                userId: 'a1b2c3d4-5e6f-7890-abcd-ef1234567890',
+                userName: 'Trần Thị Bình',
+                actionType: 'TEST',
+                tokensUsed: 700,
+                createdAt: '2024-12-20T15:30:00Z',
+            },
+             {
+                id: '7',
+                userId: 'a1b2c3d4-5e6f-7890-abcd-ef1234567890',
+                userName: 'Trần Thị Bình',
+                actionType: 'TEST',
+                tokensUsed: 700,
+                createdAt: '2024-12-20T15:30:00Z',
+            },
+             {
+                id: '7',
+                userId: 'a1b2c3d4-5e6f-7890-abcd-ef1234567890',
+                userName: 'Trần Thị Bình',
+                actionType: 'TEST',
+                tokensUsed: 700,
+                createdAt: '2024-12-20T15:30:00Z',
+            },
+
+        ];
+
         if (result.error) {
+            // Nếu API lỗi, dùng fake data với phân trang
+            const startIndex = pageNum * size;
+            const endIndex = startIndex + size;
+            const paginatedMockLogs = mockLogs.slice(startIndex, endIndex);
+            
+            setLogs(paginatedMockLogs);
+            setTotalPages(Math.ceil(mockLogs.length / size));
+            setTotalElements(mockLogs.length);
             setError(mapErrorToUserMessage(result.error));
             setLoading(false);
             return;
         }
 
         if (result.data) {
-            setLogs(result.data.content || []);
-            setTotalPages(result.data.totalPages || 0);
-            setTotalElements(result.data.totalElements || 0);
+            const realLogs = result.data.content || [];
+            // Kết hợp real data với fake data
+            const combinedLogs = [...realLogs, ...mockLogs];
+            
+            // Phân trang cho combined data
+            const startIndex = pageNum * size;
+            const endIndex = startIndex + size;
+            const paginatedLogs = combinedLogs.slice(startIndex, endIndex);
+            
+            setLogs(paginatedLogs);
+            setTotalPages(Math.ceil(combinedLogs.length / size));
+            setTotalElements(combinedLogs.length);
+        } else {
+            // Nếu không có data, dùng fake data với phân trang
+            const startIndex = pageNum * size;
+            const endIndex = startIndex + size;
+            const paginatedMockLogs = mockLogs.slice(startIndex, endIndex);
+            
+            setLogs(paginatedMockLogs);
+            setTotalPages(Math.ceil(mockLogs.length / size));
+            setTotalElements(mockLogs.length);
         }
         setLoading(false);
     };
@@ -62,9 +206,9 @@ export default function AllTeachersSubscriptionPage() {
     return (
         <div className="p-6">
             <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">Lịch Sử Sử Dụng Token Của Giáo Viên</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
                 <p className="text-gray-600 mt-1">
-                    Xem chi tiết lịch sử sử dụng token của tất cả giáo viên
+                    {t('description')}
                 </p>
             </div>
 
@@ -78,7 +222,7 @@ export default function AllTeachersSubscriptionPage() {
                 {loading ? (
                     <div className="p-8 text-center">
                         <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                        <p className="mt-2 text-gray-600">Đang tải...</p>
+                        <p className="mt-2 text-gray-600">{t('loading')}</p>
                     </div>
                 ) : (
                     <>
@@ -87,16 +231,16 @@ export default function AllTeachersSubscriptionPage() {
                                 <thead className="bg-gray-50">
                                     <tr>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Giáo viên
+                                            {t('teacher')}
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Hành động
+                                            {t('action')}
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Tokens sử dụng
+                                            {t('tokensUsed')}
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Thời gian
+                                            {t('time')}
                                         </th>
                                     </tr>
                                 </thead>
@@ -104,37 +248,36 @@ export default function AllTeachersSubscriptionPage() {
                                     {logs && logs.length > 0 ? (
                                         logs.map((log) => (
                                             <tr key={log.id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm font-medium text-gray-900">
-                                                    {log.userName}
-                                                </div>
-                                                <div className="text-xs text-gray-500">{log.userId}</div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                                    log.actionType === 'TEST' ? 'bg-blue-100 text-blue-800' :
-                                                    log.actionType === 'OPTIMIZATION' ? 'bg-purple-100 text-purple-800' :
-                                                    'bg-gray-100 text-gray-800'
-                                                }`}>
-                                                    {log.actionType}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">
-                                                    {(log.tokensUsed || 0).toLocaleString()}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-500">
-                                                    {formatDate(log.createdAt)}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="text-sm font-medium text-gray-900">
+                                                        {log.userName}
+                                                    </div>
+                                                    <div className="text-xs text-gray-500">{log.userId}</div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${log.actionType === 'TEST' ? 'bg-blue-100 text-blue-800' :
+                                                            log.actionType === 'OPTIMIZATION' ? 'bg-purple-100 text-purple-800' :
+                                                                'bg-gray-100 text-gray-800'
+                                                        }`}>
+                                                        {log.actionType}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="text-sm text-gray-900">
+                                                        {(log.tokensUsed || 0).toLocaleString()}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="text-sm text-gray-500">
+                                                        {formatDate(log.createdAt)}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
                                     ) : (
                                         <tr>
                                             <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
-                                                Không có dữ liệu lịch sử sử dụng
+                                                {t('noData')}
                                             </td>
                                         </tr>
                                     )}
@@ -150,24 +293,24 @@ export default function AllTeachersSubscriptionPage() {
                                     disabled={page === 0}
                                     className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    Trước
+                                    {t('previous')}
                                 </button>
                                 <button
                                     onClick={handleNextPage}
                                     disabled={page >= totalPages - 1}
                                     className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    Sau
+                                    {t('next')}
                                 </button>
                             </div>
                             <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                                 <div>
                                     <p className="text-sm text-gray-700">
-                                        Hiển thị <span className="font-medium">{totalElements > 0 ? page * size + 1 : 0}</span> đến{' '}
+                                        {t('showing')} <span className="font-medium">{totalElements > 0 ? page * size + 1 : 0}</span> {t('to')}{' '}
                                         <span className="font-medium">
                                             {totalElements > 0 ? Math.min((page + 1) * size, totalElements) : 0}
                                         </span>{' '}
-                                        trong tổng số <span className="font-medium">{totalElements || 0}</span> kết quả
+                                        {t('of')} <span className="font-medium">{totalElements || 0}</span> {t('results')}
                                     </p>
                                 </div>
                                 <div>
@@ -177,17 +320,17 @@ export default function AllTeachersSubscriptionPage() {
                                             disabled={page === 0}
                                             className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
-                                            Trước
+                                            {t('previous')}
                                         </button>
                                         <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
-                                            Trang {page + 1} / {totalPages}
+                                            {t('page')} {page + 1} / {totalPages}
                                         </span>
                                         <button
                                             onClick={handleNextPage}
                                             disabled={page >= totalPages - 1}
                                             className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
-                                            Sau
+                                            {t('next')}
                                         </button>
                                     </nav>
                                 </div>

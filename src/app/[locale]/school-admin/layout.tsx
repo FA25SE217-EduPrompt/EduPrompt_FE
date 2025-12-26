@@ -92,7 +92,7 @@ export default function SchoolAdminLayout({
                     />
                     <NavItem
                         icon={<ChartBarIcon className="h-5 w-5" />}
-                        label="Thống kê giáo viên"
+                        label={t('teachersUsage')}
                         href="/school-admin/teachers-usage"
                     />
                     <NavItem
@@ -102,12 +102,12 @@ export default function SchoolAdminLayout({
                     />
                     <NavItem
                         icon={<ClipboardDocumentListIcon className="h-5 w-5" />}
-                        label="Mức sử dụng gói"
+                        label={t('subscriptionUsage')}
                         href="/school-admin/subscription-usage"
                     />
                     <NavItem
                         icon={<UsersIcon className="h-5 w-5" />}
-                        label="Gói của giáo viên"
+                        label={t('allTeachersSubscription')}
                         href="/school-admin/all-teachers-subscription"
                     />
                     <NavItem

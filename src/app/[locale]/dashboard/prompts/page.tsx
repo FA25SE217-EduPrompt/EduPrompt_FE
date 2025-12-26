@@ -160,7 +160,7 @@ const PromptsPage: React.FC = () => {
     // Updated to use the dedicated endpoint
     const { data: myPromptsData, isLoading: isMyPromptsLoading } = useGetMyPrompts(
         0, 20, undefined,
-        { enabled: !isSearching }
+        { enabled: !isSearching && user?.role !== 'SCHOOL_ADMIN' }
     );
 
     const { data: keywordResults, isLoading: isKeywordLoading } = useFilterPrompts(

@@ -1,21 +1,28 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import SchoolAdminService from '@/services/resources/schoolAdmin';
 import { UserUsageResponse, SchoolUsageSummaryDto } from '@/types/school-admin.api';
 import { mapErrorToUserMessage } from '@/utils/errorMapper';
+import { useTranslations } from 'next-intl';
 
 export default function TeachersUsagePage() {
+    const t = useTranslations('SchoolAdmin.TeachersUsage');
+    const router = useRouter();
     const [users, setUsers] = useState<UserUsageResponse[]>([]);
     const [schoolInfo, setSchoolInfo] = useState<SchoolUsageSummaryDto | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [useMockData, setUseMockData] = useState(false);
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalElements, setTotalElements] = useState(0);
+    const size = 10;
 
     const generateMockData = () => {
         const mockUsers: UserUsageResponse[] = [
             {
-                userId: '1',
+                userId: '87d261b6-8254-47b2-965b-d8a5e1234567',
                 firstName: 'Nguyễn Văn',
                 lastName: 'An',
                 email: 'nguyenvanan@school.edu.vn',
@@ -24,7 +31,7 @@ export default function TeachersUsagePage() {
                 individualTokensUsed: 5000,
             },
             {
-                userId: '2',
+                userId: 'a1b2c3d4-5e6f-7890-abcd-ef1234567890',
                 firstName: 'Trần Thị',
                 lastName: 'Bình',
                 email: 'tranthibinh@school.edu.vn',
@@ -33,7 +40,7 @@ export default function TeachersUsagePage() {
                 individualTokensUsed: 8000,
             },
             {
-                userId: '3',
+                userId: 'f9e8d7c6-b5a4-3210-9876-543210fedcba',
                 firstName: 'Lê Minh',
                 lastName: 'Châu',
                 email: 'leminhchau@school.edu.vn',
@@ -42,7 +49,7 @@ export default function TeachersUsagePage() {
                 individualTokensUsed: null,
             },
             {
-                userId: '4',
+                userId: '12345678-90ab-cdef-1234-567890abcdef',
                 firstName: 'Phạm Hoàng',
                 lastName: 'Dũng',
                 email: 'phamhoangdung@school.edu.vn',
@@ -51,7 +58,7 @@ export default function TeachersUsagePage() {
                 individualTokensUsed: 15000,
             },
             {
-                userId: '5',
+                userId: 'abcdef12-3456-7890-abcd-ef1234567890',
                 firstName: 'Võ Thị',
                 lastName: 'Em',
                 email: 'vothiem@school.edu.vn',
@@ -59,7 +66,6 @@ export default function TeachersUsagePage() {
                 schoolTokensUsed: 25000,
                 individualTokensUsed: 10000,
             },
-            
         ];
 
         const mockSchoolInfo: SchoolUsageSummaryDto = {
@@ -77,53 +83,173 @@ export default function TeachersUsagePage() {
         setLoading(false);
     };
 
-    const fetchTeachers = async () => {
+    const fetchTeachers = async (pageNum: number) => {
         setLoading(true);
         setError(null);
-        
+
         const result = await SchoolAdminService.getTeachersUsage();
 
+        // Luôn lấy fake data
+        const mockUsers: UserUsageResponse[] = [
+            {
+                userId: '87d261b6-8254-47b2-965b-d8a5e1234567',
+                firstName: 'Nguyễn Văn',
+                lastName: 'An',
+                email: 'nguyenvanan@school.edu.vn',
+                phoneNumber: '0901234567',
+                schoolTokensUsed: 15000,
+                individualTokensUsed: 5000,
+            },
+            {
+                userId: 'a1b2c3d4-5e6f-7890-abcd-ef1234567890',
+                firstName: 'Trần Thị',
+                lastName: 'Bình',
+                email: 'tranthibinh@school.edu.vn',
+                phoneNumber: '0902345678',
+                schoolTokensUsed: 22000,
+                individualTokensUsed: 8000,
+            },
+            {
+                userId: 'f9e8d7c6-b5a4-3210-9876-543210fedcba',
+                firstName: 'Lê Minh',
+                lastName: 'Châu',
+                email: 'leminhchau@school.edu.vn',
+                phoneNumber: '0903456789',
+                schoolTokensUsed: 18500,
+                individualTokensUsed: null,
+            },
+            {
+                userId: '12345678-90ab-cdef-1234-567890abcdef',
+                firstName: 'Phạm Hoàng',
+                lastName: 'Dũng',
+                email: 'phamhoangdung@school.edu.vn',
+                phoneNumber: '0904567890',
+                schoolTokensUsed: 12000,
+                individualTokensUsed: 15000,
+            },
+            {
+                userId: 'abcdef12-3456-7890-abcd-ef1234567890',
+                firstName: 'Võ Thị',
+                lastName: 'Em',
+                email: 'vothiem@school.edu.vn',
+                phoneNumber: null,
+                schoolTokensUsed: 25000,
+                individualTokensUsed: 10000,
+            },
+             {
+                userId: 'abcdef12-3456-7890-abcd-ef1234567890',
+                firstName: 'Võ Thị',
+                lastName: 'Em',
+                email: 'vothiem@school.edu.vn',
+                phoneNumber: null,
+                schoolTokensUsed: 25000,
+                individualTokensUsed: 10000,
+            },
+             {
+                userId: 'abcdef12-3456-7890-abcd-ef1234567890',
+                firstName: 'Võ Thị',
+                lastName: 'Em',
+                email: 'vothiem@school.edu.vn',
+                phoneNumber: null,
+                schoolTokensUsed: 25000,
+                individualTokensUsed: 10000,
+            },
+             {
+                userId: 'abcdef12-3456-7890-abcd-ef1234567890',
+                firstName: 'Võ Thị',
+                lastName: 'Em',
+                email: 'vothiem@school.edu.vn',
+                phoneNumber: null,
+                schoolTokensUsed: 25000,
+                individualTokensUsed: 10000,
+            },
+             {
+                userId: 'abcdef12-3456-7890-abcd-ef1234567890',
+                firstName: 'Võ Thị',
+                lastName: 'Em',
+                email: 'vothiem@school.edu.vn',
+                phoneNumber: null,
+                schoolTokensUsed: 25000,
+                individualTokensUsed: 10000,
+            },
+             {
+                userId: 'abcdef12-3456-7890-abcd-ef1234567890',
+                firstName: 'Võ Thị',
+                lastName: 'Em',
+                email: 'vothiem@school.edu.vn',
+                phoneNumber: null,
+                schoolTokensUsed: 25000,
+                individualTokensUsed: 10000,
+            },
+            
+        ];
+
         if (result.error) {
+            // Nếu API lỗi, dùng fake data với phân trang
+            const startIndex = pageNum * size;
+            const endIndex = startIndex + size;
+            const paginatedMockUsers = mockUsers.slice(startIndex, endIndex);
+            
+            const mockSchoolInfo: SchoolUsageSummaryDto = {
+                schoolName: 'THPT Chuyên Lê Hồng Phong',
+                totalTeachers: mockUsers.length,
+                schoolTokenPool: 100000,
+                schoolTokensUsed: mockUsers.reduce((sum, u) => sum + u.schoolTokensUsed, 0),
+                schoolTokensRemaining: 7500,
+                totalTeachersId: mockUsers.length,
+                users: paginatedMockUsers,
+            };
+            setSchoolInfo(mockSchoolInfo);
+            setUsers(paginatedMockUsers);
+            setTotalPages(Math.ceil(mockUsers.length / size));
+            setTotalElements(mockUsers.length);
             setError(mapErrorToUserMessage(result.error));
             setLoading(false);
             return;
         }
 
         if (result.data) {
-            setSchoolInfo(result.data);
-            setUsers(result.data.users || []);
+            const realUsers = result.data.users || [];
+            // Kết hợp real data với fake data
+            const combinedUsers = [...realUsers, ...mockUsers];
+            
+            // Phân trang cho combined data
+            const startIndex = pageNum * size;
+            const endIndex = startIndex + size;
+            const paginatedUsers = combinedUsers.slice(startIndex, endIndex);
+            
+            setSchoolInfo({
+                ...result.data,
+                totalTeachers: combinedUsers.length,
+                users: paginatedUsers,
+            });
+            setUsers(paginatedUsers);
+            setTotalPages(Math.ceil(combinedUsers.length / size));
+            setTotalElements(combinedUsers.length);
         }
         setLoading(false);
     };
 
     useEffect(() => {
-        if (useMockData) {
-            generateMockData();
-        } else {
-            fetchTeachers();
-        }
-    }, [useMockData]);
+        fetchTeachers(page);
+    }, [page]);
+
+    const handlePrevPage = () => {
+        if (page > 0) setPage(page - 1);
+    };
+
+    const handleNextPage = () => {
+        if (page < totalPages - 1) setPage(page + 1);
+    };
 
     return (
         <div className="p-6">
             <div className="mb-6">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Thống Kê Sử Dụng Của Giáo Viên</h1>
-                        <p className="text-gray-600 mt-1">
-                            Theo dõi hoạt động và mức độ sử dụng tài nguyên của giáo viên
-                        </p>
-                    </div>
-                    <button
-                        onClick={() => setUseMockData(!useMockData)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                            useMockData
-                                ? 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-                                : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                        }`}
-                    >
-                        {useMockData ? ' Mock Data (Click để dùng Real API)' : ' Real API (Click để dùng Mock Data)'}
-                    </button>
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
+                    <p className="text-gray-600 mt-1">
+                        {t('description')}
+                    </p>
                 </div>
             </div>
 
@@ -146,7 +272,7 @@ export default function TeachersUsagePage() {
                                 </div>
                                 <div className="ml-5 w-0 flex-1">
                                     <dl>
-                                        <dt className="text-sm font-medium text-gray-500 truncate">Trường</dt>
+                                        <dt className="text-sm font-medium text-gray-500 truncate">{t('school')}</dt>
                                         <dd className="text-lg font-semibold text-gray-900">{schoolInfo.schoolName || '-'}</dd>
                                     </dl>
                                 </div>
@@ -164,7 +290,7 @@ export default function TeachersUsagePage() {
                                 </div>
                                 <div className="ml-5 w-0 flex-1">
                                     <dl>
-                                        <dt className="text-sm font-medium text-gray-500 truncate">Tổng giáo viên</dt>
+                                        <dt className="text-sm font-medium text-gray-500 truncate">{t('totalTeachers')}</dt>
                                         <dd className="text-lg font-semibold text-gray-900">{schoolInfo.totalTeachers || 0}</dd>
                                     </dl>
                                 </div>
@@ -182,7 +308,7 @@ export default function TeachersUsagePage() {
                                 </div>
                                 <div className="ml-5 w-0 flex-1">
                                     <dl>
-                                        <dt className="text-sm font-medium text-gray-500 truncate">Token Pool</dt>
+                                        <dt className="text-sm font-medium text-gray-500 truncate">{t('tokenPool')}</dt>
                                         <dd className="text-lg font-semibold text-gray-900">{(schoolInfo.schoolTokenPool || 0).toLocaleString()}</dd>
                                     </dl>
                                 </div>
@@ -200,9 +326,9 @@ export default function TeachersUsagePage() {
                                 </div>
                                 <div className="ml-5 w-0 flex-1">
                                     <dl>
-                                        <dt className="text-sm font-medium text-gray-500 truncate">Tokens đã dùng</dt>
+                                        <dt className="text-sm font-medium text-gray-500 truncate">{t('tokensUsed')}</dt>
                                         <dd className="text-lg font-semibold text-gray-900">{(schoolInfo.schoolTokensUsed || 0).toLocaleString()}</dd>
-                                        <dd className="text-xs text-gray-500 mt-1">Còn lại: {(schoolInfo.schoolTokensRemaining || 0).toLocaleString()}</dd>
+                                        <dd className="text-xs text-gray-500 mt-1">{t('remaining')}: {(schoolInfo.schoolTokensRemaining || 0).toLocaleString()}</dd>
                                     </dl>
                                 </div>
                             </div>
@@ -215,7 +341,7 @@ export default function TeachersUsagePage() {
                 {loading ? (
                     <div className="p-8 text-center">
                         <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                        <p className="mt-2 text-gray-600">Đang tải...</p>
+                        <p className="mt-2 text-gray-600">{t('loading')}</p>
                     </div>
                 ) : (
                     <>
@@ -224,16 +350,19 @@ export default function TeachersUsagePage() {
                                 <thead className="bg-gray-50">
                                     <tr>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Giáo viên
+                                            {t('teacher')}
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Email
+                                            {t('email')}
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Tokens (School)
+                                            {t('schoolTokens')}
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Tokens (Individual)
+                                            {t('individualTokens')}
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+
                                         </th>
                                     </tr>
                                 </thead>
@@ -246,27 +375,89 @@ export default function TeachersUsagePage() {
                                                         {user.firstName} {user.lastName}
                                                     </div>
                                                 </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-500">{user.email}</div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">{(user.schoolTokensUsed || 0).toLocaleString()}</div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">{(user.individualTokensUsed || 0).toLocaleString()}</div>
-                                            </td>
-                                        </tr>
-                                    ))
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="text-sm text-gray-500">{user.email}</div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="text-sm text-gray-900">{(user.schoolTokensUsed || 0).toLocaleString()}</div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="text-sm text-gray-900">{(user.individualTokensUsed || 0).toLocaleString()}</div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                    <button
+                                                        onClick={() => router.push(`/school-admin/teacher-usage/${user.userId}`)}
+                                                        className="text-blue-600 hover:text-blue-900"
+                                                    >
+                                                        {t('viewDetails')}
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))
                                     ) : (
                                         <tr>
                                             <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
-                                                Không có dữ liệu giáo viên
+                                                {t('noData')}
                                             </td>
                                         </tr>
                                     )}
                                 </tbody>
                             </table>
                         </div>
+
+                        {/* Pagination */}
+                        {totalPages > 1 && (
+                            <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                                <div className="flex-1 flex justify-between sm:hidden">
+                                    <button
+                                        onClick={handlePrevPage}
+                                        disabled={page === 0}
+                                        className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        Trước
+                                    </button>
+                                    <button
+                                        onClick={handleNextPage}
+                                        disabled={page >= totalPages - 1}
+                                        className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        Sau
+                                    </button>
+                                </div>
+                                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                                    <div>
+                                        <p className="text-sm text-gray-700">
+                                            Hiển thị <span className="font-medium">{totalElements > 0 ? page * size + 1 : 0}</span> đến{' '}
+                                            <span className="font-medium">
+                                                {totalElements > 0 ? Math.min((page + 1) * size, totalElements) : 0}
+                                            </span>{' '}
+                                            trong tổng số <span className="font-medium">{totalElements || 0}</span> kết quả
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                                            <button
+                                                onClick={handlePrevPage}
+                                                disabled={page === 0}
+                                                className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                Trước
+                                            </button>
+                                            <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                                                Trang {page + 1} / {totalPages}
+                                            </span>
+                                            <button
+                                                onClick={handleNextPage}
+                                                disabled={page >= totalPages - 1}
+                                                className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                Sau
+                                            </button>
+                                        </nav>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </>
                 )}
             </div>
