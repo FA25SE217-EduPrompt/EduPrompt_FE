@@ -23,80 +23,53 @@ export default function UsersManagementPage() {
     const [statusFilter, setStatusFilter] = useState("ALL");
     const [roleFilter, setRoleFilter] = useState("ALL");
     const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [userToDelete, setUserToDelete] = useState<User | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const usersPerPage = 10;
 
-    // Fetch users from API
-    const fetchUsers = async () => {
+    // Fetch users from API (server-side pagination)
+    const fetchUsers = async (page = 0) => {
         setLoading(true);
         setError("");
         try {
-            // Fetch first page to get total pages info
-            const firstResponse = await getAllUsers(0, 20);
+            const response = await getAllUsers(page, usersPerPage);
             console.log("=== USERS API DEBUG ===");
-            console.log("First page response:", firstResponse);
+            console.log("API Response:", response);
 
-            let allUsers: User[] = [];
-            let totalPages = 1;
+            if (response && response.data && Array.isArray(response.data.content)) {
+                setUsers(response.data.content);
+                setTotalPages(response.data.totalPages || 0);
+                setTotalItems(response.data.totalElements || 0);
+                console.log(`✅ Loaded page ${page + 1}: ${response.data.content.length} users`);
 
-            // Extract first page data and total pages
-            if (firstResponse && firstResponse.data && Array.isArray(firstResponse.data.content)) {
-                allUsers = [...firstResponse.data.content];
-                totalPages = firstResponse.data.totalPages || 1;
-                console.log(`✅ Found ${allUsers.length} users on page 1 of ${totalPages}`);
-                console.log(`📊 Total elements in DB: ${firstResponse.data.totalElements}`);
-            } else if (Array.isArray(firstResponse)) {
-                allUsers = firstResponse;
-            } else if (firstResponse && Array.isArray(firstResponse.data)) {
-                allUsers = firstResponse.data;
-            } else {
-                console.error("Unexpected response structure:", firstResponse);
-                setError("Cấu trúc response không đúng.");
-            }
-
-            // Fetch remaining pages if there are more
-            if (totalPages > 1) {
-                console.log(`📥 Fetching ${totalPages - 1} more pages...`);
-                const pagePromises = [];
-
-                for (let page = 1; page < totalPages; page++) {
-                    pagePromises.push(getAllUsers(page, 20));
+                if (response.data.content.length > 0) {
+                    toast.success(`Đã tải trang ${page + 1} (${response.data.content.length} người dùng)`);
                 }
-
-                const remainingResponses = await Promise.all(pagePromises);
-
-                remainingResponses.forEach((response, index) => {
-                    if (response?.data?.content && Array.isArray(response.data.content)) {
-                        allUsers = [...allUsers, ...response.data.content];
-                        console.log(`✅ Loaded page ${index + 2}: +${response.data.content.length} users`);
-                    }
-                });
-            }
-
-            console.log(`✅ Total users loaded: ${allUsers.length}`);
-            setUsers(allUsers);
-
-            if (allUsers.length > 0) {
-                toast.success(`Đã tải ${allUsers.length} người dùng thành công`);
             } else {
-                toast.warning("Không tìm thấy người dùng");
+                console.error("Unexpected response structure:", response);
+                setUsers([]);
+                setTotalPages(0);
+                setTotalItems(0);
             }
         } catch (err: unknown) {
             console.error("Failed to fetch users:", err);
             console.error("Error details:", err.response?.data);
             setError(err.message || "Không thể tải danh sách người dùng. Vui lòng thử lại.");
             toast.error("Không thể tải người dùng");
-            setUsers([]); // Set empty array on error
+            setUsers([]);
+            setTotalPages(0);
+            setTotalItems(0);
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchUsers();
-    }, []);
+        fetchUsers(currentPage - 1);
+    }, [currentPage]);
 
     // Get user status from isActive and isVerified
     const getUserStatus = (user: User): string => {
@@ -120,7 +93,7 @@ export default function UsersManagementPage() {
         }
     };
 
-    // Filter users based on search query, status, and role
+    // Filter users based on search query, status, and role (client-side filtering on current page)
     const filteredUsers = users.filter(user => {
         // Hide SYSTEM_ADMIN users
         if (user.role === UserRole.SYSTEM_ADMIN) {
@@ -141,11 +114,8 @@ export default function UsersManagementPage() {
         return matchesSearch && matchesStatus && matchesRole;
     });
 
-    // Pagination
-    const indexOfLastUser = currentPage * usersPerPage;
-    const indexOfFirstUser = indexOfLastUser - usersPerPage;
-    const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
-    const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+    // Use filtered users for display
+    const currentUsers = filteredUsers;
 
     // Handle view user
     const handleViewUser = (user: User) => {
@@ -215,10 +185,10 @@ export default function UsersManagementPage() {
                 <div className="flex items-center gap-4">
                     <div className="text-right">
                         <p className="text-sm text-gray-500">Tổng Số Người Dùng</p>
-                        <p className="text-2xl font-bold text-blue-600">{filteredUsers.length}</p>
+                        <p className="text-2xl font-bold text-blue-600">{totalItems}</p>
                     </div>
                     <button
-                        onClick={fetchUsers}
+                        onClick={() => fetchUsers(currentPage - 1)}
                         className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all hover:scale-105"
                         title="Làm mới"
                     >
@@ -390,7 +360,7 @@ export default function UsersManagementPage() {
                 {totalPages > 1 && (
                     <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
                         <span className="text-sm text-gray-500">
-                            Hiển thị {indexOfFirstUser + 1} đến {Math.min(indexOfLastUser, filteredUsers.length)} trong tổng số {filteredUsers.length} người dùng
+                            Trang {currentPage} / {totalPages} - Tổng số {totalItems} người dùng
                         </span>
                         <div className="flex gap-2">
                             <button

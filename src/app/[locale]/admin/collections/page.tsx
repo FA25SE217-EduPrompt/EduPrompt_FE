@@ -25,40 +25,36 @@ export default function CollectionsManagementPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [visibilityFilter, setVisibilityFilter] = useState("ALL");
     const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
     const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
     const [collectionToDelete, setCollectionToDelete] = useState<Collection | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const collectionsPerPage = 10;
 
-    // Fetch collections from API
-    const fetchCollections = async () => {
+    // Fetch collections from API (server-side pagination)
+    const fetchCollections = async (page = 0) => {
         setLoading(true);
         setError("");
         try {
-            const response = await getAllCollections();
+            const response = await getAllCollections(page, collectionsPerPage);
             console.log("=== COLLECTIONS API DEBUG ===");
             console.log("Full API Response:", response);
 
-            let collectionsData: Collection[] = [];
+            if (response && response.data && Array.isArray(response.data.content)) {
+                setCollections(response.data.content);
+                setTotalPages(response.data.totalPages || 0);
+                setTotalItems(response.data.totalElements || 0);
+                console.log(`✅ Loaded page ${page + 1}: ${response.data.content.length} collections`);
 
-            // Handle different response structures
-            if (Array.isArray(response)) {
-                collectionsData = response;
-            } else if (response && response.data) {
-                if (Array.isArray(response.data.content)) {
-                    collectionsData = response.data.content;
-                } else if (Array.isArray(response.data)) {
-                    collectionsData = response.data;
+                if (response.data.content.length > 0) {
+                    toast.success(`Đã tải trang ${page + 1} (${response.data.content.length} bộ sưu tập)`);
                 }
-            } else if (response && Array.isArray(response.content)) {
-                collectionsData = response.content;
-            }
-
-            console.log("Extracted collections count:", collectionsData.length);
-            setCollections(collectionsData);
-
-            if (collectionsData.length > 0) {
-                toast.success(`Đã tải ${collectionsData.length} bộ sưu tập`);
+            } else {
+                console.error("Unexpected response structure:", response);
+                setCollections([]);
+                setTotalPages(0);
+                setTotalItems(0);
             }
         } catch (err: unknown) {
             console.error("❌ Error fetching collections:", err);
@@ -68,16 +64,18 @@ export default function CollectionsManagementPage() {
             setError(errorMsg);
             toast.error(errorMsg);
             setCollections([]);
+            setTotalPages(0);
+            setTotalItems(0);
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchCollections();
-    }, []);
+        fetchCollections(currentPage - 1);
+    }, [currentPage]);
 
-    // Filter collections
+    // Filter collections (client-side filtering on current page)
     const filteredCollections = collections.filter(collection => {
         const query = searchQuery.toLowerCase();
         const matchesSearch =
@@ -89,11 +87,8 @@ export default function CollectionsManagementPage() {
         return matchesSearch && matchesVisibility;
     });
 
-    // Pagination
-    const indexOfLastCollection = currentPage * collectionsPerPage;
-    const indexOfFirstCollection = indexOfLastCollection - collectionsPerPage;
-    const currentCollections = filteredCollections.slice(indexOfFirstCollection, indexOfLastCollection);
-    const totalPages = Math.ceil(filteredCollections.length / collectionsPerPage);
+    // Use filtered collections for display
+    const currentCollections = filteredCollections;
 
     // Handle view collection
     const handleViewCollection = (collection: Collection) => {
@@ -175,10 +170,10 @@ export default function CollectionsManagementPage() {
                 <div className="flex items-center gap-4">
                     <div className="text-right">
                         <p className="text-sm text-gray-500">Tổng Số Bộ Sưu Tập</p>
-                        <p className="text-2xl font-bold text-blue-600">{filteredCollections.length}</p>
+                        <p className="text-2xl font-bold text-blue-600">{totalItems}</p>
                     </div>
                     <button
-                        onClick={fetchCollections}
+                        onClick={() => fetchCollections(currentPage - 1)}
                         className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all hover:scale-105"
                         title="Làm mới"
                     >
@@ -349,7 +344,7 @@ export default function CollectionsManagementPage() {
                 {totalPages > 1 && (
                     <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
                         <span className="text-sm text-gray-500">
-                            Hiển thị {indexOfFirstCollection + 1} đến {Math.min(indexOfLastCollection, filteredCollections.length)} trong tổng số {filteredCollections.length} bộ sưu tập
+                            Trang {currentPage} / {totalPages} - Tổng số {totalItems} bộ sưu tập
                         </span>
                         <div className="flex gap-2">
                             <button

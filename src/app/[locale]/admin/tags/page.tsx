@@ -22,6 +22,8 @@ export default function TagsManagementPage() {
     const [error, setError] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
     const [selectedTag, setSelectedTag] = useState<Tag | null>(null);
     const [tagToDelete, setTagToDelete] = useState<Tag | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -32,54 +34,46 @@ export default function TagsManagementPage() {
     const [isSaving, setIsSaving] = useState(false);
     const tagsPerPage = 10;
 
-    // Fetch tags from API
-    const fetchTags = async () => {
+    // Fetch tags from API (server-side pagination)
+    const fetchTags = async (page = 0) => {
         setLoading(true);
         setError("");
         try {
-            const response = await getAllTags();
+            const response = await getAllTags(page, tagsPerPage);
             console.log("API Response:", response);
 
-            // Handle paginated response structure
-            let tagsData: Tag[] = [];
             if (response && response.data && Array.isArray(response.data.content)) {
-                // Paginated response: { data: { content: [...], totalElements, totalPages, ... } }
-                tagsData = response.data.content;
-                console.log("Total elements:", response.data.totalElements);
-                console.log("Total pages:", response.data.totalPages);
-            } else if (Array.isArray(response)) {
-                // Direct array response
-                tagsData = response;
-            } else if (response && Array.isArray(response.data)) {
-                // Response with data property
-                tagsData = response.data;
+                setTags(response.data.content);
+                setTotalPages(response.data.totalPages || 0);
+                setTotalItems(response.data.totalElements || 0);
+                console.log(`✅ Loaded page ${page + 1}: ${response.data.content.length} tags`);
+
+                if (response.data.content.length > 0) {
+                    toast.success(`Đã tải trang ${page + 1} (${response.data.content.length} tags)`);
+                }
             } else {
                 console.error("Unexpected response structure:", response);
-                tagsData = [];
-            }
-
-            setTags(tagsData);
-
-            if (tagsData.length > 0) {
-                toast.success(`Đã tải ${tagsData.length} tags thành công`);
-            } else {
-                toast.warning("Không tìm thấy tags");
+                setTags([]);
+                setTotalPages(0);
+                setTotalItems(0);
             }
         } catch (err: unknown) {
             console.error("Failed to fetch tags:", err);
             setError(err.message || "Không thể tải danh sách tags. Vui lòng thử lại.");
             toast.error("Không thể tải tags");
             setTags([]);
+            setTotalPages(0);
+            setTotalItems(0);
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchTags();
-    }, []);
+        fetchTags(currentPage - 1);
+    }, [currentPage]);
 
-    // Filter tags based on search query
+    // Filter tags based on search query (client-side filtering on current page)
     const filteredTags = tags.filter(tag => {
         const query = searchQuery.toLowerCase();
         const matchesSearch =
@@ -89,11 +83,8 @@ export default function TagsManagementPage() {
         return matchesSearch;
     });
 
-    // Pagination
-    const indexOfLastTag = currentPage * tagsPerPage;
-    const indexOfFirstTag = indexOfLastTag - tagsPerPage;
-    const currentTags = filteredTags.slice(indexOfFirstTag, indexOfLastTag);
-    const totalPages = Math.ceil(filteredTags.length / tagsPerPage);
+    // Use filtered tags for display
+    const currentTags = filteredTags;
 
     // Handle view tag
     const handleViewTag = (tag: Tag) => {
@@ -189,10 +180,10 @@ export default function TagsManagementPage() {
                 <div className="flex items-center gap-4">
                     <div className="text-right">
                         <p className="text-sm text-gray-500">Tổng Số Tags</p>
-                        <p className="text-2xl font-bold text-blue-600">{filteredTags.length}</p>
+                        <p className="text-2xl font-bold text-blue-600">{totalItems}</p>
                     </div>
                     <button
-                        onClick={fetchTags}
+                        onClick={() => fetchTags(currentPage - 1)}
                         className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all hover:scale-105"
                         title="Làm mới"
                     >
@@ -308,7 +299,7 @@ export default function TagsManagementPage() {
                 {totalPages > 1 && (
                     <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
                         <span className="text-sm text-gray-500">
-                            Hiển thị {indexOfFirstTag + 1} đến {Math.min(indexOfLastTag, filteredTags.length)} trong tổng số {filteredTags.length} tags
+                            Trang {currentPage} / {totalPages} - Tổng số {totalItems} tags
                         </span>
                         <div className="flex gap-2">
                             <button

@@ -459,7 +459,7 @@ export const promptsService = {
     async getAllPromptsAdmin(page = 0, size = 20, opts?: ApiRequestOptions): Promise<unknown> {
         return ApiCall<unknown>(() =>
             apiClient.request({
-                url: `/api/v1/admin/prompts?page=${page}&size=20`,
+                url: `/api/v1/admin/prompts?page=${page}&size=${size}`,
                 method: 'get',
                 ...buildRequestConfig(opts),
             })

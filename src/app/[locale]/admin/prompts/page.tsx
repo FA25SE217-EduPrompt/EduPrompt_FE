@@ -16,65 +16,51 @@ import {
 } from "@heroicons/react/24/outline";
 import Spinner from "@/components/ui/Spinner";
 import { toast } from "sonner";
+import { useTranslations } from 'next-intl';
 
 export default function PromptsManagementPage() {
+    const t = useTranslations('Admin.Prompts');
+    const tCommon = useTranslations('Admin.Common');
+
     const [prompts, setPrompts] = useState<Prompt[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
     const [visibilityFilter, setVisibilityFilter] = useState("ALL");
     const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
     const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
     const [promptToDelete, setPromptToDelete] = useState<Prompt | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const promptsPerPage = 10;
 
-    // Fetch prompts from API
-    const fetchPrompts = async () => {
+    // Fetch prompts from API (server-side pagination)
+    const fetchPrompts = async (page = 0) => {
         setLoading(true);
         setError("");
         try {
-            // Fetch first page to get total pages info
-            const firstResponse = await promptsService.getAllPromptsAdmin(0, 20);
+            const response = await promptsService.getAllPromptsAdmin(page, promptsPerPage);
             console.log("=== PROMPTS API DEBUG ===");
-            console.log("First page response:", firstResponse);
+            console.log("API Response:", response);
 
-            let allPrompts: Prompt[] = [];
-            let totalPages = 1;
+            if (response && response.data) {
+                if (Array.isArray(response.data.content)) {
+                    setPrompts(response.data.content);
+                    setTotalPages(response.data.totalPages || 0);
+                    setTotalItems(response.data.totalElements || 0);
+                    console.log(`✅ Loaded page ${page + 1}: ${response.data.content.length} prompts`);
+                    console.log(`Total pages: ${response.data.totalPages}, Total items: ${response.data.totalElements}`);
 
-            // Extract first page data and total pages
-            if (firstResponse && firstResponse.data) {
-                if (Array.isArray(firstResponse.data.content)) {
-                    allPrompts = [...firstResponse.data.content];
-                    totalPages = firstResponse.data.totalPages || 1;
-                    console.log(`✅ Found ${allPrompts.length} prompts on page 1 of ${totalPages}`);
-                }
-            }
-
-            // Fetch remaining pages if there are more
-            if (totalPages > 1) {
-                console.log(`📥 Fetching ${totalPages - 1} more pages...`);
-                const pagePromises = [];
-
-                for (let page = 1; page < totalPages; page++) {
-                    pagePromises.push(promptsService.getAllPromptsAdmin(page, 20));
-                }
-
-                const remainingResponses = await Promise.all(pagePromises);
-
-                remainingResponses.forEach((response, index) => {
-                    if (response?.data?.content && Array.isArray(response.data.content)) {
-                        allPrompts = [...allPrompts, ...response.data.content];
-                        console.log(`✅ Loaded page ${index + 2}: +${response.data.content.length} prompts`);
+                    if (response.data.content.length > 0) {
+                        toast.success(`Đã tải trang ${page + 1} (${response.data.content.length} prompts)`);
                     }
-                });
-            }
-
-            console.log(`✅ Total prompts loaded: ${allPrompts.length}`);
-            setPrompts(allPrompts);
-
-            if (allPrompts.length > 0) {
-                toast.success(`Đã tải ${allPrompts.length} prompts`);
+                } else {
+                    console.error("Unexpected response structure:", response);
+                    setPrompts([]);
+                    setTotalPages(0);
+                    setTotalItems(0);
+                }
             }
         } catch (err: unknown) {
             console.error("❌ Error fetching prompts:", err);
@@ -85,16 +71,18 @@ export default function PromptsManagementPage() {
             setError(errorMsg);
             toast.error(errorMsg);
             setPrompts([]);
+            setTotalPages(0);
+            setTotalItems(0);
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchPrompts();
-    }, []);
+        fetchPrompts(currentPage - 1); // API uses 0-based indexing
+    }, [currentPage]);
 
-    // Filter prompts
+    // Filter prompts (client-side filtering on current page data)
     const filteredPrompts = prompts.filter(prompt => {
         const query = searchQuery.toLowerCase();
         const matchesSearch =
@@ -107,11 +95,8 @@ export default function PromptsManagementPage() {
         return matchesSearch && matchesVisibility;
     });
 
-    // Pagination
-    const indexOfLastPrompt = currentPage * promptsPerPage;
-    const indexOfFirstPrompt = indexOfLastPrompt - promptsPerPage;
-    const currentPrompts = filteredPrompts.slice(indexOfFirstPrompt, indexOfLastPrompt);
-    const totalPages = Math.ceil(filteredPrompts.length / promptsPerPage);
+    // Use filtered prompts for display (no client-side pagination slicing)
+    const currentPrompts = filteredPrompts;
 
     // Handle view prompt
     const handleViewPrompt = (prompt: Prompt) => {
@@ -162,13 +147,13 @@ export default function PromptsManagementPage() {
                 </div>
                 <div className="flex items-center gap-4">
                     <div className="text-right">
-                        <p className="text-sm text-gray-500">Tổng Số Prompts</p>
-                        <p className="text-2xl font-bold text-blue-600">{filteredPrompts.length}</p>
+                        <p className="text-sm text-gray-500">{t('totalPrompts')}</p>
+                        <p className="text-2xl font-bold text-blue-600">{totalItems}</p>
                     </div>
                     <button
-                        onClick={fetchPrompts}
+                        onClick={() => fetchPrompts(currentPage - 1)}
                         className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all hover:scale-105"
-                        title="Làm mới"
+                        title={tCommon('refresh')}
                     >
                         <ArrowPathIcon className="h-6 w-6 text-blue-600" />
                     </button>
@@ -334,7 +319,7 @@ export default function PromptsManagementPage() {
                 {totalPages > 1 && (
                     <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
                         <span className="text-sm text-gray-500">
-                            Hiển thị {indexOfFirstPrompt + 1} đến {Math.min(indexOfLastPrompt, filteredPrompts.length)} trong tổng số {filteredPrompts.length} prompts
+                            {tCommon('page')} {currentPage} {tCommon('of')} {totalPages} - {tCommon('totalItems', { count: totalItems, entity: 'prompts' })}
                         </span>
                         <div className="flex gap-2">
                             <button
@@ -342,17 +327,17 @@ export default function PromptsManagementPage() {
                                 disabled={currentPage === 1}
                                 className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
                             >
-                                Trước
+                                {tCommon('previous')}
                             </button>
                             <span className="px-4 py-2 text-sm font-medium text-gray-700">
-                                Trang {currentPage} / {totalPages}
+                                {tCommon('page')} {currentPage} {tCommon('of')} {totalPages}
                             </span>
                             <button
                                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                                 disabled={currentPage === totalPages}
                                 className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
                             >
-                                Tiếp
+                                {tCommon('next')}
                             </button>
                         </div>
                     </div>

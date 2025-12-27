@@ -24,40 +24,36 @@ export default function GroupsManagementPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState("ALL");
     const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
     const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
     const [groupToDelete, setGroupToDelete] = useState<Group | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const groupsPerPage = 10;
 
-    // Fetch groups from API
-    const fetchGroups = async () => {
+    // Fetch groups from API (server-side pagination)
+    const fetchGroups = async (page = 0) => {
         setLoading(true);
         setError("");
         try {
-            const response = await getAllGroups();
+            const response = await getAllGroups(page, groupsPerPage);
             console.log("=== GROUPS API DEBUG ===");
             console.log("Full API Response:", response);
 
-            let groupsData: Group[] = [];
+            if (response && response.data && Array.isArray(response.data.content)) {
+                setGroups(response.data.content);
+                setTotalPages(response.data.totalPages || 0);
+                setTotalItems(response.data.totalElements || 0);
+                console.log(`✅ Loaded page ${page + 1}: ${response.data.content.length} groups`);
 
-            // Handle different response structures
-            if (Array.isArray(response)) {
-                groupsData = response;
-            } else if (response && response.data) {
-                if (Array.isArray(response.data.content)) {
-                    groupsData = response.data.content;
-                } else if (Array.isArray(response.data)) {
-                    groupsData = response.data;
+                if (response.data.content.length > 0) {
+                    toast.success(`Đã tải trang ${page + 1} (${response.data.content.length} nhóm)`);
                 }
-            } else if (response && Array.isArray(response.content)) {
-                groupsData = response.content;
-            }
-
-            console.log("Extracted groups count:", groupsData.length);
-            setGroups(groupsData);
-
-            if (groupsData.length > 0) {
-                toast.success(`Đã tải ${groupsData.length} nhóm`);
+            } else {
+                console.error("Unexpected response structure:", response);
+                setGroups([]);
+                setTotalPages(0);
+                setTotalItems(0);
             }
         } catch (err: unknown) {
             console.error("❌ Error fetching groups:", err);
@@ -67,16 +63,18 @@ export default function GroupsManagementPage() {
             setError(errorMsg);
             toast.error(errorMsg);
             setGroups([]);
+            setTotalPages(0);
+            setTotalItems(0);
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchGroups();
-    }, []);
+        fetchGroups(currentPage - 1);
+    }, [currentPage]);
 
-    // Filter groups
+    // Filter groups (client-side filtering on current page)
     const filteredGroups = groups.filter(group => {
         const query = searchQuery.toLowerCase();
         const matchesSearch = group.name && group.name.toLowerCase().includes(query);
@@ -89,11 +87,8 @@ export default function GroupsManagementPage() {
         return matchesSearch && matchesStatus;
     });
 
-    // Pagination
-    const indexOfLastGroup = currentPage * groupsPerPage;
-    const indexOfFirstGroup = indexOfLastGroup - groupsPerPage;
-    const currentGroups = filteredGroups.slice(indexOfFirstGroup, indexOfLastGroup);
-    const totalPages = Math.ceil(filteredGroups.length / groupsPerPage);
+    // Use filtered groups for display
+    const currentGroups = filteredGroups;
 
     // Handle view group
     const handleViewGroup = (group: Group) => {
@@ -145,10 +140,10 @@ export default function GroupsManagementPage() {
                 <div className="flex items-center gap-4">
                     <div className="text-right">
                         <p className="text-sm text-gray-500">Tổng Số Nhóm</p>
-                        <p className="text-2xl font-bold text-blue-600">{filteredGroups.length}</p>
+                        <p className="text-2xl font-bold text-blue-600">{totalItems}</p>
                     </div>
                     <button
-                        onClick={fetchGroups}
+                        onClick={() => fetchGroups(currentPage - 1)}
                         className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all hover:scale-105"
                         title="Làm mới"
                     >
@@ -305,7 +300,7 @@ export default function GroupsManagementPage() {
                 {totalPages > 1 && (
                     <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
                         <span className="text-sm text-gray-500">
-                            Hiển thị {indexOfFirstGroup + 1} đến {Math.min(indexOfLastGroup, filteredGroups.length)} trong tổng số {filteredGroups.length} nhóm
+                            Trang {currentPage} / {totalPages} - Tổng số {totalItems} nhóm
                         </span>
                         <div className="flex gap-2">
                             <button
