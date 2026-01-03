@@ -13,14 +13,11 @@ import {
     XMarkIcon,
     CheckCircleIcon,
     XCircleIcon,
-    HomeIcon,
 } from "@heroicons/react/24/outline";
 import Spinner from "@/components/ui/Spinner";
 import { toast } from "sonner";
-import { useRouter } from 'next/navigation';
 
 export default function GroupsManagementPage() {
-    const router = useRouter();
     const [groups, setGroups] = useState<Group[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -50,7 +47,7 @@ export default function GroupsManagementPage() {
                 console.log(`✅ Loaded page ${page + 1}: ${response.data.content.length} groups`);
 
                 if (response.data.content.length > 0) {
-                    toast.success(`Đã tải trang ${page + 1} (${response.data.content.length} nhóm)`);
+                    toast.success(`Đã tải trang ${page + 1} (${response.data.content.length} nhóm)`, { duration: 3000 });
                 }
             } else {
                 console.error("Unexpected response structure:", response);
@@ -64,7 +61,7 @@ export default function GroupsManagementPage() {
                 ? "Bạn không có quyền truy cập. Vui lòng đăng nhập với tài khoản ADMIN."
                 : "Không thể tải danh sách nhóm";
             setError(errorMsg);
-            toast.error(errorMsg);
+            toast.error(errorMsg, { duration: 3000 });
             setGroups([]);
             setTotalPages(0);
             setTotalItems(0);
@@ -111,11 +108,11 @@ export default function GroupsManagementPage() {
         try {
             await deleteGroup(groupToDelete.id);
             setGroups(groups.filter(g => g.id !== groupToDelete.id));
-            toast.success(`Đã xóa nhóm "${groupToDelete.name}"`);
+            toast.success(`Đã xóa nhóm "${groupToDelete.name}"`, { duration: 3000 });
             setGroupToDelete(null);
         } catch (err) {
             console.error("Failed to delete group:", err);
-            toast.error("Không thể xóa nhóm");
+            toast.error("Không thể xóa nhóm", { duration: 3000 });
         } finally {
             setIsDeleting(false);
         }
@@ -145,14 +142,6 @@ export default function GroupsManagementPage() {
                         <p className="text-sm text-gray-500">Tổng Số Nhóm</p>
                         <p className="text-2xl font-bold text-blue-600">{totalItems}</p>
                     </div>
-                    <button
-                        onClick={() => router.push('/')}
-                        className="flex items-center gap-2 px-4 py-3 bg-white rounded-lg shadow-md hover:shadow-lg transition-all hover:scale-105 text-blue-600 font-medium"
-                        title="Quay về trang chủ"
-                    >
-                        <HomeIcon className="h-5 w-5" />
-                        <span>Trang chủ</span>
-                    </button>
                     <button
                         onClick={() => fetchGroups(currentPage - 1)}
                         className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all hover:scale-105"

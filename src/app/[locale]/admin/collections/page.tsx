@@ -14,14 +14,11 @@ import {
     GlobeAltIcon,
     LockClosedIcon,
     UserGroupIcon as UsersIcon,
-    HomeIcon,
 } from "@heroicons/react/24/outline";
 import Spinner from "@/components/ui/Spinner";
 import { toast } from "sonner";
-import { useRouter } from 'next/navigation';
 
 export default function CollectionsManagementPage() {
-    const router = useRouter();
     const [collections, setCollections] = useState<Collection[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -51,7 +48,7 @@ export default function CollectionsManagementPage() {
                 console.log(`✅ Loaded page ${page + 1}: ${response.data.content.length} collections`);
 
                 if (response.data.content.length > 0) {
-                    toast.success(`Đã tải trang ${page + 1} (${response.data.content.length} bộ sưu tập)`);
+                    toast.success(`Đã tải trang ${page + 1} (${response.data.content.length} bộ sưu tập)`, { duration: 3000 });
                 }
             } else {
                 console.error("Unexpected response structure:", response);
@@ -65,7 +62,7 @@ export default function CollectionsManagementPage() {
                 ? "Bạn không có quyền truy cập. Vui lòng đăng nhập với tài khoản ADMIN."
                 : "Không thể tải danh sách bộ sưu tập";
             setError(errorMsg);
-            toast.error(errorMsg);
+            toast.error(errorMsg, { duration: 3000 });
             setCollections([]);
             setTotalPages(0);
             setTotalItems(0);
@@ -111,11 +108,11 @@ export default function CollectionsManagementPage() {
         try {
             await deleteCollection(collectionToDelete.id);
             setCollections(collections.filter(c => c.id !== collectionToDelete.id));
-            toast.success(`Đã xóa bộ sưu tập "${collectionToDelete.name}"`);
+            toast.success(`Đã xóa bộ sưu tập "${collectionToDelete.name}"`, { duration: 3000 });
             setCollectionToDelete(null);
         } catch (err) {
             console.error("Failed to delete collection:", err);
-            toast.error("Không thể xóa bộ sưu tập");
+            toast.error("Không thể xóa bộ sưu tập", { duration: 3000 });
         } finally {
             setIsDeleting(false);
         }
@@ -175,14 +172,6 @@ export default function CollectionsManagementPage() {
                         <p className="text-sm text-gray-500">Tổng Số Bộ Sưu Tập</p>
                         <p className="text-2xl font-bold text-blue-600">{totalItems}</p>
                     </div>
-                    <button
-                        onClick={() => router.push('/')}
-                        className="flex items-center gap-2 px-4 py-3 bg-white rounded-lg shadow-md hover:shadow-lg transition-all hover:scale-105 text-blue-600 font-medium"
-                        title="Quay về trang chủ"
-                    >
-                        <HomeIcon className="h-5 w-5" />
-                        <span>Trang chủ</span>
-                    </button>
                     <button
                         onClick={() => fetchCollections(currentPage - 1)}
                         className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all hover:scale-105"

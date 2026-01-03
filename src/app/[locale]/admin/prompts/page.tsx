@@ -13,17 +13,14 @@ import {
     XMarkIcon,
     GlobeAltIcon,
     LockClosedIcon,
-    HomeIcon,
 } from "@heroicons/react/24/outline";
 import Spinner from "@/components/ui/Spinner";
 import { toast } from "sonner";
 import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
 
 export default function PromptsManagementPage() {
     const t = useTranslations('Admin.Prompts');
     const tCommon = useTranslations('Admin.Common');
-    const router = useRouter();
 
     const [prompts, setPrompts] = useState<PromptResponse[]>([]);
     const [loading, setLoading] = useState(true);
@@ -56,7 +53,7 @@ export default function PromptsManagementPage() {
                     console.log(`Total pages: ${response.data.totalPages}, Total items: ${response.data.totalElements}`);
 
                     if (response.data.content.length > 0) {
-                        toast.success(`Đã tải trang ${page + 1} (${response.data.content.length} prompts)`);
+                        toast.success(`Đã tải trang ${page + 1} (${response.data.content.length} prompts)`, { duration: 3000 });
                     }
                 } else {
                     console.error("Unexpected response structure:", response);
@@ -73,7 +70,7 @@ export default function PromptsManagementPage() {
                 ? "Bạn không có quyền truy cập. Vui lòng đăng nhập với tài khoản ADMIN."
                 : "Không thể tải danh sách prompts";
             setError(errorMsg);
-            toast.error(errorMsg);
+            toast.error(errorMsg, { duration: 3000 });
             setPrompts([]);
             setTotalPages(0);
             setTotalItems(0);
@@ -120,11 +117,11 @@ export default function PromptsManagementPage() {
         try {
             await promptsService.deletePromptAdmin(promptToDelete.id);
             setPrompts(prompts.filter(p => p.id !== promptToDelete.id));
-            toast.success(`Đã xóa prompt "${promptToDelete.title}"`);
+            toast.success(`Đã xóa prompt "${promptToDelete.title}"`, { duration: 3000 });
             setPromptToDelete(null);
         } catch (err) {
             console.error("Failed to delete prompt:", err);
-            toast.error("Không thể xóa prompt");
+            toast.error("Không thể xóa prompt", { duration: 3000 });
         } finally {
             setIsDeleting(false);
         }

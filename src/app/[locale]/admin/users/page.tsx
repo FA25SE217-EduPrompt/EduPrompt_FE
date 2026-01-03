@@ -11,14 +11,11 @@ import {
     TrashIcon,
     EyeIcon,
     XMarkIcon,
-    HomeIcon,
 } from "@heroicons/react/24/outline";
 import Spinner from "@/components/ui/Spinner";
 import { toast } from "sonner";
-import { useRouter } from 'next/navigation';
 
 export default function UsersManagementPage() {
-    const router = useRouter();
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -49,7 +46,7 @@ export default function UsersManagementPage() {
                 console.log(`✅ Loaded page ${page + 1}: ${response.data.content.length} users`);
 
                 if (response.data.content.length > 0) {
-                    toast.success(`Đã tải trang ${page + 1} (${response.data.content.length} người dùng)`);
+                    toast.success(`Đã tải trang ${page + 1} (${response.data.content.length} người dùng)`, { duration: 3000 });
                 }
             } else {
                 console.error("Unexpected response structure:", response);
@@ -61,7 +58,7 @@ export default function UsersManagementPage() {
             console.error("Failed to fetch users:", err);
             console.error("Error details:", err.response?.data);
             setError(err.message || "Không thể tải danh sách người dùng. Vui lòng thử lại.");
-            toast.error("Không thể tải người dùng");
+            toast.error("Không thể tải người dùng", { duration: 3000 });
             setUsers([]);
             setTotalPages(0);
             setTotalItems(0);
@@ -138,11 +135,11 @@ export default function UsersManagementPage() {
         try {
             await deleteUser(userToDelete.id);
             setUsers(users.filter(u => u.id !== userToDelete.id));
-            toast.success(`Đã xóa người dùng ${userToDelete.firstName} ${userToDelete.lastName} thành công`);
+            toast.success(`Đã xóa người dùng ${userToDelete.firstName} ${userToDelete.lastName} thành công`, { duration: 3000 });
             setUserToDelete(null);
         } catch (err) {
             console.error("Failed to delete user:", err);
-            toast.error("Không thể xóa người dùng. Vui lòng thử lại.");
+            toast.error("Không thể xóa người dùng. Vui lòng thử lại.", { duration: 3000 });
         } finally {
             setIsDeleting(false);
         }

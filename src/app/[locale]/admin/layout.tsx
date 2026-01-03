@@ -28,6 +28,7 @@ const NavItem: React.FC<{
     return (
         <Link
             href={href}
+            title=""
             className={`flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer transition ${isActive
                 ? "bg-blue-800 text-white"
                 : "text-blue-100 hover:bg-blue-800/50 hover:text-white"
@@ -102,17 +103,18 @@ export default function AdminLayout({
                         href="/admin/collections"
                     />
 
-                    {/* Divider */}
-                    <div className="border-t border-blue-800 my-4"></div>
 
-                    {/* Homepage Link */}
-                    <Link
-                        href="/"
-                        className="flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer transition text-blue-100 hover:bg-blue-800/50 hover:text-white"
-                    >
-                        <HomeIcon className="h-5 w-5" />
-                        <span className="text-sm font-medium">Trang chủ</span>
-                    </Link>
+                    {/* Divider */}
+                    <div className="pt-4 mt-4 border-t border-blue-800">
+                        <Link
+                            href="/"
+                            title=""
+                            className="flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer transition bg-blue-800/30 text-blue-100 hover:bg-blue-700 hover:text-white border border-blue-700"
+                        >
+                            <HomeIcon className="h-5 w-5" />
+                            <span className="text-sm font-medium">Về Trang Chủ</span>
+                        </Link>
+                    </div>
                 </nav>
 
                 <div className="p-4 border-t border-blue-800">

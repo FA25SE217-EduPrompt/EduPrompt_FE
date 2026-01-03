@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { getAllTags, deleteTag, createTag, updateTag } from "@/services/resources/tags";
 import { Tag } from "@/types/tag.types";
 import {
@@ -13,15 +12,11 @@ import {
     PencilIcon,
     PlusIcon,
     XMarkIcon,
-    HomeIcon,
 } from "@heroicons/react/24/outline";
 import Spinner from "@/components/ui/Spinner";
 import { toast } from "sonner";
-import { useRouter } from 'next/navigation';
-
 
 export default function TagsManagementPage() {
-    const router = useRouter();
     const [tags, setTags] = useState<Tag[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -54,7 +49,7 @@ export default function TagsManagementPage() {
                 console.log(`✅ Loaded page ${page + 1}: ${response.data.content.length} tags`);
 
                 if (response.data.content.length > 0) {
-                    toast.success(`Đã tải trang ${page + 1} (${response.data.content.length} tags)`);
+                    toast.success(`Đã tải trang ${page + 1} (${response.data.content.length} tags)`, { duration: 3000 });
                 }
             } else {
                 console.error("Unexpected response structure:", response);
@@ -66,7 +61,7 @@ export default function TagsManagementPage() {
             console.error("Failed to fetch tags:", err);
             const errorMessage = err instanceof Error ? err.message : "Không thể tải danh sách tags. Vui lòng thử lại.";
             setError(errorMessage);
-            toast.error("Không thể tải tags");
+            toast.error("Không thể tải tags", { duration: 3000 });
             setTags([]);
             setTotalPages(0);
             setTotalItems(0);
@@ -110,11 +105,11 @@ export default function TagsManagementPage() {
         try {
             await deleteTag(tagToDelete.id);
             setTags(tags.filter(t => t.id !== tagToDelete.id));
-            toast.success(`Đã xóa tag "${tagToDelete.value}" (${tagToDelete.type}) thành công`);
+            toast.success(`Đã xóa tag "${tagToDelete.value}" (${tagToDelete.type}) thành công`, { duration: 3000 });
             setTagToDelete(null);
         } catch (err) {
             console.error("Failed to delete tag:", err);
-            toast.error("Không thể xóa tag. Vui lòng thử lại.");
+            toast.error("Không thể xóa tag. Vui lòng thử lại.", { duration: 3000 });
         } finally {
             setIsDeleting(false);
         }
@@ -136,7 +131,7 @@ export default function TagsManagementPage() {
     // Handle save (create or update)
     const handleSave = async () => {
         if (!formData.type.trim() || !formData.value.trim()) {
-            toast.error("Loại và giá trị tag không được để trống");
+            toast.error("Loại và giá trị tag không được để trống", { duration: 3000 });
             return;
         }
 
@@ -146,22 +141,20 @@ export default function TagsManagementPage() {
                 // Create new tag
                 const newTag = await createTag(formData);
                 setTags([newTag, ...tags]);
-                toast.success(`Đã tạo tag "${formData.value}" (${formData.type}) thành công`);
+                toast.success(`Đã tạo tag "${formData.value}" (${formData.type}) thành công`, { duration: 3000 });
                 setShowCreateModal(false);
             } else if (showEditModal && tagToEdit) {
                 // Update existing tag
                 const updatedTag = await updateTag(tagToEdit.id, formData);
                 setTags(tags.map(t => t.id === tagToEdit.id ? updatedTag : t));
-                toast.success(`Đã cập nhật tag "${formData.value}" (${formData.type}) thành công`);
+                toast.success(`Đã cập nhật tag "${formData.value}" (${formData.type}) thành công`, { duration: 3000 });
                 setShowEditModal(false);
             }
             setFormData({ type: "", value: "" });
         } catch (err: unknown) {
             console.error("Failed to save tag:", err);
-            const errorMessage = axios.isAxiosError(err) && err.response?.data?.message
-                ? err.response.data.message
-                : "Không thể lưu tag. Vui lòng thử lại.";
-            toast.error(errorMessage);
+            const errorMessage = (err as any)?.response?.data?.message || "Không thể lưu tag. Vui lòng thử lại.";
+            toast.error(errorMessage, { duration: 3000 });
         } finally {
             setIsSaving(false);
         }
@@ -191,14 +184,6 @@ export default function TagsManagementPage() {
                         <p className="text-sm text-gray-500">Tổng Số Tags</p>
                         <p className="text-2xl font-bold text-blue-600">{totalItems}</p>
                     </div>
-                    <button
-                        onClick={() => router.push('/')}
-                        className="flex items-center gap-2 px-4 py-3 bg-white rounded-lg shadow-md hover:shadow-lg transition-all hover:scale-105 text-blue-600 font-medium"
-                        title="Quay về trang chủ"
-                    >
-                        <HomeIcon className="h-5 w-5" />
-                        <span>Trang chủ</span>
-                    </button>
                     <button
                         onClick={() => fetchTags(currentPage - 1)}
                         className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all hover:scale-105"
