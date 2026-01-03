@@ -189,6 +189,9 @@ export default function Home() {
                                         <Button variant="secondary" href="/profile">
                                             {t('Hero.viewProfile')}
                                         </Button>
+                                        <Button variant="outline" href="/admin">
+                                            {t('Hero.schoolAdmin')}
+                                        </Button>
                                     </div>
                                 </>
                             ) : (

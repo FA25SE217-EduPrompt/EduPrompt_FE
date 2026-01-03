@@ -456,8 +456,8 @@ export const promptsService = {
 
     // ========== ADMIN FUNCTIONS ==========
     // Get all prompts (admin only)
-    async getAllPromptsAdmin(page = 0, size = 20, opts?: ApiRequestOptions): Promise<unknown> {
-        return ApiCall<unknown>(() =>
+    async getAllPromptsAdmin(page = 0, size = 20, opts?: ApiRequestOptions): Promise<BaseResponse<PaginatedResponse<PromptResponse>>> {
+        return ApiCall<PaginatedResponse<PromptResponse>>(() =>
             apiClient.request({
                 url: `/api/v1/admin/prompts?page=${page}&size=${size}`,
                 method: 'get',

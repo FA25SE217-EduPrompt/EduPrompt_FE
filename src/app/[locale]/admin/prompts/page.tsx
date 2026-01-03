@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { promptsService } from "@/services/resources/prompts";
-import { Prompt } from "@/types/prompt.types";
+import { PromptResponse } from "@/types/prompt.api";
 import {
     DocumentTextIcon,
     MagnifyingGlassIcon,
@@ -22,7 +22,7 @@ export default function PromptsManagementPage() {
     const t = useTranslations('Admin.Prompts');
     const tCommon = useTranslations('Admin.Common');
 
-    const [prompts, setPrompts] = useState<Prompt[]>([]);
+    const [prompts, setPrompts] = useState<PromptResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
@@ -30,8 +30,8 @@ export default function PromptsManagementPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
     const [totalItems, setTotalItems] = useState(0);
-    const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
-    const [promptToDelete, setPromptToDelete] = useState<Prompt | null>(null);
+    const [selectedPrompt, setSelectedPrompt] = useState<PromptResponse | null>(null);
+    const [promptToDelete, setPromptToDelete] = useState<PromptResponse | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const promptsPerPage = 10;
 
@@ -64,8 +64,9 @@ export default function PromptsManagementPage() {
             }
         } catch (err: unknown) {
             console.error("❌ Error fetching prompts:", err);
-            console.error("Error response:", err.response);
-            const errorMsg = err.response?.status === 403
+            const axiosError = err as { response?: { status?: number } };
+            console.error("Error response:", axiosError.response);
+            const errorMsg = axiosError.response?.status === 403
                 ? "Bạn không có quyền truy cập. Vui lòng đăng nhập với tài khoản ADMIN."
                 : "Không thể tải danh sách prompts";
             setError(errorMsg);
@@ -90,7 +91,7 @@ export default function PromptsManagementPage() {
             (prompt.description && prompt.description.toLowerCase().includes(query)) ||
             (prompt.instruction && prompt.instruction.toLowerCase().includes(query));
 
-        const matchesVisibility = visibilityFilter === "ALL" || prompt.visibility === visibilityFilter;
+        const matchesVisibility = visibilityFilter === "ALL" || prompt.visibility === visibilityFilter.toLowerCase();
 
         return matchesSearch && matchesVisibility;
     });
@@ -99,12 +100,12 @@ export default function PromptsManagementPage() {
     const currentPrompts = filteredPrompts;
 
     // Handle view prompt
-    const handleViewPrompt = (prompt: Prompt) => {
+    const handleViewPrompt = (prompt: PromptResponse) => {
         setSelectedPrompt(prompt);
     };
 
     // Handle delete click
-    const handleDeleteClick = (prompt: Prompt) => {
+    const handleDeleteClick = (prompt: PromptResponse) => {
         setPromptToDelete(prompt);
     };
 
@@ -186,8 +187,9 @@ export default function PromptsManagementPage() {
                         className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                     >
                         <option value="ALL">Tất cả</option>
-                        <option value="PUBLIC">Công khai</option>
-                        <option value="PRIVATE">Riêng tư</option>
+                        <option value="public">Công khai</option>
+                        <option value="private">Riêng tư</option>
+                        <option value="group">Nhóm</option>
                     </select>
 
                     {/* Clear Filters */}
@@ -260,11 +262,11 @@ export default function PromptsManagementPage() {
                                             {prompt.description || "Không có mô tả"}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1 w-fit ${prompt.visibility === 'PUBLIC'
+                                            <span className={`px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1 w-fit ${prompt.visibility === 'public'
                                                 ? 'bg-green-100 text-green-700'
                                                 : 'bg-gray-100 text-gray-700'
                                                 }`}>
-                                                {prompt.visibility === 'PUBLIC' ? (
+                                                {prompt.visibility === 'public' ? (
                                                     <><GlobeAltIcon className="h-4 w-4" /> Công khai</>
                                                 ) : (
                                                     <><LockClosedIcon className="h-4 w-4" /> Riêng tư</>
@@ -390,11 +392,11 @@ export default function PromptsManagementPage() {
                                 <div>
                                     <label className="text-sm font-semibold text-gray-500 uppercase">Hiển thị</label>
                                     <p className="mt-1">
-                                        <span className={`px-3 py-1 rounded-lg text-sm font-semibold ${selectedPrompt.visibility === 'PUBLIC'
+                                        <span className={`px-3 py-1 rounded-lg text-sm font-semibold ${selectedPrompt.visibility === 'public'
                                             ? 'bg-green-100 text-green-700'
                                             : 'bg-gray-100 text-gray-700'
                                             }`}>
-                                            {selectedPrompt.visibility === 'PUBLIC' ? 'Công khai' : 'Riêng tư'}
+                                            {selectedPrompt.visibility === 'public' ? 'Công khai' : 'Riêng tư'}
                                         </span>
                                     </p>
                                 </div>
