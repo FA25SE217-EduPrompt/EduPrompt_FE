@@ -31,7 +31,7 @@ adminClient.interceptors.request.use(
  * Get all tags from the admin endpoint
  * Requires authentication token
  */
-export async function getAllTags(page: number = 0, size: number = 20): Promise<unknown> {
+export async function getAllTags(page: number = 0, size: number = 20): Promise<TagsResponse> {
     const response = await adminClient.get(`/api/v1/admin/tags?page=${page}&size=${size}`);
     return response.data;
 }

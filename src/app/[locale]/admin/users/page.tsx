@@ -11,11 +11,14 @@ import {
     TrashIcon,
     EyeIcon,
     XMarkIcon,
+    HomeIcon,
 } from "@heroicons/react/24/outline";
 import Spinner from "@/components/ui/Spinner";
 import { toast } from "sonner";
+import { useRouter } from 'next/navigation';
 
 export default function UsersManagementPage() {
+    const router = useRouter();
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");

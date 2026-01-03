@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { getAllTags, deleteTag, createTag, updateTag } from "@/services/resources/tags";
 import { Tag } from "@/types/tag.types";
 import {
@@ -12,11 +13,15 @@ import {
     PencilIcon,
     PlusIcon,
     XMarkIcon,
+    HomeIcon,
 } from "@heroicons/react/24/outline";
 import Spinner from "@/components/ui/Spinner";
 import { toast } from "sonner";
+import { useRouter } from 'next/navigation';
+
 
 export default function TagsManagementPage() {
+    const router = useRouter();
     const [tags, setTags] = useState<Tag[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -59,7 +64,8 @@ export default function TagsManagementPage() {
             }
         } catch (err: unknown) {
             console.error("Failed to fetch tags:", err);
-            setError(err.message || "Không thể tải danh sách tags. Vui lòng thử lại.");
+            const errorMessage = err instanceof Error ? err.message : "Không thể tải danh sách tags. Vui lòng thử lại.";
+            setError(errorMessage);
             toast.error("Không thể tải tags");
             setTags([]);
             setTotalPages(0);
@@ -152,7 +158,10 @@ export default function TagsManagementPage() {
             setFormData({ type: "", value: "" });
         } catch (err: unknown) {
             console.error("Failed to save tag:", err);
-            toast.error(err.response?.data?.message || "Không thể lưu tag. Vui lòng thử lại.");
+            const errorMessage = axios.isAxiosError(err) && err.response?.data?.message
+                ? err.response.data.message
+                : "Không thể lưu tag. Vui lòng thử lại.";
+            toast.error(errorMessage);
         } finally {
             setIsSaving(false);
         }
@@ -182,6 +191,14 @@ export default function TagsManagementPage() {
                         <p className="text-sm text-gray-500">Tổng Số Tags</p>
                         <p className="text-2xl font-bold text-blue-600">{totalItems}</p>
                     </div>
+                    <button
+                        onClick={() => router.push('/')}
+                        className="flex items-center gap-2 px-4 py-3 bg-white rounded-lg shadow-md hover:shadow-lg transition-all hover:scale-105 text-blue-600 font-medium"
+                        title="Quay về trang chủ"
+                    >
+                        <HomeIcon className="h-5 w-5" />
+                        <span>Trang chủ</span>
+                    </button>
                     <button
                         onClick={() => fetchTags(currentPage - 1)}
                         className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all hover:scale-105"

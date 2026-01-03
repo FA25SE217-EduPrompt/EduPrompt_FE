@@ -101,6 +101,18 @@ export default function AdminLayout({
                         label="Quản Lý Collections"
                         href="/admin/collections"
                     />
+
+                    {/* Divider */}
+                    <div className="border-t border-blue-800 my-4"></div>
+
+                    {/* Homepage Link */}
+                    <Link
+                        href="/"
+                        className="flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer transition text-blue-100 hover:bg-blue-800/50 hover:text-white"
+                    >
+                        <HomeIcon className="h-5 w-5" />
+                        <span className="text-sm font-medium">Trang chủ</span>
+                    </Link>
                 </nav>
 
                 <div className="p-4 border-t border-blue-800">
