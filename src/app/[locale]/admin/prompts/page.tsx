@@ -53,7 +53,7 @@ export default function PromptsManagementPage() {
                     console.log(`Total pages: ${response.data.totalPages}, Total items: ${response.data.totalElements}`);
 
                     if (response.data.content.length > 0) {
-                        toast.success(`Đã tải trang ${page + 1} (${response.data.content.length} prompts)`, { duration: 3000 });
+                        toast.success(t('loadedPage', { page: page + 1, count: response.data.content.length }), { duration: 3000 });
                     }
                 } else {
                     console.error("Unexpected response structure:", response);
@@ -67,8 +67,8 @@ export default function PromptsManagementPage() {
             const axiosError = err as { response?: { status?: number } };
             console.error("Error response:", axiosError.response);
             const errorMsg = axiosError.response?.status === 403
-                ? "Bạn không có quyền truy cập. Vui lòng đăng nhập với tài khoản ADMIN."
-                : "Không thể tải danh sách prompts";
+                ? t('permissionDenied')
+                : t('failedToLoad');
             setError(errorMsg);
             toast.error(errorMsg, { duration: 3000 });
             setPrompts([]);
@@ -117,11 +117,11 @@ export default function PromptsManagementPage() {
         try {
             await promptsService.deletePromptAdmin(promptToDelete.id);
             setPrompts(prompts.filter(p => p.id !== promptToDelete.id));
-            toast.success(`Đã xóa prompt "${promptToDelete.title}"`, { duration: 3000 });
+            toast.success(t('deleteSuccess', { title: promptToDelete.title }), { duration: 3000 });
             setPromptToDelete(null);
         } catch (err) {
             console.error("Failed to delete prompt:", err);
-            toast.error("Không thể xóa prompt", { duration: 3000 });
+            toast.error(t('deleteFailed'), { duration: 3000 });
         } finally {
             setIsDeleting(false);
         }
@@ -142,9 +142,9 @@ export default function PromptsManagementPage() {
                 <div>
                     <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
                         <DocumentTextIcon className="h-10 w-10 text-blue-600" />
-                        Quản Lý Prompts
+                        {t('title')}
                     </h1>
-                    <p className="text-gray-600 mt-2">Quản lý tất cả prompts trong hệ thống</p>
+                    <p className="text-gray-600 mt-2">{t('description')}</p>
                 </div>
                 <div className="flex items-center gap-4">
                     <div className="text-right">
@@ -164,7 +164,7 @@ export default function PromptsManagementPage() {
             {/* Error Message */}
             {error && (
                 <div className="mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 px-6 py-4 rounded-lg shadow-sm">
-                    <p className="font-medium">Lỗi</p>
+                    <p className="font-medium">{tCommon('error')}</p>
                     <p className="text-sm">{error}</p>
                 </div>
             )}
@@ -174,7 +174,7 @@ export default function PromptsManagementPage() {
                 <div className="flex items-center gap-4 flex-wrap">
                     <div className="flex items-center gap-2">
                         <FunnelIcon className="h-5 w-5 text-gray-500" />
-                        <span className="font-semibold text-gray-700">Bộ lọc:</span>
+                        <span className="font-semibold text-gray-700">{tCommon('filters')}:</span>
                     </div>
 
                     {/* Visibility Filter */}
@@ -186,10 +186,10 @@ export default function PromptsManagementPage() {
                         }}
                         className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                     >
-                        <option value="ALL">Tất cả</option>
-                        <option value="public">Công khai</option>
-                        <option value="private">Riêng tư</option>
-                        <option value="group">Nhóm</option>
+                        <option value="ALL">{t('allVisibility')}</option>
+                        <option value="public">{tCommon('public')}</option>
+                        <option value="private">{tCommon('private')}</option>
+                        <option value="group">{t('group')}</option>
                     </select>
 
                     {/* Clear Filters */}
@@ -201,7 +201,7 @@ export default function PromptsManagementPage() {
                             }}
                             className="px-4 py-2 text-sm text-blue-600 hover:text-blue-800 font-medium"
                         >
-                            Xóa bộ lọc
+                            {tCommon('clearFilters')}
                         </button>
                     )}
                 </div>
@@ -211,11 +211,11 @@ export default function PromptsManagementPage() {
             <section className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
                 {/* Search Bar */}
                 <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-blue-50 to-purple-50">
-                    <h2 className="text-xl font-semibold text-gray-900">Tất Cả Prompts</h2>
+                    <h2 className="text-xl font-semibold text-gray-900">{t('allPrompts')}</h2>
                     <div className="relative">
                         <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                         <input
-                            placeholder="Tìm kiếm prompts..."
+                            placeholder={t('searchPlaceholder')}
                             value={searchQuery}
                             onChange={(e) => {
                                 setSearchQuery(e.target.value);
@@ -232,12 +232,12 @@ export default function PromptsManagementPage() {
                         <thead className="bg-gray-50 text-gray-900 font-semibold border-b-2 border-gray-200">
                             <tr>
                                 <th className="px-6 py-4">ID</th>
-                                <th className="px-6 py-4">Tiêu đề</th>
-                                <th className="px-6 py-4">Mô tả</th>
-                                <th className="px-6 py-4">Hiển thị</th>
+                                <th className="px-6 py-4">{t('title_field')}</th>
+                                <th className="px-6 py-4">{t('description_field')}</th>
+                                <th className="px-6 py-4">{t('visibility')}</th>
                                 <th className="px-6 py-4">Tags</th>
-                                <th className="px-6 py-4">Ngày tạo</th>
-                                <th className="px-6 py-4">Hành động</th>
+                                <th className="px-6 py-4">{t('createdAt')}</th>
+                                <th className="px-6 py-4">{tCommon('actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
@@ -245,8 +245,8 @@ export default function PromptsManagementPage() {
                                 <tr>
                                     <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                                         {searchQuery || visibilityFilter !== "ALL"
-                                            ? "Không tìm thấy prompt phù hợp với bộ lọc."
-                                            : "Không có prompt nào."}
+                                            ? t('noPromptsFound')
+                                            : t('noPrompts')}
                                     </td>
                                 </tr>
                             ) : (
@@ -259,7 +259,7 @@ export default function PromptsManagementPage() {
                                             {prompt.title}
                                         </td>
                                         <td className="px-6 py-4 text-gray-600 max-w-xs truncate">
-                                            {prompt.description || "Không có mô tả"}
+                                            {prompt.description || t('noDescription')}
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1 w-fit ${prompt.visibility === 'public'
@@ -267,9 +267,9 @@ export default function PromptsManagementPage() {
                                                 : 'bg-gray-100 text-gray-700'
                                                 }`}>
                                                 {prompt.visibility === 'public' ? (
-                                                    <><GlobeAltIcon className="h-4 w-4" /> Công khai</>
+                                                    <><GlobeAltIcon className="h-4 w-4" /> {tCommon('public')}</>
                                                 ) : (
-                                                    <><LockClosedIcon className="h-4 w-4" /> Riêng tư</>
+                                                    <><LockClosedIcon className="h-4 w-4" /> {tCommon('private')}</>
                                                 )}
                                             </span>
                                         </td>
@@ -295,18 +295,18 @@ export default function PromptsManagementPage() {
                                                 <button
                                                     onClick={() => handleViewPrompt(prompt)}
                                                     className="flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg font-medium text-sm transition-colors"
-                                                    title="Xem chi tiết"
+                                                    title={tCommon('viewDetails')}
                                                 >
                                                     <EyeIcon className="h-4 w-4" />
-                                                    Xem
+                                                    {tCommon('view')}
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteClick(prompt)}
                                                     className="flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg font-medium text-sm transition-colors"
-                                                    title="Xóa prompt"
+                                                    title={tCommon('delete')}
                                                 >
                                                     <TrashIcon className="h-4 w-4" />
-                                                    Xóa
+                                                    {tCommon('delete')}
                                                 </button>
                                             </div>
                                         </td>
@@ -351,7 +351,7 @@ export default function PromptsManagementPage() {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
                         <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-2xl flex justify-between items-center">
-                            <h3 className="text-2xl font-bold">Chi Tiết Prompt</h3>
+                            <h3 className="text-2xl font-bold">{t('promptDetails')}</h3>
                             <button
                                 onClick={() => setSelectedPrompt(null)}
                                 className="p-2 hover:bg-white/20 rounded-full transition-colors"
@@ -417,7 +417,7 @@ export default function PromptsManagementPage() {
                                 onClick={() => setSelectedPrompt(null)}
                                 className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium transition-colors"
                             >
-                                Đóng
+                                {tCommon('close')}
                             </button>
                         </div>
                     </div>
@@ -429,7 +429,7 @@ export default function PromptsManagementPage() {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
                         <div className="bg-red-600 text-white p-6 rounded-t-2xl flex justify-between items-center">
-                            <h3 className="text-2xl font-bold">Xác Nhận Xóa</h3>
+                            <h3 className="text-2xl font-bold">{t('confirmDelete')}</h3>
                             <button
                                 onClick={() => setPromptToDelete(null)}
                                 className="p-2 hover:bg-white/20 rounded-full transition-colors"
@@ -439,12 +439,12 @@ export default function PromptsManagementPage() {
                         </div>
                         <div className="p-6">
                             <p className="text-gray-700 text-lg">
-                                Bạn có chắc chắn muốn xóa prompt{" "}
+                                {t('confirmDeleteMessage')}{" "}
                                 <span className="font-bold text-gray-900">
                                     &quot;{promptToDelete.title}&quot;
                                 </span>?
                             </p>
-                            <p className="text-gray-500 mt-2">Hành động này không thể hoàn tác.</p>
+                            <p className="text-gray-500 mt-2">{t('confirmDeleteNote')}</p>
                         </div>
                         <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
                             <button
@@ -452,7 +452,7 @@ export default function PromptsManagementPage() {
                                 className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium transition-colors"
                                 disabled={isDeleting}
                             >
-                                Hủy
+                                {tCommon('cancel')}
                             </button>
                             <button
                                 onClick={handleConfirmDelete}
@@ -462,10 +462,10 @@ export default function PromptsManagementPage() {
                                 {isDeleting ? (
                                     <>
                                         <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                                        Đang xóa...
+                                        {tCommon('deleting')}
                                     </>
                                 ) : (
-                                    "Xóa"
+                                    tCommon('delete')
                                 )}
                             </button>
                         </div>

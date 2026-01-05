@@ -17,8 +17,11 @@ import {
 } from "@heroicons/react/24/outline";
 import Spinner from "@/components/ui/Spinner";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 export default function CollectionsManagementPage() {
+    const t = useTranslations('Admin.Collections');
+    const tCommon = useTranslations('Admin.Common');
     const [collections, setCollections] = useState<Collection[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -48,7 +51,7 @@ export default function CollectionsManagementPage() {
                 console.log(`✅ Loaded page ${page + 1}: ${response.data.content.length} collections`);
 
                 if (response.data.content.length > 0) {
-                    toast.success(`Đã tải trang ${page + 1} (${response.data.content.length} bộ sưu tập)`, { duration: 3000 });
+                    toast.success(t('loadedPage', { page: page + 1, count: response.data.content.length }), { duration: 3000 });
                 }
             } else {
                 console.error("Unexpected response structure:", response);
@@ -58,9 +61,9 @@ export default function CollectionsManagementPage() {
             }
         } catch (err: unknown) {
             console.error("❌ Error fetching collections:", err);
-            const errorMsg = err.response?.status === 403
-                ? "Bạn không có quyền truy cập. Vui lòng đăng nhập với tài khoản ADMIN."
-                : "Không thể tải danh sách bộ sưu tập";
+            const errorMsg = (err as any).response?.status === 403
+                ? t('permissionDenied')
+                : t('failedToLoad');
             setError(errorMsg);
             toast.error(errorMsg, { duration: 3000 });
             setCollections([]);
@@ -108,11 +111,11 @@ export default function CollectionsManagementPage() {
         try {
             await deleteCollection(collectionToDelete.id);
             setCollections(collections.filter(c => c.id !== collectionToDelete.id));
-            toast.success(`Đã xóa bộ sưu tập "${collectionToDelete.name}"`, { duration: 3000 });
+            toast.success(t('deleteSuccess', { name: collectionToDelete.name }), { duration: 3000 });
             setCollectionToDelete(null);
         } catch (err) {
             console.error("Failed to delete collection:", err);
-            toast.error("Không thể xóa bộ sưu tập", { duration: 3000 });
+            toast.error(t('deleteFailed'), { duration: 3000 });
         } finally {
             setIsDeleting(false);
         }
@@ -124,19 +127,19 @@ export default function CollectionsManagementPage() {
             case 'PUBLIC':
                 return {
                     icon: <GlobeAltIcon className="h-4 w-4" />,
-                    label: 'Công khai',
+                    label: tCommon('public'),
                     color: 'bg-green-100 text-green-700'
                 };
             case 'PRIVATE':
                 return {
                     icon: <LockClosedIcon className="h-4 w-4" />,
-                    label: 'Riêng tư',
+                    label: tCommon('private'),
                     color: 'bg-gray-100 text-gray-700'
                 };
             case 'GROUP':
                 return {
                     icon: <UsersIcon className="h-4 w-4" />,
-                    label: 'Nhóm',
+                    label: t('group'),
                     color: 'bg-blue-100 text-blue-700'
                 };
             default:
@@ -163,19 +166,19 @@ export default function CollectionsManagementPage() {
                 <div>
                     <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
                         <FolderIcon className="h-10 w-10 text-blue-600" />
-                        Quản Lý Bộ Sưu Tập
+                        {t('title')}
                     </h1>
-                    <p className="text-gray-600 mt-2">Quản lý tất cả bộ sưu tập trong hệ thống</p>
+                    <p className="text-gray-600 mt-2">{t('description')}</p>
                 </div>
                 <div className="flex items-center gap-4">
                     <div className="text-right">
-                        <p className="text-sm text-gray-500">Tổng Số Bộ Sưu Tập</p>
+                        <p className="text-sm text-gray-500">{t('totalCollections')}</p>
                         <p className="text-2xl font-bold text-blue-600">{totalItems}</p>
                     </div>
                     <button
                         onClick={() => fetchCollections(currentPage - 1)}
                         className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all hover:scale-105"
-                        title="Làm mới"
+                        title={tCommon('refresh')}
                     >
                         <ArrowPathIcon className="h-6 w-6 text-blue-600" />
                     </button>
@@ -185,7 +188,7 @@ export default function CollectionsManagementPage() {
             {/* Error Message */}
             {error && (
                 <div className="mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 px-6 py-4 rounded-lg shadow-sm">
-                    <p className="font-medium">Lỗi</p>
+                    <p className="font-medium">{tCommon('error')}</p>
                     <p className="text-sm">{error}</p>
                 </div>
             )}
@@ -195,7 +198,7 @@ export default function CollectionsManagementPage() {
                 <div className="flex items-center gap-4 flex-wrap">
                     <div className="flex items-center gap-2">
                         <FunnelIcon className="h-5 w-5 text-gray-500" />
-                        <span className="font-semibold text-gray-700">Bộ lọc:</span>
+                        <span className="font-semibold text-gray-700">{tCommon('filters')}:</span>
                     </div>
 
                     {/* Visibility Filter */}
@@ -207,10 +210,10 @@ export default function CollectionsManagementPage() {
                         }}
                         className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                     >
-                        <option value="ALL">Tất cả</option>
-                        <option value="PUBLIC">Công khai</option>
-                        <option value="PRIVATE">Riêng tư</option>
-                        <option value="GROUP">Nhóm</option>
+                        <option value="ALL">{t('allVisibility')}</option>
+                        <option value="PUBLIC">{tCommon('public')}</option>
+                        <option value="PRIVATE">{tCommon('private')}</option>
+                        <option value="GROUP">{t('group')}</option>
                     </select>
 
                     {/* Clear Filters */}
@@ -222,7 +225,7 @@ export default function CollectionsManagementPage() {
                             }}
                             className="px-4 py-2 text-sm text-blue-600 hover:text-blue-800 font-medium"
                         >
-                            Xóa bộ lọc
+                            {tCommon('clearFilters')}
                         </button>
                     )}
                 </div>
@@ -232,11 +235,11 @@ export default function CollectionsManagementPage() {
             <section className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
                 {/* Search Bar */}
                 <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-blue-50 to-purple-50">
-                    <h2 className="text-xl font-semibold text-gray-900">Tất Cả Bộ Sưu Tập</h2>
+                    <h2 className="text-xl font-semibold text-gray-900">{t('allCollections')}</h2>
                     <div className="relative">
                         <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                         <input
-                            placeholder="Tìm kiếm bộ sưu tập..."
+                            placeholder={t('searchPlaceholder')}
                             value={searchQuery}
                             onChange={(e) => {
                                 setSearchQuery(e.target.value);
@@ -253,12 +256,12 @@ export default function CollectionsManagementPage() {
                         <thead className="bg-gray-50 text-gray-900 font-semibold border-b-2 border-gray-200">
                             <tr>
                                 <th className="px-6 py-4">ID</th>
-                                <th className="px-6 py-4">Tên</th>
-                                <th className="px-6 py-4">Mô tả</th>
-                                <th className="px-6 py-4">Hiển thị</th>
+                                <th className="px-6 py-4">{t('name')}</th>
+                                <th className="px-6 py-4">{t('description')}</th>
+                                <th className="px-6 py-4">{t('visibility')}</th>
                                 <th className="px-6 py-4">Tags</th>
-                                <th className="px-6 py-4">Ngày tạo</th>
-                                <th className="px-6 py-4">Hành động</th>
+                                <th className="px-6 py-4">{t('createdAt')}</th>
+                                <th className="px-6 py-4">{tCommon('actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
@@ -266,8 +269,8 @@ export default function CollectionsManagementPage() {
                                 <tr>
                                     <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                                         {searchQuery || visibilityFilter !== "ALL"
-                                            ? "Không tìm thấy bộ sưu tập phù hợp với bộ lọc."
-                                            : "Không có bộ sưu tập nào."}
+                                            ? t('noCollectionsFound')
+                                            : t('noCollections')}
                                     </td>
                                 </tr>
                             ) : (
@@ -282,7 +285,7 @@ export default function CollectionsManagementPage() {
                                                 {collection.name}
                                             </td>
                                             <td className="px-6 py-4 text-gray-600 max-w-xs truncate">
-                                                {collection.description || <span className="text-gray-400 italic">Không có mô tả</span>}
+                                                {collection.description || <span className="text-gray-400 italic">{t('noDescription')}</span>}
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className={`px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1 w-fit ${visDisplay.color}`}>
@@ -292,7 +295,7 @@ export default function CollectionsManagementPage() {
                                             <td className="px-6 py-4">
                                                 <div className="flex flex-wrap gap-1">
                                                     {collection.tags.length === 0 ? (
-                                                        <span className="text-gray-400 text-sm italic">Không có tag</span>
+                                                        <span className="text-gray-400 text-sm italic">{t('noTags')}</span>
                                                     ) : (
                                                         <>
                                                             {collection.tags.slice(0, 2).map((tag) => (
@@ -317,18 +320,18 @@ export default function CollectionsManagementPage() {
                                                     <button
                                                         onClick={() => handleViewCollection(collection)}
                                                         className="flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg font-medium text-sm transition-colors"
-                                                        title="Xem chi tiết"
+                                                        title={tCommon('viewDetails')}
                                                     >
                                                         <EyeIcon className="h-4 w-4" />
-                                                        Xem
+                                                        {tCommon('view')}
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteClick(collection)}
                                                         className="flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg font-medium text-sm transition-colors"
-                                                        title="Xóa bộ sưu tập"
+                                                        title={tCommon('delete')}
                                                     >
                                                         <TrashIcon className="h-4 w-4" />
-                                                        Xóa
+                                                        {tCommon('delete')}
                                                     </button>
                                                 </div>
                                             </td>
@@ -344,7 +347,7 @@ export default function CollectionsManagementPage() {
                 {totalPages > 1 && (
                     <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
                         <span className="text-sm text-gray-500">
-                            Trang {currentPage} / {totalPages} - Tổng số {totalItems} bộ sưu tập
+                            {tCommon('page')} {currentPage} {tCommon('of')} {totalPages} - {tCommon('totalItems', { count: totalItems, entity: 'collections' })}
                         </span>
                         <div className="flex gap-2">
                             <button
@@ -352,17 +355,17 @@ export default function CollectionsManagementPage() {
                                 disabled={currentPage === 1}
                                 className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
                             >
-                                Trước
+                                {tCommon('previous')}
                             </button>
                             <span className="px-4 py-2 text-sm font-medium text-gray-700">
-                                Trang {currentPage} / {totalPages}
+                                {tCommon('page')} {currentPage} {tCommon('of')} {totalPages}
                             </span>
                             <button
                                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                                 disabled={currentPage === totalPages}
                                 className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
                             >
-                                Tiếp
+                                {tCommon('next')}
                             </button>
                         </div>
                     </div>
@@ -374,7 +377,7 @@ export default function CollectionsManagementPage() {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
                         <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-2xl flex justify-between items-center">
-                            <h3 className="text-2xl font-bold">Chi Tiết Bộ Sưu Tập</h3>
+                            <h3 className="text-2xl font-bold">{t('collectionDetails')}</h3>
                             <button
                                 onClick={() => setSelectedCollection(null)}
                                 className="p-2 hover:bg-white/20 rounded-full transition-colors"
@@ -393,7 +396,7 @@ export default function CollectionsManagementPage() {
                             </div>
                             <div>
                                 <label className="text-sm font-semibold text-gray-500 uppercase">Mô tả</label>
-                                <p className="text-gray-700 mt-1">{selectedCollection.description || "Không có mô tả"}</p>
+                                <p className="text-gray-700 mt-1">{selectedCollection.description || t('noDescription')}</p>
                             </div>
                             <div>
                                 <label className="text-sm font-semibold text-gray-500 uppercase">Hiển thị</label>
@@ -434,7 +437,7 @@ export default function CollectionsManagementPage() {
                                 onClick={() => setSelectedCollection(null)}
                                 className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium transition-colors"
                             >
-                                Đóng
+                                {tCommon('close')}
                             </button>
                         </div>
                     </div>
@@ -446,7 +449,7 @@ export default function CollectionsManagementPage() {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
                         <div className="bg-red-600 text-white p-6 rounded-t-2xl flex justify-between items-center">
-                            <h3 className="text-2xl font-bold">Xác Nhận Xóa</h3>
+                            <h3 className="text-2xl font-bold">{t('confirmDelete')}</h3>
                             <button
                                 onClick={() => setCollectionToDelete(null)}
                                 className="p-2 hover:bg-white/20 rounded-full transition-colors"
@@ -456,12 +459,12 @@ export default function CollectionsManagementPage() {
                         </div>
                         <div className="p-6">
                             <p className="text-gray-700 text-lg">
-                                Bạn có chắc chắn muốn xóa bộ sưu tập{" "}
+                                {t('confirmDeleteMessage')}{" "}
                                 <span className="font-bold text-gray-900">
                                     &quot;{collectionToDelete.name}&quot;
                                 </span>?
                             </p>
-                            <p className="text-gray-500 mt-2">Hành động này không thể hoàn tác.</p>
+                            <p className="text-gray-500 mt-2">{t('confirmDeleteNote')}</p>
                         </div>
                         <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
                             <button
@@ -469,7 +472,7 @@ export default function CollectionsManagementPage() {
                                 className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium transition-colors"
                                 disabled={isDeleting}
                             >
-                                Hủy
+                                {tCommon('cancel')}
                             </button>
                             <button
                                 onClick={handleConfirmDelete}
@@ -479,10 +482,10 @@ export default function CollectionsManagementPage() {
                                 {isDeleting ? (
                                     <>
                                         <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                                        Đang xóa...
+                                        {tCommon('deleting')}
                                     </>
                                 ) : (
-                                    "Xóa"
+                                    tCommon('delete')
                                 )}
                             </button>
                         </div>

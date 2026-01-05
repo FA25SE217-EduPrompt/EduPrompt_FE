@@ -16,8 +16,11 @@ import {
 } from "@heroicons/react/24/outline";
 import Spinner from "@/components/ui/Spinner";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 export default function GroupsManagementPage() {
+    const t = useTranslations('Admin.Groups');
+    const tCommon = useTranslations('Admin.Common');
     const [groups, setGroups] = useState<Group[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -47,7 +50,7 @@ export default function GroupsManagementPage() {
                 console.log(`✅ Loaded page ${page + 1}: ${response.data.content.length} groups`);
 
                 if (response.data.content.length > 0) {
-                    toast.success(`Đã tải trang ${page + 1} (${response.data.content.length} nhóm)`, { duration: 3000 });
+                    toast.success(t('loadedPage', { page: page + 1, count: response.data.content.length }), { duration: 3000 });
                 }
             } else {
                 console.error("Unexpected response structure:", response);
@@ -57,9 +60,9 @@ export default function GroupsManagementPage() {
             }
         } catch (err: unknown) {
             console.error("❌ Error fetching groups:", err);
-            const errorMsg = err.response?.status === 403
-                ? "Bạn không có quyền truy cập. Vui lòng đăng nhập với tài khoản ADMIN."
-                : "Không thể tải danh sách nhóm";
+            const errorMsg = (err as any).response?.status === 403
+                ? t('permissionDenied')
+                : t('failedToLoad');
             setError(errorMsg);
             toast.error(errorMsg, { duration: 3000 });
             setGroups([]);
@@ -108,11 +111,11 @@ export default function GroupsManagementPage() {
         try {
             await deleteGroup(groupToDelete.id);
             setGroups(groups.filter(g => g.id !== groupToDelete.id));
-            toast.success(`Đã xóa nhóm "${groupToDelete.name}"`, { duration: 3000 });
+            toast.success(t('deleteSuccess', { name: groupToDelete.name }), { duration: 3000 });
             setGroupToDelete(null);
         } catch (err) {
             console.error("Failed to delete group:", err);
-            toast.error("Không thể xóa nhóm", { duration: 3000 });
+            toast.error(t('deleteFailed'), { duration: 3000 });
         } finally {
             setIsDeleting(false);
         }
@@ -133,19 +136,19 @@ export default function GroupsManagementPage() {
                 <div>
                     <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
                         <UserGroupIcon className="h-10 w-10 text-blue-600" />
-                        Quản Lý Nhóm
+                        {t('title')}
                     </h1>
-                    <p className="text-gray-600 mt-2">Quản lý tất cả nhóm trong hệ thống</p>
+                    <p className="text-gray-600 mt-2">{t('description')}</p>
                 </div>
                 <div className="flex items-center gap-4">
                     <div className="text-right">
-                        <p className="text-sm text-gray-500">Tổng Số Nhóm</p>
+                        <p className="text-sm text-gray-500">{t('totalGroups')}</p>
                         <p className="text-2xl font-bold text-blue-600">{totalItems}</p>
                     </div>
                     <button
                         onClick={() => fetchGroups(currentPage - 1)}
                         className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all hover:scale-105"
-                        title="Làm mới"
+                        title={tCommon('refresh')}
                     >
                         <ArrowPathIcon className="h-6 w-6 text-blue-600" />
                     </button>
@@ -155,7 +158,7 @@ export default function GroupsManagementPage() {
             {/* Error Message */}
             {error && (
                 <div className="mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 px-6 py-4 rounded-lg shadow-sm">
-                    <p className="font-medium">Lỗi</p>
+                    <p className="font-medium">{tCommon('error')}</p>
                     <p className="text-sm">{error}</p>
                 </div>
             )}
@@ -165,7 +168,7 @@ export default function GroupsManagementPage() {
                 <div className="flex items-center gap-4 flex-wrap">
                     <div className="flex items-center gap-2">
                         <FunnelIcon className="h-5 w-5 text-gray-500" />
-                        <span className="font-semibold text-gray-700">Bộ lọc:</span>
+                        <span className="font-semibold text-gray-700">{tCommon('filters')}:</span>
                     </div>
 
                     {/* Status Filter */}
@@ -177,9 +180,9 @@ export default function GroupsManagementPage() {
                         }}
                         className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                     >
-                        <option value="ALL">Tất cả</option>
-                        <option value="ACTIVE">Hoạt động</option>
-                        <option value="INACTIVE">Không hoạt động</option>
+                        <option value="ALL">{tCommon('allStatuses')}</option>
+                        <option value="ACTIVE">{tCommon('active')}</option>
+                        <option value="INACTIVE">{tCommon('inactive')}</option>
                     </select>
 
                     {/* Clear Filters */}
@@ -191,7 +194,7 @@ export default function GroupsManagementPage() {
                             }}
                             className="px-4 py-2 text-sm text-blue-600 hover:text-blue-800 font-medium"
                         >
-                            Xóa bộ lọc
+                            {tCommon('clearFilters')}
                         </button>
                     )}
                 </div>
@@ -201,11 +204,11 @@ export default function GroupsManagementPage() {
             <section className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
                 {/* Search Bar */}
                 <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-blue-50 to-purple-50">
-                    <h2 className="text-xl font-semibold text-gray-900">Tất Cả Nhóm</h2>
+                    <h2 className="text-xl font-semibold text-gray-900">{t('allGroups')}</h2>
                     <div className="relative">
                         <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                         <input
-                            placeholder="Tìm kiếm nhóm..."
+                            placeholder={t('searchPlaceholder')}
                             value={searchQuery}
                             onChange={(e) => {
                                 setSearchQuery(e.target.value);
@@ -222,11 +225,11 @@ export default function GroupsManagementPage() {
                         <thead className="bg-gray-50 text-gray-900 font-semibold border-b-2 border-gray-200">
                             <tr>
                                 <th className="px-6 py-4">ID</th>
-                                <th className="px-6 py-4">Tên nhóm</th>
+                                <th className="px-6 py-4">{t('name')}</th>
                                 <th className="px-6 py-4">School ID</th>
-                                <th className="px-6 py-4">Trạng thái</th>
-                                <th className="px-6 py-4">Ngày tạo</th>
-                                <th className="px-6 py-4">Hành động</th>
+                                <th className="px-6 py-4">{t('status')}</th>
+                                <th className="px-6 py-4">{t('createdAt')}</th>
+                                <th className="px-6 py-4">{tCommon('actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
@@ -234,8 +237,8 @@ export default function GroupsManagementPage() {
                                 <tr>
                                     <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                                         {searchQuery || statusFilter !== "ALL"
-                                            ? "Không tìm thấy nhóm phù hợp với bộ lọc."
-                                            : "Không có nhóm nào."}
+                                            ? t('noGroupsFound')
+                                            : t('noGroups')}
                                     </td>
                                 </tr>
                             ) : (
@@ -251,7 +254,7 @@ export default function GroupsManagementPage() {
                                             {group.schoolId ? (
                                                 <span className="font-mono text-sm">{group.schoolId.substring(0, 8)}...</span>
                                             ) : (
-                                                <span className="text-gray-400 italic">Không có</span>
+                                                <span className="text-gray-400 italic">{t('noSchoolId')}</span>
                                             )}
                                         </td>
                                         <td className="px-6 py-4">
@@ -260,9 +263,9 @@ export default function GroupsManagementPage() {
                                                 : 'bg-gray-100 text-gray-700'
                                                 }`}>
                                                 {group.isActive ? (
-                                                    <><CheckCircleIcon className="h-4 w-4" /> Hoạt động</>
+                                                    <><CheckCircleIcon className="h-4 w-4" /> {tCommon('active')}</>
                                                 ) : (
-                                                    <><XCircleIcon className="h-4 w-4" /> Không hoạt động</>
+                                                    <><XCircleIcon className="h-4 w-4" /> {tCommon('inactive')}</>
                                                 )}
                                             </span>
                                         </td>
@@ -274,18 +277,18 @@ export default function GroupsManagementPage() {
                                                 <button
                                                     onClick={() => handleViewGroup(group)}
                                                     className="flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg font-medium text-sm transition-colors"
-                                                    title="Xem chi tiết"
+                                                    title={tCommon('viewDetails')}
                                                 >
                                                     <EyeIcon className="h-4 w-4" />
-                                                    Xem
+                                                    {tCommon('view')}
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteClick(group)}
                                                     className="flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg font-medium text-sm transition-colors"
-                                                    title="Xóa nhóm"
+                                                    title={tCommon('delete')}
                                                 >
                                                     <TrashIcon className="h-4 w-4" />
-                                                    Xóa
+                                                    {tCommon('delete')}
                                                 </button>
                                             </div>
                                         </td>
@@ -300,7 +303,7 @@ export default function GroupsManagementPage() {
                 {totalPages > 1 && (
                     <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
                         <span className="text-sm text-gray-500">
-                            Trang {currentPage} / {totalPages} - Tổng số {totalItems} nhóm
+                            {tCommon('page')} {currentPage} {tCommon('of')} {totalPages} - {tCommon('totalItems', { count: totalItems, entity: 'groups' })}
                         </span>
                         <div className="flex gap-2">
                             <button
@@ -308,17 +311,17 @@ export default function GroupsManagementPage() {
                                 disabled={currentPage === 1}
                                 className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
                             >
-                                Trước
+                                {tCommon('previous')}
                             </button>
                             <span className="px-4 py-2 text-sm font-medium text-gray-700">
-                                Trang {currentPage} / {totalPages}
+                                {tCommon('page')} {currentPage} {tCommon('of')} {totalPages}
                             </span>
                             <button
                                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                                 disabled={currentPage === totalPages}
                                 className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
                             >
-                                Tiếp
+                                {tCommon('next')}
                             </button>
                         </div>
                     </div>
@@ -330,7 +333,7 @@ export default function GroupsManagementPage() {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full">
                         <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-2xl flex justify-between items-center">
-                            <h3 className="text-2xl font-bold">Chi Tiết Nhóm</h3>
+                            <h3 className="text-2xl font-bold">{t('groupDetails')}</h3>
                             <button
                                 onClick={() => setSelectedGroup(null)}
                                 className="p-2 hover:bg-white/20 rounded-full transition-colors"
@@ -360,7 +363,7 @@ export default function GroupsManagementPage() {
                                         ? 'bg-green-100 text-green-700'
                                         : 'bg-gray-100 text-gray-700'
                                         }`}>
-                                        {selectedGroup.isActive ? 'Hoạt động' : 'Không hoạt động'}
+                                        {selectedGroup.isActive ? tCommon('active') : tCommon('inactive')}
                                     </span>
                                 </p>
                             </div>
@@ -376,7 +379,7 @@ export default function GroupsManagementPage() {
                                 onClick={() => setSelectedGroup(null)}
                                 className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium transition-colors"
                             >
-                                Đóng
+                                {tCommon('close')}
                             </button>
                         </div>
                     </div>
@@ -388,7 +391,7 @@ export default function GroupsManagementPage() {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
                         <div className="bg-red-600 text-white p-6 rounded-t-2xl flex justify-between items-center">
-                            <h3 className="text-2xl font-bold">Xác Nhận Xóa</h3>
+                            <h3 className="text-2xl font-bold">{t('confirmDelete')}</h3>
                             <button
                                 onClick={() => setGroupToDelete(null)}
                                 className="p-2 hover:bg-white/20 rounded-full transition-colors"
@@ -398,12 +401,12 @@ export default function GroupsManagementPage() {
                         </div>
                         <div className="p-6">
                             <p className="text-gray-700 text-lg">
-                                Bạn có chắc chắn muốn xóa nhóm{" "}
+                                {t('confirmDeleteMessage')}{" "}
                                 <span className="font-bold text-gray-900">
                                     &quot;{groupToDelete.name}&quot;
                                 </span>?
                             </p>
-                            <p className="text-gray-500 mt-2">Hành động này không thể hoàn tác.</p>
+                            <p className="text-gray-500 mt-2">{t('confirmDeleteNote')}</p>
                         </div>
                         <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
                             <button
@@ -411,7 +414,7 @@ export default function GroupsManagementPage() {
                                 className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium transition-colors"
                                 disabled={isDeleting}
                             >
-                                Hủy
+                                {tCommon('cancel')}
                             </button>
                             <button
                                 onClick={handleConfirmDelete}
@@ -421,10 +424,10 @@ export default function GroupsManagementPage() {
                                 {isDeleting ? (
                                     <>
                                         <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                                        Đang xóa...
+                                        {tCommon('deleting')}
                                     </>
                                 ) : (
-                                    "Xóa"
+                                    tCommon('delete')
                                 )}
                             </button>
                         </div>

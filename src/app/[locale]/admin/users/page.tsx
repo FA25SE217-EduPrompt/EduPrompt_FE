@@ -14,8 +14,11 @@ import {
 } from "@heroicons/react/24/outline";
 import Spinner from "@/components/ui/Spinner";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 export default function UsersManagementPage() {
+    const t = useTranslations('Admin.Users');
+    const tCommon = useTranslations('Admin.Common');
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -46,7 +49,7 @@ export default function UsersManagementPage() {
                 console.log(`✅ Loaded page ${page + 1}: ${response.data.content.length} users`);
 
                 if (response.data.content.length > 0) {
-                    toast.success(`Đã tải trang ${page + 1} (${response.data.content.length} người dùng)`, { duration: 3000 });
+                    toast.success(t('loadedPage', { page: page + 1, count: response.data.content.length }), { duration: 3000 });
                 }
             } else {
                 console.error("Unexpected response structure:", response);
@@ -57,8 +60,8 @@ export default function UsersManagementPage() {
         } catch (err: unknown) {
             console.error("Failed to fetch users:", err);
             console.error("Error details:", err.response?.data);
-            setError(err.message || "Không thể tải danh sách người dùng. Vui lòng thử lại.");
-            toast.error("Không thể tải người dùng", { duration: 3000 });
+            setError(err.message || t('failedToLoad'));
+            toast.error(t('failedToLoad'), { duration: 3000 });
             setUsers([]);
             setTotalPages(0);
             setTotalItems(0);
@@ -73,24 +76,22 @@ export default function UsersManagementPage() {
 
     // Get user status from isActive and isVerified
     const getUserStatus = (user: User): string => {
-        if (!user.isVerified) return "Chờ xác nhận";
-        if (!user.isActive) return "Không hoạt động";
-        return "Hoạt động";
+        if (!user.isVerified) return t('statuses.pending');
+        if (!user.isActive) return t('statuses.inactive');
+        return t('statuses.active');
     };
 
     // Get status badge color
     const getStatusColor = (isActive: boolean, isVerified: boolean) => {
         const status = getUserStatus({ isActive, isVerified } as User);
-        switch (status) {
-            case "Hoạt động":
-                return "bg-green-100 text-green-700";
-            case "Không hoạt động":
-                return "bg-gray-100 text-gray-700";
-            case "Chờ xác nhận":
-                return "bg-yellow-100 text-yellow-700";
-            default:
-                return "bg-gray-100 text-gray-700";
-        }
+        const activeStatus = t('statuses.active');
+        const inactiveStatus = t('statuses.inactive');
+        const pendingStatus = t('statuses.pending');
+
+        if (status === activeStatus) return "bg-green-100 text-green-700";
+        if (status === inactiveStatus) return "bg-gray-100 text-gray-700";
+        if (status === pendingStatus) return "bg-yellow-100 text-yellow-700";
+        return "bg-gray-100 text-gray-700";
     };
 
     // Filter users based on search query, status, and role (client-side filtering on current page)
@@ -135,11 +136,11 @@ export default function UsersManagementPage() {
         try {
             await deleteUser(userToDelete.id);
             setUsers(users.filter(u => u.id !== userToDelete.id));
-            toast.success(`Đã xóa người dùng ${userToDelete.firstName} ${userToDelete.lastName} thành công`, { duration: 3000 });
+            toast.success(t('deleteSuccess', { name: `${userToDelete.firstName} ${userToDelete.lastName}` }), { duration: 3000 });
             setUserToDelete(null);
         } catch (err) {
             console.error("Failed to delete user:", err);
-            toast.error("Không thể xóa người dùng. Vui lòng thử lại.", { duration: 3000 });
+            toast.error(t('deleteFailed'), { duration: 3000 });
         } finally {
             setIsDeleting(false);
         }
@@ -178,19 +179,19 @@ export default function UsersManagementPage() {
                 <div>
                     <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
                         <UserGroupIcon className="h-10 w-10 text-blue-600" />
-                        Quản Lý Người Dùng
+                        {t('title')}
                     </h1>
-                    <p className="text-gray-600 mt-2">Quản lý tất cả người dùng trong hệ thống</p>
+                    <p className="text-gray-600 mt-2">{t('description')}</p>
                 </div>
                 <div className="flex items-center gap-4">
                     <div className="text-right">
-                        <p className="text-sm text-gray-500">Tổng Số Người Dùng</p>
+                        <p className="text-sm text-gray-500">{t('totalUsers')}</p>
                         <p className="text-2xl font-bold text-blue-600">{totalItems}</p>
                     </div>
                     <button
                         onClick={() => fetchUsers(currentPage - 1)}
                         className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all hover:scale-105"
-                        title="Làm mới"
+                        title={tCommon('refresh')}
                     >
                         <ArrowPathIcon className="h-6 w-6 text-blue-600" />
                     </button>
@@ -200,7 +201,7 @@ export default function UsersManagementPage() {
             {/* Error Message */}
             {error && (
                 <div className="mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 px-6 py-4 rounded-lg shadow-sm">
-                    <p className="font-medium">Lỗi</p>
+                    <p className="font-medium">{tCommon('error')}</p>
                     <p className="text-sm">{error}</p>
                 </div>
             )}
@@ -210,7 +211,7 @@ export default function UsersManagementPage() {
                 <div className="flex items-center gap-4 flex-wrap">
                     <div className="flex items-center gap-2">
                         <FunnelIcon className="h-5 w-5 text-gray-500" />
-                        <span className="font-semibold text-gray-700">Bộ lọc:</span>
+                        <span className="font-semibold text-gray-700">{tCommon('filters')}:</span>
                     </div>
 
                     {/* Status Filter */}
@@ -222,10 +223,10 @@ export default function UsersManagementPage() {
                         }}
                         className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                     >
-                        <option value="ALL">Tất cả trạng thái</option>
-                        <option value="Hoạt động">Hoạt động</option>
-                        <option value="Không hoạt động">Không hoạt động</option>
-                        <option value="Chờ xác nhận">Chờ xác nhận</option>
+                        <option value="ALL">{t('allStatuses')}</option>
+                        <option value="ACTIVE">{t('statuses.active')}</option>
+                        <option value="INACTIVE">{t('statuses.inactive')}</option>
+                        <option value="PENDING">{t('statuses.pending')}</option>
                     </select>
 
                     {/* Role Filter */}
@@ -237,11 +238,11 @@ export default function UsersManagementPage() {
                         }}
                         className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                     >
-                        <option value="ALL">Tất cả vai trò</option>
-                        <option value={UserRole.ADMIN}>Quản trị viên</option>
-                        <option value={UserRole.SCHOOL_ADMIN}>Quản trị trường</option>
-                        <option value={UserRole.TEACHER}>Giáo viên</option>
-                        <option value={UserRole.STUDENT}>Học sinh</option>
+                        <option value="ALL">{t('allRoles')}</option>
+                        <option value={UserRole.ADMIN}>{t('roles.admin')}</option>
+                        <option value={UserRole.SCHOOL_ADMIN}>{t('roles.schoolAdmin')}</option>
+                        <option value={UserRole.TEACHER}>{t('roles.teacher')}</option>
+                        <option value={UserRole.STUDENT}>{t('roles.student')}</option>
                     </select>
 
                     {/* Clear Filters */}
@@ -254,7 +255,7 @@ export default function UsersManagementPage() {
                             }}
                             className="px-4 py-2 text-sm text-blue-600 hover:text-blue-800 font-medium"
                         >
-                            Xóa bộ lọc
+                            {tCommon('clearFilters')}
                         </button>
                     )}
                 </div>
@@ -264,11 +265,11 @@ export default function UsersManagementPage() {
             <section className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
                 {/* Search Bar */}
                 <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-blue-50 to-purple-50">
-                    <h2 className="text-xl font-semibold text-gray-900">Tất Cả Người Dùng</h2>
+                    <h2 className="text-xl font-semibold text-gray-900">{t('allUsers')}</h2>
                     <div className="relative">
                         <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                         <input
-                            placeholder="Tìm kiếm người dùng..."
+                            placeholder={t('searchPlaceholder')}
                             value={searchQuery}
                             onChange={(e) => {
                                 setSearchQuery(e.target.value);
@@ -284,14 +285,14 @@ export default function UsersManagementPage() {
                     <table className="w-full">
                         <thead className="bg-gray-50 text-gray-900 font-semibold border-b-2 border-gray-200">
                             <tr>
-                                <th className="px-6 py-4">ID</th>
-                                <th className="px-6 py-4">Họ và Tên</th>
-                                <th className="px-6 py-4">Email</th>
-                                <th className="px-6 py-4">Số điện thoại</th>
-                                <th className="px-6 py-4">Vai trò</th>
-                                <th className="px-6 py-4">Trạng thái</th>
-                                <th className="px-6 py-4">Ngày tạo</th>
-                                <th className="px-6 py-4">Hành động</th>
+                                <th className="px-6 py-4">{t('id')}</th>
+                                <th className="px-6 py-4">{t('fullName')}</th>
+                                <th className="px-6 py-4">{t('email')}</th>
+                                <th className="px-6 py-4">{t('phoneNumber')}</th>
+                                <th className="px-6 py-4">{t('role')}</th>
+                                <th className="px-6 py-4">{t('status')}</th>
+                                <th className="px-6 py-4">{t('createdAt')}</th>
+                                <th className="px-6 py-4">{t('actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
@@ -299,8 +300,8 @@ export default function UsersManagementPage() {
                                 <tr>
                                     <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
                                         {searchQuery || statusFilter !== "ALL" || roleFilter !== "ALL"
-                                            ? "Không tìm thấy người dùng phù hợp với bộ lọc."
-                                            : "Không có người dùng."}
+                                            ? t('noUsersFound')
+                                            : t('noUsers')}
                                     </td>
                                 </tr>
                             ) : (
@@ -334,18 +335,18 @@ export default function UsersManagementPage() {
                                                 <button
                                                     onClick={() => handleViewUser(user)}
                                                     className="flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg font-medium text-sm transition-colors"
-                                                    title="Xem chi tiết"
+                                                    title={tCommon('viewDetails')}
                                                 >
                                                     <EyeIcon className="h-4 w-4" />
-                                                    Xem
+                                                    {tCommon('view')}
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteClick(user)}
                                                     className="flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg font-medium text-sm transition-colors"
-                                                    title="Xóa người dùng"
+                                                    title={tCommon('delete')}
                                                 >
                                                     <TrashIcon className="h-4 w-4" />
-                                                    Xóa
+                                                    {tCommon('delete')}
                                                 </button>
                                             </div>
                                         </td>
@@ -360,7 +361,7 @@ export default function UsersManagementPage() {
                 {totalPages > 1 && (
                     <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
                         <span className="text-sm text-gray-500">
-                            Trang {currentPage} / {totalPages} - Tổng số {totalItems} người dùng
+                            {t('pageInfo', { current: currentPage, total: totalPages, count: totalItems })}
                         </span>
                         <div className="flex gap-2">
                             <button
@@ -368,17 +369,17 @@ export default function UsersManagementPage() {
                                 disabled={currentPage === 1}
                                 className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
                             >
-                                Trước
+                                {tCommon('previous')}
                             </button>
                             <span className="px-4 py-2 text-sm font-medium text-gray-700">
-                                Trang {currentPage} / {totalPages}
+                                {t('pageShort', { current: currentPage, total: totalPages })}
                             </span>
                             <button
                                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                                 disabled={currentPage === totalPages}
                                 className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
                             >
-                                Tiếp
+                                {tCommon('next')}
                             </button>
                         </div>
                     </div>
@@ -391,7 +392,7 @@ export default function UsersManagementPage() {
                     <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                         {/* Modal Header */}
                         <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-2xl flex justify-between items-center">
-                            <h3 className="text-2xl font-bold">Chi Tiết Người Dùng</h3>
+                            <h3 className="text-2xl font-bold">{t('userDetails')}</h3>
                             <button
                                 onClick={() => setSelectedUser(null)}
                                 className="p-2 hover:bg-white/20 rounded-full transition-colors"
@@ -405,27 +406,27 @@ export default function UsersManagementPage() {
                             {/* User Info Grid */}
                             <div className="grid grid-cols-2 gap-6">
                                 <div>
-                                    <label className="text-sm font-semibold text-gray-500 uppercase">Tên</label>
+                                    <label className="text-sm font-semibold text-gray-500 uppercase">{t('firstName')}</label>
                                     <p className="text-lg font-medium text-gray-900 mt-1">{selectedUser.firstName}</p>
                                 </div>
                                 <div>
-                                    <label className="text-sm font-semibold text-gray-500 uppercase">Họ</label>
+                                    <label className="text-sm font-semibold text-gray-500 uppercase">{t('lastName')}</label>
                                     <p className="text-lg font-medium text-gray-900 mt-1">{selectedUser.lastName}</p>
                                 </div>
                                 <div className="col-span-2">
-                                    <label className="text-sm font-semibold text-gray-500 uppercase">Email</label>
+                                    <label className="text-sm font-semibold text-gray-500 uppercase">{t('email')}</label>
                                     <p className="text-lg font-medium text-gray-900 mt-1">{selectedUser.email}</p>
                                 </div>
                                 <div>
-                                    <label className="text-sm font-semibold text-gray-500 uppercase">Số điện thoại</label>
-                                    <p className="text-lg font-medium text-gray-900 mt-1">{selectedUser.phoneNumber || "Không có"}</p>
+                                    <label className="text-sm font-semibold text-gray-500 uppercase">{t('phoneNumber')}</label>
+                                    <p className="text-lg font-medium text-gray-900 mt-1">{selectedUser.phoneNumber || t('na')}</p>
                                 </div>
                                 <div>
                                     <label className="text-sm font-semibold text-gray-500 uppercase">User ID</label>
                                     <p className="text-sm font-mono text-gray-600 mt-1">{selectedUser.id}</p>
                                 </div>
                                 <div>
-                                    <label className="text-sm font-semibold text-gray-500 uppercase">Vai trò</label>
+                                    <label className="text-sm font-semibold text-gray-500 uppercase">{t('role')}</label>
                                     <p className="mt-1">
                                         <span className={`px-3 py-1 rounded-lg text-sm font-semibold ${getRoleColor(selectedUser.role)}`}>
                                             {selectedUser.role}
@@ -433,7 +434,7 @@ export default function UsersManagementPage() {
                                     </p>
                                 </div>
                                 <div>
-                                    <label className="text-sm font-semibold text-gray-500 uppercase">Trạng thái</label>
+                                    <label className="text-sm font-semibold text-gray-500 uppercase">{t('status')}</label>
                                     <p className="mt-1">
                                         <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(selectedUser.isActive, selectedUser.isVerified)}`}>
                                             {getUserStatus(selectedUser)}
@@ -441,30 +442,30 @@ export default function UsersManagementPage() {
                                     </p>
                                 </div>
                                 <div>
-                                    <label className="text-sm font-semibold text-gray-500 uppercase">Đang hoạt động</label>
+                                    <label className="text-sm font-semibold text-gray-500 uppercase">{t('isActive')}</label>
                                     <p className="mt-1">
                                         <span className={`px-3 py-1 rounded-lg text-sm font-semibold ${selectedUser.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                            {selectedUser.isActive ? 'Có' : 'Không'}
+                                            {selectedUser.isActive ? t('yes') : t('no')}
                                         </span>
                                     </p>
                                 </div>
                                 <div>
-                                    <label className="text-sm font-semibold text-gray-500 uppercase">Đã xác thực</label>
+                                    <label className="text-sm font-semibold text-gray-500 uppercase">{t('isVerified')}</label>
                                     <p className="mt-1">
                                         <span className={`px-3 py-1 rounded-lg text-sm font-semibold ${selectedUser.isVerified ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                                            {selectedUser.isVerified ? 'Có' : 'Không'}
+                                            {selectedUser.isVerified ? t('yes') : t('no')}
                                         </span>
                                     </p>
                                 </div>
                                 <div>
-                                    <label className="text-sm font-semibold text-gray-500 uppercase">Ngày tạo</label>
+                                    <label className="text-sm font-semibold text-gray-500 uppercase">{t('createdAt')}</label>
                                     <p className="text-lg font-medium text-gray-900 mt-1">
                                         {new Date(selectedUser.createdAt).toLocaleString('vi-VN')}
                                     </p>
                                 </div>
                                 {selectedUser.updatedAt && (
                                     <div>
-                                        <label className="text-sm font-semibold text-gray-500 uppercase">Ngày cập nhật</label>
+                                        <label className="text-sm font-semibold text-gray-500 uppercase">{t('updatedAt')}</label>
                                         <p className="text-lg font-medium text-gray-900 mt-1">
                                             {new Date(selectedUser.updatedAt).toLocaleString('vi-VN')}
                                         </p>
@@ -479,7 +480,7 @@ export default function UsersManagementPage() {
                                 onClick={() => setSelectedUser(null)}
                                 className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium transition-colors"
                             >
-                                Đóng
+                                {tCommon('close')}
                             </button>
                         </div>
                     </div>
@@ -492,7 +493,7 @@ export default function UsersManagementPage() {
                     <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
                         {/* Modal Header */}
                         <div className="bg-red-600 text-white p-6 rounded-t-2xl flex justify-between items-center">
-                            <h3 className="text-2xl font-bold">Xác Nhận Xóa</h3>
+                            <h3 className="text-2xl font-bold">{t('confirmDelete')}</h3>
                             <button
                                 onClick={() => setUserToDelete(null)}
                                 className="p-2 hover:bg-white/20 rounded-full transition-colors"
@@ -504,12 +505,12 @@ export default function UsersManagementPage() {
                         {/* Modal Body */}
                         <div className="p-6">
                             <p className="text-gray-700 text-lg">
-                                Bạn có chắc chắn muốn xóa người dùng{" "}
+                                {t('confirmDeleteMessage')}{" "}
                                 <span className="font-bold text-gray-900">
                                     {userToDelete.firstName} {userToDelete.lastName}
                                 </span>?
                             </p>
-                            <p className="text-gray-500 mt-2">Hành động này không thể hoàn tác.</p>
+                            <p className="text-gray-500 mt-2">{t('confirmDeleteNote')}</p>
                         </div>
 
                         {/* Modal Footer */}
@@ -519,7 +520,7 @@ export default function UsersManagementPage() {
                                 className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium transition-colors"
                                 disabled={isDeleting}
                             >
-                                Hủy
+                                {tCommon('cancel')}
                             </button>
                             <button
                                 onClick={handleConfirmDelete}
@@ -529,10 +530,10 @@ export default function UsersManagementPage() {
                                 {isDeleting ? (
                                     <>
                                         <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                                        Đang xóa...
+                                        {t('deleting')}
                                     </>
                                 ) : (
-                                    "Xóa"
+                                    tCommon('delete')
                                 )}
                             </button>
                         </div>

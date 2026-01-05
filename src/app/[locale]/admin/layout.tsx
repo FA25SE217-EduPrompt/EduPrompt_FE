@@ -16,6 +16,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 const NavItem: React.FC<{
     icon: React.ReactNode;
@@ -48,6 +49,7 @@ export default function AdminLayout({
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const { user, logout } = useAuth();
     const router = useRouter();
+    const t = useTranslations('Admin.Sidebar');
 
     const handleLogout = async () => {
         await logout();
@@ -62,7 +64,7 @@ export default function AdminLayout({
                     } lg:relative lg:translate-x-0`}
             >
                 <div className="flex items-center justify-between p-5 border-b border-blue-800">
-                    <span className="text-xl font-bold">Admin Dashboard</span>
+                    <span className="text-xl font-bold">{t('adminDashboard')}</span>
                     <button
                         onClick={() => setIsSidebarOpen(false)}
                         className="lg:hidden text-blue-200 hover:text-white"
@@ -74,32 +76,32 @@ export default function AdminLayout({
                 <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
                     <NavItem
                         icon={<HomeIcon className="h-5 w-5" />}
-                        label="Dashboard"
+                        label={t('dashboard')}
                         href="/admin"
                     />
                     <NavItem
                         icon={<UsersIcon className="h-5 w-5" />}
-                        label="Quản Lý Users"
+                        label={t('users')}
                         href="/admin/users"
                     />
                     <NavItem
                         icon={<DocumentTextIcon className="h-5 w-5" />}
-                        label="Quản Lý Prompts"
+                        label={t('prompts')}
                         href="/admin/prompts"
                     />
                     <NavItem
                         icon={<TagIcon className="h-5 w-5" />}
-                        label="Quản Lý Tags"
+                        label={t('tags')}
                         href="/admin/tags"
                     />
                     <NavItem
                         icon={<UserGroupIcon className="h-5 w-5" />}
-                        label="Quản Lý Groups"
+                        label={t('groups')}
                         href="/admin/groups"
                     />
                     <NavItem
                         icon={<FolderIcon className="h-5 w-5" />}
-                        label="Quản Lý Collections"
+                        label={t('collections')}
                         href="/admin/collections"
                     />
 
@@ -112,7 +114,7 @@ export default function AdminLayout({
                             className="flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer transition bg-blue-800/30 text-blue-100 hover:bg-blue-700 hover:text-white border border-blue-700"
                         >
                             <HomeIcon className="h-5 w-5" />
-                            <span className="text-sm font-medium">Về Trang Chủ</span>
+                            <span className="text-sm font-medium">{t('backToHome')}</span>
                         </Link>
                     </div>
                 </nav>
@@ -127,7 +129,7 @@ export default function AdminLayout({
                                 {user?.firstName || "Admin"}
                             </p>
                             <p className="text-xs text-blue-300 truncate">
-                                System Admin
+                                {t('systemAdmin')}
                             </p>
                         </div>
                     </div>
@@ -136,7 +138,7 @@ export default function AdminLayout({
                         className="flex items-center gap-2 w-full px-3 py-2 text-sm text-blue-200 hover:text-white hover:bg-blue-800 rounded-md transition-colors"
                     >
                         <ArrowLeftOnRectangleIcon className="h-5 w-5" />
-                        <span>Đăng Xuất</span>
+                        <span>{t('logout')}</span>
                     </button>
                 </div>
             </aside>
@@ -151,7 +153,7 @@ export default function AdminLayout({
                         >
                             <Bars3Icon className="h-6 w-6" />
                         </button>
-                        <span className="ml-4 text-lg font-semibold text-gray-900">Admin Dashboard</span>
+                        <span className="ml-4 text-lg font-semibold text-gray-900">{t('adminDashboard')}</span>
                     </div>
                 </header>
 

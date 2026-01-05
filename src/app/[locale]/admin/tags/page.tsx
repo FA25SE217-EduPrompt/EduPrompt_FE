@@ -15,8 +15,11 @@ import {
 } from "@heroicons/react/24/outline";
 import Spinner from "@/components/ui/Spinner";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 export default function TagsManagementPage() {
+    const t = useTranslations('Admin.Tags');
+    const tCommon = useTranslations('Admin.Common');
     const [tags, setTags] = useState<Tag[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -49,7 +52,7 @@ export default function TagsManagementPage() {
                 console.log(`✅ Loaded page ${page + 1}: ${response.data.content.length} tags`);
 
                 if (response.data.content.length > 0) {
-                    toast.success(`Đã tải trang ${page + 1} (${response.data.content.length} tags)`, { duration: 3000 });
+                    toast.success(t('loadedPage', { page: page + 1, count: response.data.content.length }), { duration: 3000 });
                 }
             } else {
                 console.error("Unexpected response structure:", response);
@@ -59,9 +62,9 @@ export default function TagsManagementPage() {
             }
         } catch (err: unknown) {
             console.error("Failed to fetch tags:", err);
-            const errorMessage = err instanceof Error ? err.message : "Không thể tải danh sách tags. Vui lòng thử lại.";
+            const errorMessage = err instanceof Error ? err.message : t('failedToLoad');
             setError(errorMessage);
-            toast.error("Không thể tải tags", { duration: 3000 });
+            toast.error(t('failedToLoad'), { duration: 3000 });
             setTags([]);
             setTotalPages(0);
             setTotalItems(0);
@@ -105,11 +108,11 @@ export default function TagsManagementPage() {
         try {
             await deleteTag(tagToDelete.id);
             setTags(tags.filter(t => t.id !== tagToDelete.id));
-            toast.success(`Đã xóa tag "${tagToDelete.value}" (${tagToDelete.type}) thành công`, { duration: 3000 });
+            toast.success(t('deleteSuccess', { value: tagToDelete.value, type: tagToDelete.type }), { duration: 3000 });
             setTagToDelete(null);
         } catch (err) {
             console.error("Failed to delete tag:", err);
-            toast.error("Không thể xóa tag. Vui lòng thử lại.", { duration: 3000 });
+            toast.error(t('deleteFailed'), { duration: 3000 });
         } finally {
             setIsDeleting(false);
         }
@@ -131,7 +134,7 @@ export default function TagsManagementPage() {
     // Handle save (create or update)
     const handleSave = async () => {
         if (!formData.type.trim() || !formData.value.trim()) {
-            toast.error("Loại và giá trị tag không được để trống", { duration: 3000 });
+            toast.error(t('validationError'), { duration: 3000 });
             return;
         }
 
@@ -141,19 +144,19 @@ export default function TagsManagementPage() {
                 // Create new tag
                 const newTag = await createTag(formData);
                 setTags([newTag, ...tags]);
-                toast.success(`Đã tạo tag "${formData.value}" (${formData.type}) thành công`, { duration: 3000 });
+                toast.success(t('createSuccess', { value: formData.value, type: formData.type }), { duration: 3000 });
                 setShowCreateModal(false);
             } else if (showEditModal && tagToEdit) {
                 // Update existing tag
                 const updatedTag = await updateTag(tagToEdit.id, formData);
                 setTags(tags.map(t => t.id === tagToEdit.id ? updatedTag : t));
-                toast.success(`Đã cập nhật tag "${formData.value}" (${formData.type}) thành công`, { duration: 3000 });
+                toast.success(t('updateSuccess', { value: formData.value, type: formData.type }), { duration: 3000 });
                 setShowEditModal(false);
             }
             setFormData({ type: "", value: "" });
         } catch (err: unknown) {
             console.error("Failed to save tag:", err);
-            const errorMessage = (err as any)?.response?.data?.message || "Không thể lưu tag. Vui lòng thử lại.";
+            const errorMessage = (err as any)?.response?.data?.message || t('saveFailed');
             toast.error(errorMessage, { duration: 3000 });
         } finally {
             setIsSaving(false);
@@ -175,19 +178,19 @@ export default function TagsManagementPage() {
                 <div>
                     <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
                         <TagIcon className="h-10 w-10 text-blue-600" />
-                        Quản Lý Tags
+                        {t('title')}
                     </h1>
-                    <p className="text-gray-600 mt-2">Quản lý tất cả tags trong hệ thống</p>
+                    <p className="text-gray-600 mt-2">{t('description')}</p>
                 </div>
                 <div className="flex items-center gap-4">
                     <div className="text-right">
-                        <p className="text-sm text-gray-500">Tổng Số Tags</p>
+                        <p className="text-sm text-gray-500">{t('totalTags')}</p>
                         <p className="text-2xl font-bold text-blue-600">{totalItems}</p>
                     </div>
                     <button
                         onClick={() => fetchTags(currentPage - 1)}
                         className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all hover:scale-105"
-                        title="Làm mới"
+                        title={tCommon('refresh')}
                     >
                         <ArrowPathIcon className="h-6 w-6 text-blue-600" />
                     </button>
@@ -196,7 +199,7 @@ export default function TagsManagementPage() {
                         className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-md hover:shadow-lg transition-all font-medium"
                     >
                         <PlusIcon className="h-5 w-5" />
-                        Thêm Tag
+                        {t('createTag')}
                     </button>
                 </div>
             </header>
@@ -204,7 +207,7 @@ export default function TagsManagementPage() {
             {/* Error Message */}
             {error && (
                 <div className="mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 px-6 py-4 rounded-lg shadow-sm">
-                    <p className="font-medium">Lỗi</p>
+                    <p className="font-medium">{tCommon('error')}</p>
                     <p className="text-sm">{error}</p>
                 </div>
             )}
@@ -213,11 +216,11 @@ export default function TagsManagementPage() {
             <section className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
                 {/* Search Bar */}
                 <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-blue-50 to-purple-50">
-                    <h2 className="text-xl font-semibold text-gray-900">Tất Cả Tags</h2>
+                    <h2 className="text-xl font-semibold text-gray-900">{t('allTags')}</h2>
                     <div className="relative">
                         <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                         <input
-                            placeholder="Tìm kiếm tags..."
+                            placeholder={t('searchPlaceholder')}
                             value={searchQuery}
                             onChange={(e) => {
                                 setSearchQuery(e.target.value);
@@ -234,9 +237,9 @@ export default function TagsManagementPage() {
                         <thead className="bg-gray-50 text-gray-900 font-semibold border-b-2 border-gray-200">
                             <tr>
                                 <th className="px-6 py-4">ID</th>
-                                <th className="px-6 py-4">Loại</th>
-                                <th className="px-6 py-4">Giá trị</th>
-                                <th className="px-6 py-4">Hành động</th>
+                                <th className="px-6 py-4">{t('type')}</th>
+                                <th className="px-6 py-4">{t('value')}</th>
+                                <th className="px-6 py-4">{tCommon('actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
@@ -244,8 +247,8 @@ export default function TagsManagementPage() {
                                 <tr>
                                     <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
                                         {searchQuery
-                                            ? "Không tìm thấy tag phù hợp với tìm kiếm."
-                                            : "Không có tag nào."}
+                                            ? t('noTagsFound')
+                                            : t('noTags')}
                                     </td>
                                 </tr>
                             ) : (
@@ -267,26 +270,26 @@ export default function TagsManagementPage() {
                                                 <button
                                                     onClick={() => handleViewTag(tag)}
                                                     className="flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg font-medium text-sm transition-colors"
-                                                    title="Xem chi tiết"
+                                                    title={tCommon('viewDetails')}
                                                 >
                                                     <EyeIcon className="h-4 w-4" />
-                                                    Xem
+                                                    {tCommon('view')}
                                                 </button>
                                                 <button
                                                     onClick={() => handleEditTag(tag)}
                                                     className="flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-700 hover:bg-green-200 rounded-lg font-medium text-sm transition-colors"
-                                                    title="Sửa tag"
+                                                    title={tCommon('edit')}
                                                 >
                                                     <PencilIcon className="h-4 w-4" />
-                                                    Sửa
+                                                    {tCommon('edit')}
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteClick(tag)}
                                                     className="flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg font-medium text-sm transition-colors"
-                                                    title="Xóa tag"
+                                                    title={tCommon('delete')}
                                                 >
                                                     <TrashIcon className="h-4 w-4" />
-                                                    Xóa
+                                                    {tCommon('delete')}
                                                 </button>
                                             </div>
                                         </td>
@@ -301,7 +304,7 @@ export default function TagsManagementPage() {
                 {totalPages > 1 && (
                     <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
                         <span className="text-sm text-gray-500">
-                            Trang {currentPage} / {totalPages} - Tổng số {totalItems} tags
+                            {tCommon('page')} {currentPage} {tCommon('of')} {totalPages} - {tCommon('totalItems', { count: totalItems, entity: 'tags' })}
                         </span>
                         <div className="flex gap-2">
                             <button
@@ -309,17 +312,17 @@ export default function TagsManagementPage() {
                                 disabled={currentPage === 1}
                                 className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
                             >
-                                Trước
+                                {tCommon('previous')}
                             </button>
                             <span className="px-4 py-2 text-sm font-medium text-gray-700">
-                                Trang {currentPage} / {totalPages}
+                                {tCommon('page')} {currentPage} {tCommon('of')} {totalPages}
                             </span>
                             <button
                                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                                 disabled={currentPage === totalPages}
                                 className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
                             >
-                                Tiếp
+                                {tCommon('next')}
                             </button>
                         </div>
                     </div>
@@ -331,7 +334,7 @@ export default function TagsManagementPage() {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full">
                         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-2xl flex justify-between items-center">
-                            <h3 className="text-2xl font-bold">Chi Tiết Tag</h3>
+                            <h3 className="text-2xl font-bold">{t('tagDetails')}</h3>
                             <button
                                 onClick={() => setSelectedTag(null)}
                                 className="p-2 hover:bg-white/20 rounded-full transition-colors"
@@ -362,7 +365,7 @@ export default function TagsManagementPage() {
                                 onClick={() => setSelectedTag(null)}
                                 className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium transition-colors"
                             >
-                                Đóng
+                                {tCommon('close')}
                             </button>
                         </div>
                     </div>
@@ -374,7 +377,7 @@ export default function TagsManagementPage() {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
                         <div className="bg-red-600 text-white p-6 rounded-t-2xl flex justify-between items-center">
-                            <h3 className="text-2xl font-bold">Xác Nhận Xóa</h3>
+                            <h3 className="text-2xl font-bold">{t('confirmDelete')}</h3>
                             <button
                                 onClick={() => setTagToDelete(null)}
                                 className="p-2 hover:bg-white/20 rounded-full transition-colors"
@@ -384,12 +387,12 @@ export default function TagsManagementPage() {
                         </div>
                         <div className="p-6">
                             <p className="text-gray-700 text-lg">
-                                Bạn có chắc chắn muốn xóa tag{" "}
+                                {t('confirmDeleteMessage')}{" "}
                                 <span className="font-bold text-gray-900">
                                     &quot;{tagToDelete.value}&quot; ({tagToDelete.type})
                                 </span>?
                             </p>
-                            <p className="text-gray-500 mt-2">Hành động này không thể hoàn tác.</p>
+                            <p className="text-gray-500 mt-2">{t('confirmDeleteNote')}</p>
                         </div>
                         <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
                             <button
@@ -397,7 +400,7 @@ export default function TagsManagementPage() {
                                 className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium transition-colors"
                                 disabled={isDeleting}
                             >
-                                Hủy
+                                {tCommon('cancel')}
                             </button>
                             <button
                                 onClick={handleConfirmDelete}
@@ -407,10 +410,10 @@ export default function TagsManagementPage() {
                                 {isDeleting ? (
                                     <>
                                         <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                                        Đang xóa...
+                                        {tCommon('deleting')}
                                     </>
                                 ) : (
-                                    "Xóa"
+                                    tCommon('delete')
                                 )}
                             </button>
                         </div>
@@ -424,7 +427,7 @@ export default function TagsManagementPage() {
                     <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full">
                         <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white p-6 rounded-t-2xl flex justify-between items-center">
                             <h3 className="text-2xl font-bold">
-                                {showCreateModal ? "Tạo Tag Mới" : "Sửa Tag"}
+                                {showCreateModal ? t('createTag') : t('editTag')}
                             </h3>
                             <button
                                 onClick={() => {
@@ -475,7 +478,7 @@ export default function TagsManagementPage() {
                                 className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium transition-colors"
                                 disabled={isSaving}
                             >
-                                Hủy
+                                {tCommon('cancel')}
                             </button>
                             <button
                                 onClick={handleSave}
@@ -485,10 +488,10 @@ export default function TagsManagementPage() {
                                 {isSaving ? (
                                     <>
                                         <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                                        Đang lưu...
+                                        {tCommon('loading')}
                                     </>
                                 ) : (
-                                    showCreateModal ? "Tạo" : "Lưu"
+                                    showCreateModal ? tCommon('create') : tCommon('save')
                                 )}
                             </button>
                         </div>
