@@ -16,61 +16,100 @@
         }
     },
     "LandingPage": {
+        "Hero": {
+            "headline": "Trợ lý AI Đắc lực cho Giáo dục Trung học Phổ thông.",
+            "subhead": "Tạo giáo án, đề kiểm tra và tiêu chí chấm điểm chuẩn theo khung chương trình chỉ trong vài giây.",
+            "getStarted": "Bắt đầu miễn phí",
+            "watchDemo": "Xem Demo",
+            "mockup": {
+                "math": "Toán học / Mathematics",
+                "grade": "Lớp 10 • Đại số",
+                "lessonPlan": "Đã tạo Giáo án",
+                "lessonDetails": "Phương trình bậc hai • 45 phút",
+                "quiz": "Tiêu chí chấm điểm",
+                "quizDetails": "Tiêu chuẩn • 10 Câu hỏi",
+                "generate": "Tạo tài nguyên"
+            }
+        },
+        "SocialTicker": {
+            "trustedBy": "Được tin dùng bởi giáo viên từ các trường hàng đầu"
+        },
         "Features": {
-            "title": "Tất cả những gì bạn cần để nâng cao việc giảng dạy",
-            "subtitle": "Khám phá các tính năng mạnh mẽ được thiết kế dành riêng cho giáo viên cấp 3",
-            "repository": "Kho gợi ý",
-            "repositoryDesc": "Truy cập hàng ngàn gợi ý được phân loại theo môn học, cấp lớp và mục tiêu giảng dạy.",
-            "personalization": "Công cụ Cá nhân hóa",
-            "personalizationDesc": "AI điều chỉnh các gợi ý để phù hợp với phong cách giảng dạy, chuyên môn và nhu cầu lớp học của bạn.",
-            "collaboration": "Trung tâm Hợp tác",
-            "collaborationDesc": "Chia sẻ, đánh giá và cộng tác trên các gợi ý với đồng nghiệp trong trường và hơn thế nữa.",
-            "suggestions": "Gợi ý AI",
-            "suggestionsDesc": "Nhận các đề xuất thông minh dựa trên thói quen giảng dạy và yêu cầu chương trình học của bạn.",
-            "access": "Truy cập dựa trên vai trò",
-            "accessDesc": "Hệ thống phân quyền an toàn cho giáo viên, quản trị viên và người quản lý hệ thống.",
-            "crossPlatform": "Đa nền tảng",
-            "crossPlatformDesc": "Truy cập gợi ý của bạn ở mọi nơi với nền tảng web và ứng dụng di động đáp ứng của chúng tôi."
+            "title": "Tính Năng Cốt Lỗi",
+            "subtitle": "Mọi thứ bạn cần để nâng cao quy trình giảng dạy",
+            "score": "Điểm số",
+            "tags": [
+                "Giáo án",
+                "Slide",
+                "Đề kiểm tra",
+                "Ma trận đề",
+                "Hoạt động nhóm"
+            ],
+            "repository": {
+                "title": "Kho Tài Nguyên Thông Minh",
+                "body": "Tìm kiếm ngữ nghĩa cho 5 tác vụ trọng tâm: Giáo án, Slide, Đề kiểm tra, Ma trận đề, và Hoạt động nhóm. Chuẩn hóa theo chương trình GDPT."
+            },
+            "personalization": {
+                "title": "Tạo Tác Vụ Theo Ngữ Cảnh",
+                "body": "Tải lên tài liệu của bạn. AI sẽ tạo prompt được cá nhân hóa theo phong cách giảng dạy và hồ sơ giáo viên riêng biệt."
+            },
+            "optimization": {
+                "title": "Kiểm Toán & Tối Ưu Prompt",
+                "body": "Chấm điểm prompt ngay lập tức. Hệ thống tự động phát hiện điểm yếu và tối ưu hóa để có kết quả đầu ra tốt nhất."
+            },
+            "ecosystem": {
+                "title": "Đa Nền Tảng",
+                "body": "Truy cập bộ sưu tập mọi lúc mọi nơi qua Tiện ích mở rộng và Ứng dụng di động."
+            }
         },
         "Pricing": {
-            "title": "Chọn gói của bạn",
-            "subtitle": "Các tùy chọn giá linh hoạt cho giáo viên cá nhân và trường học",
-            "freeTrial": "Dùng thử miễn phí",
-            "standard": "Tiêu chuẩn",
-            "premium": "Cao cấp",
-            "schoolWide": "Toàn trường",
+            "title": "Bảng giá Đơn giản, Minh bạch",
+            "subtitle": "Công cụ cho mọi giai đoạn trong sự nghiệp giảng dạy của bạn",
             "perMonth": "/tháng",
-            "perTeacherMonth": "/giáo viên/tháng",
-            "perSchoolYear": "/trường/năm",
-            "features": {
-                "limited": "Thư viện gợi ý giới hạn",
-                "oneTeacher": "1 giáo viên mỗi trường",
-                "basic": "Các tính năng cơ bản",
-                "fullAccess": "Truy cập đầy đủ kho lưu trữ",
-                "aiPersonalization": "Cá nhân hóa AI",
-                "collaboration": "Tính năng cộng tác",
-                "prioritySupport": "Hỗ trợ ưu tiên",
-                "unlimited": "Không giới hạn giáo viên",
-                "adminDashboard": "Bảng điều khiển quản trị",
-                "analytics": "Phân tích và báo cáo",
-                "premium": "Tiện ích bổ sung cao cấp",
-                "schoolNoQuota": "Miễn phí các hạn ngạch thao tác, kiểm thử & tối ưu hóa",
-                "schoolSharedPool": "Mức sử dụng được tính vào nhóm token của trường"
+            "Tiers": {
+                "Starter": {
+                    "name": "Cơ Bản",
+                    "price": "0đ",
+                    "desc": "Công cụ thiết yếu cho giáo viên.",
+                    "features": [
+                        "Truy cập các model chuẩn",
+                        "Tìm kiếm 5 loại tác vụ chính",
+                        "Quản lý Bộ sưu tập cơ bản"
+                    ]
+                },
+                "Professional": {
+                    "name": "Chuyên Nghiệp",
+                    "price": "59.000đ",
+                    "desc": "Dành cho giáo viên 4.0.",
+                    "features": [
+                        "Tăng hạn mức Token",
+                        "Truy cập các Model cao cấp",
+                        "Công cụ Tối ưu hóa Prompt"
+                    ],
+                    "badge": "Phổ biến"
+                },
+                "Expert": {
+                    "name": "Cao Cấp",
+                    "price": "239.000đ",
+                    "desc": "Mở khóa tiềm năng vô hạn.",
+                    "features": [
+                        "Gấp 10 lần hạn mức Token",
+                        "Trải nghiệm tính năng mới sớm nhất",
+                        "Tốc độ tạo nội dung ưu tiên"
+                    ]
+                }
+            },
+            "School": {
+                "title": "Gói Trường Học & Tổ Chức",
+                "subtitle": "Nâng cao năng lực số cho toàn bộ đội ngũ giáo viên.",
+                "benefit": "Một gói đăng ký cho toàn trường. Sử dụng Kho Token Dùng Chung linh hoạt cho tất cả giáo viên được cấp quyền.",
+                "cta": "Liên hệ Báo giá"
             },
             "buttons": {
                 "startFreeTrial": "Bắt đầu dùng thử miễn phí",
                 "getStarted": "Bắt đầu ngay",
-                "contactSales": "Liên hệ Kinh doanh",
-                "upgradeNow": "Nâng cấp Ngay",
-                "currentPlan": "Gói hiện tại"
-            },
-            "negotiated": "Thỏa thuận"
-        },
-        "PricingCard": {
-            "mostPopular": "Phổ biến nhất",
-            "viewPlanDetails": "Xem chi tiết gói",
-            "showLess": "Thu gọn",
-            "currentPlan": "Gói hiện tại"
+                "contactSales": "Liên hệ Kinh doanh"
+            }
         },
         "CTA": {
             "title": "Sẵn sàng để thay đổi việc giảng dạy của bạn?",
@@ -607,7 +646,8 @@
         "dashboard": "Bảng điều khiển",
         "logout": "Đăng xuất",
         "signIn": "Đăng nhập",
-        "schoolDashboard": "Trang quản trị trường học"
+        "schoolDashboard": "Trang quản trị trường học",
+        "getStarted": "Bắt đầu ngay"
     },
     "Profile": {
         "title": "Hồ sơ của tôi",

@@ -16,61 +16,100 @@
         }
     },
     "LandingPage": {
+        "Hero": {
+            "headline": "The AI-Powered Teaching Assistant for High Schools.",
+            "subhead": "Generate lesson plans, quizzes, and grading rubrics aligned with your curriculum standards in seconds.",
+            "getStarted": "Get Started Free",
+            "watchDemo": "Watch Demo",
+            "mockup": {
+                "math": "Mathematics / Toán",
+                "grade": "Grade 10 • Algebra",
+                "lessonPlan": "Lesson Plan Generated",
+                "lessonDetails": "Quadratic Equations • 45 mins",
+                "quiz": "Quiz Grading Rubric",
+                "quizDetails": "Standardized • 10 Questions",
+                "generate": "Generate Resource"
+            }
+        },
+        "SocialTicker": {
+            "trustedBy": "Trusted by educators from top institutions"
+        },
         "Features": {
-            "title": "Everything You Need to Enhance Teaching",
-            "subtitle": "Discover powerful features designed specifically for high school educators",
-            "repository": "Prompt Repository",
-            "repositoryDesc": "Access thousands of categorized prompts organized by subject, grade level, and teaching objectives.",
-            "personalization": "Personalization Engine",
-            "personalizationDesc": "AI adapts prompts to match your unique teaching style, subject expertise, and classroom needs.",
-            "collaboration": "Collaboration Hub",
-            "collaborationDesc": "Share, rate, and collaborate on prompts with fellow educators in your school and beyond.",
-            "suggestions": "AI Suggestions",
-            "suggestionsDesc": "Get intelligent recommendations based on your teaching patterns and curriculum requirements.",
-            "access": "Role-Based Access",
-            "accessDesc": "Secure permissions system for teachers, administrators, and system managers.",
-            "crossPlatform": "Cross-Platform",
-            "crossPlatformDesc": "Access your prompts anywhere with our responsive web platform and mobile app."
+            "title": "Core Features",
+            "subtitle": "Everything you need to enhance your teaching workflow",
+            "score": "Score",
+            "tags": [
+                "Lesson Plans",
+                "Slides",
+                "Tests",
+                "Matrices",
+                "Activities"
+            ],
+            "repository": {
+                "title": "Smart Repository",
+                "body": "Semantic search for 5 essential teaching tasks: Lesson Plans, Slides, Tests, Matrices, and Group Activities. Fully aligned with the curriculum."
+            },
+            "personalization": {
+                "title": "Context-Aware Generation",
+                "body": "Upload your own materials. Our AI generates prompts tailored to your specific teaching style and profile."
+            },
+            "optimization": {
+                "title": "Prompt Auditor",
+                "body": "Get instant scores on your prompts. We detect weaknesses and auto-optimize them for better AI results."
+            },
+            "ecosystem": {
+                "title": "Cross-Platform",
+                "body": "Access your collections anywhere via our Browser Extension and Mobile App."
+            }
         },
         "Pricing": {
-            "title": "Choose Your Plan",
-            "subtitle": "Flexible pricing options for individual teachers and schools",
-            "freeTrial": "Free Trial",
-            "standard": "Standard",
-            "premium": "Premium",
-            "schoolWide": "School-Wide",
+            "title": "Simple, Transparent Pricing",
+            "subtitle": "Tools for every stage of your teaching career",
             "perMonth": "/month",
-            "perTeacherMonth": "/teacher/month",
-            "perSchoolYear": "/school/year",
-            "features": {
-                "limited": "Limited prompt library",
-                "oneTeacher": "1 teacher per school",
-                "basic": "Basic features",
-                "fullAccess": "Full repository access",
-                "aiPersonalization": "AI personalization",
-                "collaboration": "Collaboration features",
-                "prioritySupport": "Priority support",
-                "unlimited": "Unlimited teachers",
-                "adminDashboard": "Admin dashboard",
-                "analytics": "Analytics & reporting",
-                "premium": "Premium add-ons",
-                "schoolNoQuota": "Free of action, testing & optimization quotas",
-                "schoolSharedPool": "Usage counts toward school token pool"
+            "Tiers": {
+                "Starter": {
+                    "name": "Starter",
+                    "price": "$0",
+                    "desc": "Essential tools for every teacher.",
+                    "features": [
+                        "Access to standard models",
+                        "Search 5 core task types",
+                        "Basic Collection management"
+                    ]
+                },
+                "Professional": {
+                    "name": "Professional",
+                    "price": "$2.49",
+                    "desc": "For power users.",
+                    "features": [
+                        "Higher Token Quota",
+                        "Access to Advanced Models",
+                        "Prompt Optimization Tools"
+                    ],
+                    "badge": "Popular"
+                },
+                "Expert": {
+                    "name": "Expert",
+                    "price": "$9.99",
+                    "desc": "Unlimited potential.",
+                    "features": [
+                        "10x Token Quota",
+                        "Early Access to new features",
+                        "Priority Generation Speed"
+                    ]
+                }
+            },
+            "School": {
+                "title": "EduPrompt for Schools",
+                "subtitle": "Empower your entire faculty with a shared workspace.",
+                "benefit": "One subscription covers all teacher emails. Utilize a Shared School Token Pool for flexible usage across staff.",
+                "cta": "Contact for Custom Quote"
             },
             "buttons": {
                 "startFreeTrial": "Start Free Trial",
-                "getStarted": "Get Started Now",
-                "contactSales": "Contact Sales",
-                "upgradeNow": "Upgrade Now",
-                "currentPlan": "Current Plan"
-            },
-            "negotiated": "Negotiated"
-        },
-        "PricingCard": {
-            "mostPopular": "Most Popular",
-            "viewPlanDetails": "View Plan Details",
-            "showLess": "Show Less",
-            "currentPlan": "Current Plan"
+                "getStarted": "Get Started",
+                "contactSales": "Contact Sales"
+            }
         },
         "CTA": {
             "title": "Ready to Transform Your Teaching?",
@@ -599,10 +638,11 @@
         "features": "Features",
         "pricing": "Pricing",
         "about": "About",
+        "signIn": "Sign In",
         "profile": "Profile",
         "dashboard": "Dashboard",
-        "logout": "Logout",
-        "signIn": "Sign In",
+        "logout": "Log out",
+        "getStarted": "Get Started",
         "schoolDashboard": "School Dashboard"
     },
     "Profile": {

@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+html {
+    scroll-behavior: smooth;
+}
+
 @theme {
     /* --- PALETTE --- */
     --color-brand-primary: #0284c7;
@@ -54,14 +58,34 @@
     --color-bg-secondary: #f8fafc;
     /* Slate 50 - Page Background */
 
+    /* TRUST BLUE THEME */
+    --color-primary: #0056D2;
+    --color-primary-light: #EFF6FF;
+    --color-surface: #FFFFFF;
+    --color-text-main: #0F172A;
+    --color-text-muted: #64748B;
+
+    /* Mapped Aliases for backward compatibility/ease of use */
+    --color-brand-primary: var(--color-primary);
+    --color-bg-primary: var(--color-surface);
+    --color-text-primary: var(--color-text-main);
+
+    /* Canvas/Ink Aliases from previous Swiss theme to avoid breaking components immediately */
+    --color-canvas: var(--color-surface);
+    --color-ink: var(--color-text-main);
+    --color-subtle: var(--color-primary-light);
+    --color-accent: var(--color-primary);
+    --color-border: #E5E5E5;
+    /* Keeping a neutral border */
+
     /* FONTS */
     --font-sans: var(--font-geist-sans), Arial, Helvetica, sans-serif;
     --font-mono: var(--font-geist-mono), monospace;
 }
 
 body {
-    background: var(--color-bg-primary);
-    color: var(--color-text-primary);
+    background: var(--color-surface);
+    color: var(--color-text-main);
     font-family: var(--font-sans);
     box-sizing: border-box;
 }
