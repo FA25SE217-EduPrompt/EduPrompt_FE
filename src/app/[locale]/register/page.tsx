@@ -101,8 +101,8 @@ export default function RegisterPage() {
     // Show loading while checking authentication
     if (isLoading) {
         return (
-            <div className="min-h-screen gradient-bg flex items-center justify-center">
-                <Spinner size="page" variant="white" />
+            <div className="min-h-screen bg-surface flex items-center justify-center">
+                <Spinner size="page" variant="primary" />
             </div>
         );
     }
@@ -113,96 +113,69 @@ export default function RegisterPage() {
     }
 
     return (
-        <div
-            className="min-h-screen gradient-bg from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center px-4 py-12">
+        <div className="min-h-screen bg-surface relative flex items-center justify-center px-4 py-12 overflow-hidden">
+            {/* Background Decoration */}
+            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-primary/5 rounded-full blur-3xl opacity-50 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-blue-400/10 rounded-full blur-3xl opacity-50 pointer-events-none" />
+
             <div
-                className="w-full max-w-2xl bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden p-12 md:p-16 border border-white/30">
+                className="w-full max-w-2xl bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-100 p-8 md:p-12 relative z-10">
                 {/* Header */}
                 <header className="text-center mb-10">
                     <div className="inline-flex items-center justify-center mb-6">
-                        <div
-                            className="w-14 h-14 bg-gradient-to-br from-sky-500 to-blue-800 rounded-xl flex items-center justify-center shadow-lg">
-                            <span className="text-white font-bold text-2xl">E</span>
-                        </div>
-                        <span
-                            className="ml-4 text-4xl font-bold bg-gradient-to-r from-blue-800 to-indigo-800 bg-clip-text text-transparent">
-                            EduPrompt
-                        </span>
+                        <Link href="/" className="inline-block group">
+                            {/* Simple text logo or the image mock if they have one */}
+                            <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary font-bold text-xl shadow-sm">E</div>
+                        </Link>
                     </div>
-                    <h1 className="text-4xl font-bold text-blue-800 mb-2">{t('createAccount')}</h1>
-                    <p className="text-gray-600 text-lg">{t('joinSubtitle')}</p>
+                    <h1 className="text-3xl font-bold text-text-main mb-2">{t('createAccount')}</h1>
+                    <p className="text-text-muted">{t('joinSubtitle')}</p>
                 </header>
 
                 {/* Register Form */}
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Name Fields Row */}
-                    <div className="grid md:grid-cols-2 gap-6">
+                    <div className="grid md:grid-cols-2 gap-5">
                         {/* First Name */}
                         <div className="group">
                             <label
                                 htmlFor="firstName"
-                                className="block text-sm font-semibold text-gray-700 mb-3 transition-colors group-focus-within:text-blue-600"
+                                className="block text-sm font-medium text-text-main mb-2"
                             >
                                 {t('firstName')}
                             </label>
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    id="firstName"
-                                    value={firstName}
-                                    onChange={(e) => setFirstName(e.target.value)}
-                                    onFocus={() => setFocusedId("firstName")}
-                                    onBlur={() => setFocusedId(null)}
-                                    className={`block w-full px-6 py-4 border border-gray-200 rounded-xl text-gray-900 text-lg placeholder-gray-400 
-                           bg-white/90 backdrop-blur-sm
-                           focus:outline-none focus:ring-0 focus:border-blue-400 focus:bg-white
-                           transition-all duration-300 ease-out
-                           hover:border-gray-300 hover:bg-white/95
-                           ${focusedId === "firstName" ? "transform scale-[1.02] shadow-lg shadow-blue-100/50" : ""}`}
-                                    required
-                                    autoComplete="given-name"
-                                    placeholder={t('firstNamePlaceholder')}
-                                />
-                                <div
-                                    className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
-                              ${focusedId === "firstName" ? "from-blue-400/10 via-blue-400/5 to-blue-400/10" : ""} 
-                              transition-all duration-300 pointer-events-none`}
-                                ></div>
-                            </div>
+                            <input
+                                type="text"
+                                id="firstName"
+                                value={firstName}
+                                onChange={(e) => setFirstName(e.target.value)}
+                                className="block w-full px-4 py-3 border border-gray-200 rounded-lg text-text-main placeholder-gray-400 
+                                     bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200"
+                                required
+                                autoComplete="given-name"
+                                placeholder={t('firstNamePlaceholder')}
+                            />
                         </div>
 
                         {/* Last Name */}
                         <div className="group">
                             <label
                                 htmlFor="lastName"
-                                className="block text-sm font-semibold text-gray-700 mb-3 transition-colors group-focus-within:text-blue-600"
+                                className="block text-sm font-medium text-text-main mb-2"
                             >
                                 {t('lastName')}
                             </label>
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    id="lastName"
-                                    value={lastName}
-                                    onChange={(e) => setLastName(e.target.value)}
-                                    onFocus={() => setFocusedId("lastName")}
-                                    onBlur={() => setFocusedId(null)}
-                                    className={`block w-full px-6 py-4 border border-gray-200 rounded-xl text-gray-900 text-lg placeholder-gray-400 
-                           bg-white/90 backdrop-blur-sm
-                           focus:outline-none focus:ring-0 focus:border-blue-400 focus:bg-white
-                           transition-all duration-300 ease-out
-                           hover:border-gray-300 hover:bg-white/95
-                           ${focusedId === "lastName" ? "transform scale-[1.02] shadow-lg shadow-blue-100/50" : ""}`}
-                                    required
-                                    autoComplete="family-name"
-                                    placeholder={t('lastNamePlaceholder')}
-                                />
-                                <div
-                                    className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
-                              ${focusedId === "lastName" ? "from-blue-400/10 via-blue-400/5 to-blue-400/10" : ""} 
-                              transition-all duration-300 pointer-events-none`}
-                                ></div>
-                            </div>
+                            <input
+                                type="text"
+                                id="lastName"
+                                value={lastName}
+                                onChange={(e) => setLastName(e.target.value)}
+                                className="block w-full px-4 py-3 border border-gray-200 rounded-lg text-text-main placeholder-gray-400 
+                                     bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200"
+                                required
+                                autoComplete="family-name"
+                                placeholder={t('lastNamePlaceholder')}
+                            />
                         </div>
                     </div>
 
@@ -210,77 +183,51 @@ export default function RegisterPage() {
                     <div className="group">
                         <label
                             htmlFor="email"
-                            className="block text-sm font-semibold text-gray-700 mb-3 transition-colors group-focus-within:text-blue-600"
+                            className="block text-sm font-medium text-text-main mb-2"
                         >
                             {t('emailLabel')}
                         </label>
-                        <div className="relative">
-                            <input
-                                type="email"
-                                id="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                onFocus={() => setFocusedId("email")}
-                                onBlur={() => setFocusedId(null)}
-                                className={`block w-full px-6 py-4 border border-gray-200 rounded-xl text-gray-900 text-lg placeholder-gray-400 
-                         bg-white/90 backdrop-blur-sm
-                         focus:outline-none focus:ring-0 focus:border-blue-400 focus:bg-white
-                         transition-all duration-300 ease-out
-                         hover:border-gray-300 hover:bg-white/95
-                         ${focusedId === "email" ? "transform scale-[1.02] shadow-lg shadow-blue-100/50" : ""}`}
-                                required
-                                autoComplete="email"
-                                placeholder={t('emailPlaceholder')}
-                            />
-                            <div
-                                className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
-                            ${focusedId === "email" ? "from-blue-400/10 via-blue-400/5 to-blue-400/10" : ""} 
-                            transition-all duration-300 pointer-events-none`}
-                            ></div>
-                        </div>
+                        <input
+                            type="email"
+                            id="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="block w-full px-4 py-3 border border-gray-200 rounded-lg text-text-main placeholder-gray-400 
+                                 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200"
+                            required
+                            autoComplete="email"
+                            placeholder={t('emailPlaceholder')}
+                        />
                     </div>
 
                     {/* Phone Number Field */}
                     <div className="group">
                         <label
                             htmlFor="phoneNumber"
-                            className="block text-sm font-semibold text-gray-700 mb-3 transition-colors group-focus-within:text-blue-600"
+                            className="block text-sm font-medium text-text-main mb-2"
                         >
                             {t('phoneNumber')}
                         </label>
-                        <div className="relative">
-                            <input
-                                type="tel"
-                                id="phoneNumber"
-                                value={phoneNumber}
-                                onChange={(e) => setPhoneNumber(e.target.value)}
-                                onFocus={() => setFocusedId("phoneNumber")}
-                                onBlur={() => setFocusedId(null)}
-                                className={`block w-full px-6 py-4 border border-gray-200 rounded-xl text-gray-900 text-lg placeholder-gray-400 
-                         bg-white/90 backdrop-blur-sm
-                         focus:outline-none focus:ring-0 focus:border-blue-400 focus:bg-white
-                         transition-all duration-300 ease-out
-                         hover:border-gray-300 hover:bg-white/95
-                         ${focusedId === "phoneNumber" ? "transform scale-[1.02] shadow-lg shadow-blue-100/50" : ""}`}
-                                required
-                                autoComplete="tel"
-                                placeholder={t('phoneNumberPlaceholder')}
-                            />
-                            <div
-                                className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
-                            ${focusedId === "phoneNumber" ? "from-blue-400/10 via-blue-400/5 to-blue-400/10" : ""} 
-                            transition-all duration-300 pointer-events-none`}
-                            ></div>
-                        </div>
+                        <input
+                            type="tel"
+                            id="phoneNumber"
+                            value={phoneNumber}
+                            onChange={(e) => setPhoneNumber(e.target.value)}
+                            className="block w-full px-4 py-3 border border-gray-200 rounded-lg text-text-main placeholder-gray-400 
+                                 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200"
+                            required
+                            autoComplete="tel"
+                            placeholder={t('phoneNumberPlaceholder')}
+                        />
                     </div>
 
                     {/* Password Fields Row */}
-                    <div className="grid md:grid-cols-2 gap-6">
+                    <div className="grid md:grid-cols-2 gap-5">
                         {/* Password */}
-                        <div className="group">
+                        <div className="group relative">
                             <label
                                 htmlFor="password"
-                                className="block text-sm font-semibold text-gray-700 mb-3 transition-colors group-focus-within:text-blue-600"
+                                className="block text-sm font-medium text-text-main mb-2"
                             >
                                 {t('passwordLabel')}
                             </label>
@@ -290,52 +237,31 @@ export default function RegisterPage() {
                                     id="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    onFocus={() => setFocusedId("password")}
-                                    onBlur={() => setFocusedId(null)}
-                                    className={`block w-full px-6 py-4 pr-12 border border-gray-200 rounded-xl text-gray-900 text-lg placeholder-gray-400 
-                           bg-white/90 backdrop-blur-sm
-                           focus:outline-none focus:ring-0 focus:border-blue-400 focus:bg-white
-                           transition-all duration-300 ease-out
-                           hover:border-gray-300 hover:bg-white/95
-                           ${focusedId === "password" ? "transform scale-[1.02] shadow-lg shadow-blue-100/50" : ""}`}
+                                    className="block w-full px-4 py-3 pr-10 border border-gray-200 rounded-lg text-text-main placeholder-gray-400 
+                                         bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200"
                                     required
                                     autoComplete="new-password"
                                     placeholder={t('passwordPlaceholder')}
                                 />
                                 <button
                                     type="button"
-                                    aria-label={showPassword ? t('hidePassword') : t('showPassword')}
-                                    title={showPassword ? t('hidePassword') : t('showPassword')}
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-primary transition-colors"
                                 >
                                     {showPassword ? (
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
-                                        </svg>
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path></svg>
                                     ) : (
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                        </svg>
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                     )}
                                 </button>
-                                <div
-                                    className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
-                              ${focusedId === "password" ? "from-blue-400/10 via-blue-400/5 to-blue-400/10" : ""} 
-                              transition-all duration-300 pointer-events-none`}
-                                ></div>
                             </div>
                         </div>
 
                         {/* Confirm Password */}
-                        <div className="group">
+                        <div className="group relative">
                             <label
                                 htmlFor="rePassword"
-                                className="block text-sm font-semibold text-gray-700 mb-3 transition-colors group-focus-within:text-blue-600"
+                                className="block text-sm font-medium text-text-main mb-2"
                             >
                                 {t('confirmPassword')}
                             </label>
@@ -345,44 +271,23 @@ export default function RegisterPage() {
                                     id="rePassword"
                                     value={rePassword}
                                     onChange={(e) => setRePassword(e.target.value)}
-                                    onFocus={() => setFocusedId("rePassword")}
-                                    onBlur={() => setFocusedId(null)}
-                                    className={`block w-full px-6 py-4 pr-12 border border-gray-200 rounded-xl text-gray-900 text-lg placeholder-gray-400 
-                           bg-white/90 backdrop-blur-sm
-                           focus:outline-none focus:ring-0 focus:border-blue-400 focus:bg-white
-                           transition-all duration-300 ease-out
-                           hover:border-gray-300 hover:bg-white/95
-                           ${focusedId === "rePassword" ? "transform scale-[1.02] shadow-lg shadow-blue-100/50" : ""}`}
+                                    className="block w-full px-4 py-3 pr-10 border border-gray-200 rounded-lg text-text-main placeholder-gray-400 
+                                         bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200"
                                     required
                                     autoComplete="new-password"
                                     placeholder={t('confirmPasswordPlaceholder')}
                                 />
                                 <button
                                     type="button"
-                                    aria-label={showRePassword ? t('hidePassword') : t('showPassword')}
-                                    title={showRePassword ? t('hidePassword') : t('showPassword')}
                                     onClick={() => setShowRePassword(!showRePassword)}
-                                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-primary transition-colors"
                                 >
                                     {showRePassword ? (
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
-                                        </svg>
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path></svg>
                                     ) : (
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                        </svg>
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                     )}
                                 </button>
-                                <div
-                                    className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
-                              ${focusedId === "rePassword" ? "from-blue-400/10 via-blue-400/5 to-blue-400/10" : ""} 
-                              transition-all duration-300 pointer-events-none`}
-                                ></div>
                             </div>
                         </div>
                     </div>
@@ -390,15 +295,15 @@ export default function RegisterPage() {
                     {/* Success Message */}
                     {successMessage && (
                         <div
-                            className="text-green-600 text-sm text-center bg-green-50 p-4 rounded-xl border border-green-200">
+                            className="text-green-600 text-sm text-center bg-green-50 p-4 rounded-lg border border-green-200">
                             {successMessage}
                         </div>
                     )}
 
-                    {/* Error Message - Keep for form validation errors */}
+                    {/* Error Message */}
                     {errorMessage && !showErrorPopup && (
                         <div
-                            className="text-red-600 text-sm text-center bg-red-50 p-4 rounded-xl border border-red-200 animate-pulse">
+                            className="text-red-600 text-sm text-center bg-red-50 p-4 rounded-lg border border-red-200 animate-pulse">
                             {errorMessage}
                         </div>
                     )}
@@ -407,14 +312,14 @@ export default function RegisterPage() {
                     <button
                         type="submit"
                         disabled={submitting}
-                        className={`w-full text-white py-5 rounded-xl 
-                     font-semibold text-lg shadow-lg hover:shadow-xl
-                     transition-all duration-300 ease-out
-                     transform hover:-translate-y-1 hover:scale-[1.02]
-                     focus:outline-none focus:ring-4 focus:ring-blue-300/50
-                     disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none
-                     active:scale-[0.98]
-                     ${successMessage ? "bg-green-500 hover:bg-green-600" : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"}`}
+                        className={`w-full text-white py-3.5 rounded-lg 
+                     font-medium text-base shadow-sm hover:shadow-md
+                     transition-all duration-200
+                     focus:outline-none focus:ring-4 focus:ring-primary/20
+                     disabled:opacity-70 disabled:cursor-not-allowed
+                     ${successMessage
+                                ? "bg-green-600 hover:bg-green-700"
+                                : "bg-primary hover:bg-blue-700"}`}
                     >
                         <span className="inline-flex items-center justify-center">
                             {successMessage ? (
@@ -426,7 +331,7 @@ export default function RegisterPage() {
                                 </>
                             ) : submitting ? (
                                 <>
-                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg"
+                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg"
                                         fill="none" viewBox="0 0 24 24">
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                                             strokeWidth="4"></circle>
@@ -443,12 +348,12 @@ export default function RegisterPage() {
                 </form>
 
                 {/* Sign In Link */}
-                <footer className="mt-8 text-center">
-                    <p className="text-gray-600">
+                <footer className="mt-8 text-center text-sm text-text-muted">
+                    <p>
                         {t('alreadyHaveAccount')}{" "}
                         <Link
                             href="/login"
-                            className="text-blue-600 font-semibold hover:text-blue-800 transition-colors duration-200 hover:underline underline-offset-2"
+                            className="text-primary font-medium hover:text-blue-700 hover:underline transition-colors"
                         >
                             {t('signIn')}
                         </Link>
