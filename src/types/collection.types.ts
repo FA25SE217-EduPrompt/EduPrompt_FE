@@ -33,6 +33,6 @@ export interface CreateCollectionRequest {
 export interface UpdateCollectionRequest {
     name?: string;
     description?: string;
-    visibility?: 'PUBLIC' | 'PRIVATE' | 'GROUP';
+    visibility?: 'PUBLIC' | 'PRIVATE' | 'GROUP' | 'public' | 'private' | 'group';
     tagIds?: string[];
 }

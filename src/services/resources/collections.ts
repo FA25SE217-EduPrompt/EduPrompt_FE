@@ -21,7 +21,7 @@ export async function createCollection(data: CreateCollectionRequest): Promise<C
 
 // Update collection (admin)
 export async function updateCollection(collectionId: string, data: UpdateCollectionRequest): Promise<Collection> {
-    const response = await apiClient.put(`/api/v1/admin/collections/${collectionId}`, data);
+    const response = await apiClient.put(`/api/v1/admin/collection/${collectionId}`, data);
     return response.data;
 }
 

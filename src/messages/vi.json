@@ -904,7 +904,13 @@
             "createSuccess": "Đã tạo bộ sưu tập \"{name}\" thành công",
             "createFailed": "Không thể tạo bộ sưu tập",
             "validationError": "Tên bộ sưu tập không được để trống",
-            "creating": "Đang tạo..."
+            "creating": "Đang tạo...",
+            "edit": "Chỉnh sửa",
+            "editCollection": "Chỉnh Sửa Bộ Sưu Tập",
+            "update": "Cập nhật",
+            "updating": "Đang cập nhật...",
+            "updateSuccess": "Đã cập nhật bộ sưu tập \"{name}\" thành công",
+            "updateFailed": "Không thể cập nhật bộ sưu tập"
         },
         "Dashboard": {
             "title": "Admin Dashboard",

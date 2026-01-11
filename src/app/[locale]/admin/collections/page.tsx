@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from "react";
-import { getAllCollections, deleteCollection, createCollection } from "@/services/resources/collections";
+import { getAllCollections, deleteCollection, createCollection, updateCollection } from "@/services/resources/collections";
 import { Collection } from "@/types/collection.types";
 import {
     FolderIcon,
@@ -15,6 +15,7 @@ import {
     LockClosedIcon,
     UserGroupIcon as UsersIcon,
     PlusIcon,
+    PencilIcon,
 } from "@heroicons/react/24/outline";
 import Spinner from "@/components/ui/Spinner";
 import { toast } from "sonner";
@@ -41,6 +42,14 @@ export default function CollectionsManagementPage() {
         description: '',
         visibility: 'PUBLIC' as 'PUBLIC' | 'PRIVATE' | 'GROUP',
     });
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [isUpdating, setIsUpdating] = useState(false);
+    const [editCollectionData, setEditCollectionData] = useState<{
+        id: string;
+        name: string;
+        description: string;
+        visibility: 'PUBLIC' | 'PRIVATE' | 'GROUP';
+    } | null>(null);
     const collectionsPerPage = 10;
 
     // Fetch collections from API (server-side pagination)
@@ -118,9 +127,10 @@ export default function CollectionsManagementPage() {
         setIsDeleting(true);
         try {
             await deleteCollection(collectionToDelete.id);
-            setCollections(collections.filter(c => c.id !== collectionToDelete.id));
             toast.success(t('deleteSuccess', { name: collectionToDelete.name }), { duration: 3000 });
             setCollectionToDelete(null);
+            // Refresh the list from server
+            fetchCollections(currentPage - 1);
         } catch (err) {
             console.error("Failed to delete collection:", err);
             toast.error(t('deleteFailed'), { duration: 3000 });
@@ -155,6 +165,46 @@ export default function CollectionsManagementPage() {
             toast.error(t('createFailed'), { duration: 3000 });
         } finally {
             setIsCreating(false);
+        }
+    };
+
+    // Handle edit click
+    const handleEditClick = (collection: Collection) => {
+        setEditCollectionData({
+            id: collection.id,
+            name: collection.name,
+            description: collection.description || '',
+            visibility: collection.visibility.toUpperCase() as 'PUBLIC' | 'PRIVATE' | 'GROUP',
+        });
+        setShowEditModal(true);
+    };
+
+    // Handle update collection
+    const handleUpdateCollection = async () => {
+        if (!editCollectionData || !editCollectionData.name.trim()) {
+            toast.error(t('validationError'), { duration: 3000 });
+            return;
+        }
+
+        setIsUpdating(true);
+        try {
+            const updateData = {
+                name: editCollectionData.name.trim(),
+                description: editCollectionData.description.trim() || undefined,
+                visibility: editCollectionData.visibility.toLowerCase() as 'public' | 'private' | 'group',
+            };
+
+            await updateCollection(editCollectionData.id, updateData);
+            toast.success(t('updateSuccess', { name: editCollectionData.name }), { duration: 3000 });
+            setShowEditModal(false);
+            setEditCollectionData(null);
+            // Refresh the list
+            fetchCollections(currentPage - 1);
+        } catch (err) {
+            console.error('Failed to update collection:', err);
+            toast.error(t('updateFailed'), { duration: 3000 });
+        } finally {
+            setIsUpdating(false);
         }
     };
 
@@ -369,6 +419,14 @@ export default function CollectionsManagementPage() {
                                                     >
                                                         <EyeIcon className="h-4 w-4" />
                                                         {tCommon('view')}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleEditClick(collection)}
+                                                        className="flex items-center gap-1 px-3 py-1.5 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg font-medium text-sm transition-colors"
+                                                        title={t('edit')}
+                                                    >
+                                                        <PencilIcon className="h-4 w-4" />
+                                                        {t('edit')}
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteClick(collection)}
@@ -625,6 +683,100 @@ export default function CollectionsManagementPage() {
                                     </>
                                 ) : (
                                     tCommon('delete')
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Collection Modal */}
+            {showEditModal && editCollectionData && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full">
+                        <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-6 rounded-t-2xl flex justify-between items-center">
+                            <h3 className="text-2xl font-bold">{t('editCollection')}</h3>
+                            <button
+                                onClick={() => {
+                                    setShowEditModal(false);
+                                    setEditCollectionData(null);
+                                }}
+                                className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                            >
+                                <XMarkIcon className="h-6 w-6" />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-6">
+                            {/* Name */}
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    {t('name')} <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={editCollectionData.name}
+                                    onChange={(e) => setEditCollectionData({ ...editCollectionData, name: e.target.value })}
+                                    placeholder={t('namePlaceholder')}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                                />
+                            </div>
+
+                            {/* Description */}
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    {t('description')}
+                                </label>
+                                <textarea
+                                    value={editCollectionData.description}
+                                    onChange={(e) => setEditCollectionData({ ...editCollectionData, description: e.target.value })}
+                                    placeholder={t('descriptionPlaceholder')}
+                                    rows={4}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                                />
+                            </div>
+
+                            {/* Visibility */}
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    {t('visibility')} <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                    value={editCollectionData.visibility}
+                                    onChange={(e) => setEditCollectionData({ ...editCollectionData, visibility: e.target.value as 'PUBLIC' | 'PRIVATE' | 'GROUP' })}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                                >
+                                    <option value="PUBLIC">{tCommon('public')}</option>
+                                    <option value="PRIVATE">{tCommon('private')}</option>
+                                    <option value="GROUP">{t('group')}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+                            <button
+                                onClick={() => {
+                                    setShowEditModal(false);
+                                    setEditCollectionData(null);
+                                }}
+                                className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium transition-colors"
+                                disabled={isUpdating}
+                            >
+                                {tCommon('cancel')}
+                            </button>
+                            <button
+                                onClick={handleUpdateCollection}
+                                className="px-6 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg hover:from-amber-600 hover:to-orange-600 font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
+                                disabled={isUpdating}
+                            >
+                                {isUpdating ? (
+                                    <>
+                                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                                        {t('updating')}
+                                    </>
+                                ) : (
+                                    <>
+                                        <PencilIcon className="h-5 w-5" />
+                                        {t('update')}
+                                    </>
                                 )}
                             </button>
                         </div>
