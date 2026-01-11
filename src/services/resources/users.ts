@@ -7,7 +7,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // Create axios instance for admin endpoints with authentication
 const adminClient = axios.create({
     baseURL: API_BASE_URL,
-    timeout: 10000,
+    timeout: 30000, // Increased to 30 seconds
     headers: {
         'Content-Type': 'application/json',
     },

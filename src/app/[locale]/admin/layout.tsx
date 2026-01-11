@@ -47,9 +47,16 @@ export default function AdminLayout({
     children: React.ReactNode;
 }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-    const { user, logout } = useAuth();
+    const { user, logout, isLoading } = useAuth();
     const router = useRouter();
     const t = useTranslations('Admin.Sidebar');
+
+    // Check permissions and redirect if not System Admin
+    React.useEffect(() => {
+        if (!isLoading && user && !user.isSystemAdmin) {
+            router.push('/forbidden');
+        }
+    }, [user, isLoading, router]);
 
     const handleLogout = async () => {
         await logout();

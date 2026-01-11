@@ -185,8 +185,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         isLoading: false,
                     });
 
-                    // Fetch full user data
-                    fetchUserData();
+                    // Fetch full user data (non-blocking, optional)
+                    fetchUserData().catch((error) => {
+                        console.warn('Failed to fetch full user data:', error);
+                        // Continue with JWT data, don't block authentication
+                    });
                 } else {
                     TokenManager.clearTokens();
                     setAuthState({

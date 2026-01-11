@@ -661,6 +661,18 @@
         "delete": "Delete",
         "edit": "Edit"
     },
+    "Forbidden": {
+        "title": "Access Denied",
+        "description": "You don't have permission to access this page. This area is restricted to authorized users only.",
+        "reason": "Possible reasons",
+        "reasonNotAdmin": "You are not logged in as a System Administrator",
+        "reasonNoPermission": "Your account doesn't have the required permissions",
+        "reasonContactAdmin": "Contact your administrator if you believe this is an error",
+        "goBack": "Go Back",
+        "goHome": "Go to Home",
+        "needHelp": "",
+        "contactSupport": ""
+    },
     "Payment": {
         "processing": "Processing Payment...",
         "pleaseWait": "Please wait while we verify your transaction.",

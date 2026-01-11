@@ -59,8 +59,10 @@ export default function UsersManagementPage() {
             }
         } catch (err: unknown) {
             console.error("Failed to fetch users:", err);
-            console.error("Error details:", err.response?.data);
-            setError(err.message || t('failedToLoad'));
+            const axiosError = err as { response?: { data?: unknown }; message?: string };
+            console.error("Error details:", axiosError.response?.data);
+            const errorMsg = axiosError.message || t('failedToLoad');
+            setError(errorMsg);
             toast.error(t('failedToLoad'), { duration: 3000 });
             setUsers([]);
             setTotalPages(0);

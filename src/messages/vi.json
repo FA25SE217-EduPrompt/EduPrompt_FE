@@ -665,6 +665,18 @@
         "delete": "Xóa",
         "edit": "Chỉnh sửa"
     },
+    "Forbidden": {
+        "title": "Truy Cập Bị Từ Chối",
+        "description": "Bạn không có quyền truy cập trang này. Khu vực này chỉ dành cho người dùng được ủy quyền.",
+        "reason": "Nguyên nhân có thể",
+        "reasonNotAdmin": "Bạn chưa đăng nhập với tài khoản Quản trị viên Hệ thống",
+        "reasonNoPermission": "Tài khoản của bạn không có quyền truy cập cần thiết",
+        "reasonContactAdmin": "Liên hệ quản trị viên nếu bạn cho rằng đây là lỗi",
+        "goBack": "Quay Lại",
+        "goHome": "Về Trang Chủ",
+        "needHelp": "",
+        "contactSupport": ""
+    },
     "Payment": {
         "processing": "Đang xử lý thanh toán...",
         "pleaseWait": "Vui lòng đợi trong khi chúng tôi xác minh giao dịch.",
