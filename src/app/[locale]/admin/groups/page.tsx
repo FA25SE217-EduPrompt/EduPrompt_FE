@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from "react";
-import { getAllGroups, deleteGroup } from "@/services/resources/groups";
+import { getAllGroups, deleteGroup, createGroup } from "@/services/resources/groups";
 import { Group } from "@/types/group.types";
 import {
     UserGroupIcon,
@@ -13,6 +13,7 @@ import {
     XMarkIcon,
     CheckCircleIcon,
     XCircleIcon,
+    PlusIcon,
 } from "@heroicons/react/24/outline";
 import Spinner from "@/components/ui/Spinner";
 import { toast } from "sonner";
@@ -32,6 +33,11 @@ export default function GroupsManagementPage() {
     const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
     const [groupToDelete, setGroupToDelete] = useState<Group | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [isCreating, setIsCreating] = useState(false);
+    const [newGroupData, setNewGroupData] = useState({
+        name: '',
+    });
     const groupsPerPage = 10;
 
     // Fetch groups from API (server-side pagination)
@@ -110,14 +116,42 @@ export default function GroupsManagementPage() {
         setIsDeleting(true);
         try {
             await deleteGroup(groupToDelete.id);
-            setGroups(groups.filter(g => g.id !== groupToDelete.id));
             toast.success(t('deleteSuccess', { name: groupToDelete.name }), { duration: 3000 });
             setGroupToDelete(null);
+            // Refresh the list from server
+            fetchGroups(currentPage - 1);
         } catch (err) {
             console.error("Failed to delete group:", err);
             toast.error(t('deleteFailed'), { duration: 3000 });
         } finally {
             setIsDeleting(false);
+        }
+    };
+
+    // Handle create group
+    const handleCreateGroup = async () => {
+        if (!newGroupData.name.trim()) {
+            toast.error(t('validationError'), { duration: 3000 });
+            return;
+        }
+
+        setIsCreating(true);
+        try {
+            const groupToCreate = {
+                name: newGroupData.name.trim(),
+            };
+
+            const newGroup = await createGroup(groupToCreate);
+            toast.success(t('createSuccess', { name: newGroup.name }), { duration: 3000 });
+            setShowCreateModal(false);
+            setNewGroupData({ name: '' });
+            // Refresh the list
+            fetchGroups(currentPage - 1);
+        } catch (err) {
+            console.error('Failed to create group:', err);
+            toast.error(t('createFailed'), { duration: 3000 });
+        } finally {
+            setIsCreating(false);
         }
     };
 
@@ -145,6 +179,13 @@ export default function GroupsManagementPage() {
                         <p className="text-sm text-gray-500">{t('totalGroups')}</p>
                         <p className="text-2xl font-bold text-blue-600">{totalItems}</p>
                     </div>
+                    <button
+                        onClick={() => setShowCreateModal(true)}
+                        className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 font-medium transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                    >
+                        <PlusIcon className="h-5 w-5" />
+                        {t('createNew')}
+                    </button>
                     <button
                         onClick={() => fetchGroups(currentPage - 1)}
                         className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all hover:scale-105"
@@ -428,6 +469,71 @@ export default function GroupsManagementPage() {
                                     </>
                                 ) : (
                                     tCommon('delete')
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Create Group Modal */}
+            {showCreateModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full">
+                        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-2xl flex justify-between items-center">
+                            <h3 className="text-2xl font-bold">{t('createGroup')}</h3>
+                            <button
+                                onClick={() => {
+                                    setShowCreateModal(false);
+                                    setNewGroupData({ name: '' });
+                                }}
+                                className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                            >
+                                <XMarkIcon className="h-6 w-6" />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-6">
+                            {/* Name */}
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    {t('name')} <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={newGroupData.name}
+                                    onChange={(e) => setNewGroupData({ ...newGroupData, name: e.target.value })}
+                                    placeholder={t('namePlaceholder')}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                />
+                            </div>
+
+                        </div>
+                        <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+                            <button
+                                onClick={() => {
+                                    setShowCreateModal(false);
+                                    setNewGroupData({ name: '' });
+                                }}
+                                className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium transition-colors"
+                                disabled={isCreating}
+                            >
+                                {tCommon('cancel')}
+                            </button>
+                            <button
+                                onClick={handleCreateGroup}
+                                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
+                                disabled={isCreating}
+                            >
+                                {isCreating ? (
+                                    <>
+                                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                                        {t('creating')}
+                                    </>
+                                ) : (
+                                    <>
+                                        <PlusIcon className="h-5 w-5" />
+                                        {t('createNew')}
+                                    </>
                                 )}
                             </button>
                         </div>

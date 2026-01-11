@@ -2,7 +2,7 @@ import { apiClient } from '@/services/auth';
 import { Group, GroupsResponse, CreateGroupRequest, UpdateGroupRequest } from '@/types/group.types';
 
 // Get all groups (admin)
-export async function getAllGroups(page: number = 0, size: number = 20): Promise<unknown> {
+export async function getAllGroups(page: number = 0, size: number = 20): Promise<{ data: GroupsResponse }> {
     const response = await apiClient.get(`/api/v1/admin/groups?page=${page}&size=${size}`);
     return response.data;
 }
@@ -15,7 +15,7 @@ export async function getGroupById(groupId: string): Promise<Group> {
 
 // Create group (admin)
 export async function createGroup(data: CreateGroupRequest): Promise<Group> {
-    const response = await apiClient.post('/api/v1/admin/groups', data);
+    const response = await apiClient.post('/api/v1/admin/group', data);
     return response.data;
 }
 

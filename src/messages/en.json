@@ -862,7 +862,15 @@
             "confirmDeleteMessage": "Are you sure you want to delete group",
             "confirmDeleteNote": "This action cannot be undone.",
             "deleteSuccess": "Deleted group \"{name}\"",
-            "deleteFailed": "Failed to delete group"
+            "deleteFailed": "Failed to delete group",
+            "createGroup": "Create New Group",
+            "createNew": "Create New",
+            "namePlaceholder": "Enter group name...",
+            "schoolIdPlaceholder": "Enter School ID (optional)...",
+            "createSuccess": "Successfully created group \"{name}\"",
+            "createFailed": "Failed to create group",
+            "validationError": "Group name cannot be empty",
+            "creating": "Creating..."
         },
         "Collections": {
             "title": "Collections Management",

@@ -866,7 +866,15 @@
             "confirmDeleteMessage": "Bạn có chắc chắn muốn xóa nhóm",
             "confirmDeleteNote": "Hành động này không thể hoàn tác.",
             "deleteSuccess": "Đã xóa nhóm \"{name}\"",
-            "deleteFailed": "Không thể xóa nhóm"
+            "deleteFailed": "Không thể xóa nhóm",
+            "createGroup": "Tạo Nhóm Mới",
+            "createNew": "Tạo mới",
+            "namePlaceholder": "Nhập tên nhóm...",
+            "schoolIdPlaceholder": "Nhập School ID (tùy chọn)...",
+            "createSuccess": "Đã tạo nhóm \"{name}\" thành công",
+            "createFailed": "Không thể tạo nhóm",
+            "validationError": "Tên nhóm không được để trống",
+            "creating": "Đang tạo..."
         },
         "Collections": {
             "title": "Quản Lý Bộ Sưu Tập",
