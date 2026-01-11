@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from "react";
-import { getAllCollections, deleteCollection } from "@/services/resources/collections";
+import { getAllCollections, deleteCollection, createCollection } from "@/services/resources/collections";
 import { Collection } from "@/types/collection.types";
 import {
     FolderIcon,
@@ -14,6 +14,7 @@ import {
     GlobeAltIcon,
     LockClosedIcon,
     UserGroupIcon as UsersIcon,
+    PlusIcon,
 } from "@heroicons/react/24/outline";
 import Spinner from "@/components/ui/Spinner";
 import { toast } from "sonner";
@@ -33,6 +34,13 @@ export default function CollectionsManagementPage() {
     const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
     const [collectionToDelete, setCollectionToDelete] = useState<Collection | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [isCreating, setIsCreating] = useState(false);
+    const [newCollectionData, setNewCollectionData] = useState({
+        name: '',
+        description: '',
+        visibility: 'PUBLIC' as 'PUBLIC' | 'PRIVATE' | 'GROUP',
+    });
     const collectionsPerPage = 10;
 
     // Fetch collections from API (server-side pagination)
@@ -121,6 +129,35 @@ export default function CollectionsManagementPage() {
         }
     };
 
+    // Handle create collection
+    const handleCreateCollection = async () => {
+        if (!newCollectionData.name.trim()) {
+            toast.error(t('validationError'), { duration: 3000 });
+            return;
+        }
+
+        setIsCreating(true);
+        try {
+            const collectionToCreate = {
+                name: newCollectionData.name.trim(),
+                description: newCollectionData.description.trim() || undefined,
+                visibility: newCollectionData.visibility.toLowerCase() as 'public' | 'private' | 'group',
+            };
+
+            const newCollection = await createCollection(collectionToCreate);
+            toast.success(t('createSuccess', { name: newCollection.name }), { duration: 3000 });
+            setShowCreateModal(false);
+            setNewCollectionData({ name: '', description: '', visibility: 'PUBLIC' });
+            // Refresh the list
+            fetchCollections(currentPage - 1);
+        } catch (err) {
+            console.error('Failed to create collection:', err);
+            toast.error(t('createFailed'), { duration: 3000 });
+        } finally {
+            setIsCreating(false);
+        }
+    };
+
     // Get visibility icon and label
     const getVisibilityDisplay = (visibility: string) => {
         switch (visibility) {
@@ -175,6 +212,14 @@ export default function CollectionsManagementPage() {
                         <p className="text-sm text-gray-500">{t('totalCollections')}</p>
                         <p className="text-2xl font-bold text-blue-600">{totalItems}</p>
                     </div>
+                    <button
+                        onClick={() => setShowCreateModal(true)}
+                        className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all hover:scale-105 font-medium"
+                        title={t('createCollection')}
+                    >
+                        <PlusIcon className="h-5 w-5" />
+                        {t('createNew')}
+                    </button>
                     <button
                         onClick={() => fetchCollections(currentPage - 1)}
                         className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all hover:scale-105"
@@ -438,6 +483,100 @@ export default function CollectionsManagementPage() {
                                 className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium transition-colors"
                             >
                                 {tCommon('close')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Create Collection Modal */}
+            {showCreateModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full">
+                        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-2xl flex justify-between items-center">
+                            <h3 className="text-2xl font-bold">{t('createCollection')}</h3>
+                            <button
+                                onClick={() => {
+                                    setShowCreateModal(false);
+                                    setNewCollectionData({ name: '', description: '', visibility: 'PUBLIC' });
+                                }}
+                                className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                            >
+                                <XMarkIcon className="h-6 w-6" />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-6">
+                            {/* Name */}
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    {t('name')} <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={newCollectionData.name}
+                                    onChange={(e) => setNewCollectionData({ ...newCollectionData, name: e.target.value })}
+                                    placeholder={t('namePlaceholder')}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                />
+                            </div>
+
+                            {/* Description */}
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    {t('description_field')}
+                                </label>
+                                <textarea
+                                    value={newCollectionData.description}
+                                    onChange={(e) => setNewCollectionData({ ...newCollectionData, description: e.target.value })}
+                                    placeholder={t('descriptionPlaceholder')}
+                                    rows={3}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                />
+                            </div>
+
+                            {/* Visibility */}
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    {t('visibility')} <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                    value={newCollectionData.visibility}
+                                    onChange={(e) => setNewCollectionData({ ...newCollectionData, visibility: e.target.value as 'PUBLIC' | 'PRIVATE' | 'GROUP' })}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                >
+                                    <option value="PUBLIC">{tCommon('public')}</option>
+                                    <option value="PRIVATE">{tCommon('private')}</option>
+                                    <option value="GROUP">{t('group')}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+                            <button
+                                onClick={() => {
+                                    setShowCreateModal(false);
+                                    setNewCollectionData({ name: '', description: '', visibility: 'PUBLIC' });
+                                }}
+                                className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium transition-colors"
+                                disabled={isCreating}
+                            >
+                                {tCommon('cancel')}
+                            </button>
+                            <button
+                                onClick={handleCreateCollection}
+                                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg font-medium transition-all flex items-center gap-2 disabled:opacity-50"
+                                disabled={isCreating}
+                            >
+                                {isCreating ? (
+                                    <>
+                                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                                        {t('creating')}
+                                    </>
+                                ) : (
+                                    <>
+                                        <PlusIcon className="h-5 w-5" />
+                                        {t('createNew')}
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>

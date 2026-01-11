@@ -25,8 +25,9 @@ export interface CollectionsResponse {
 export interface CreateCollectionRequest {
     name: string;
     description?: string;
-    visibility: 'PUBLIC' | 'PRIVATE' | 'GROUP';
+    visibility: 'PUBLIC' | 'PRIVATE' | 'GROUP' | 'public' | 'private' | 'group';
     tagIds?: string[];
+    groupId?: string;
 }
 
 export interface UpdateCollectionRequest {

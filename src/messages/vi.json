@@ -876,10 +876,14 @@
             "searchPlaceholder": "Tìm kiếm bộ sưu tập...",
             "visibilityFilter": "Chế độ hiển thị",
             "allVisibility": "Tất cả chế độ",
+            "createCollection": "Tạo Bộ Sưu Tập Mới",
+            "createNew": "Tạo mới",
             "collectionDetails": "Chi Tiết Bộ Sưu Tập",
             "collectionId": "ID Bộ Sưu Tập",
             "name": "Tên",
+            "namePlaceholder": "Nhập tên bộ sưu tập...",
             "description_field": "Mô tả",
+            "descriptionPlaceholder": "Nhập mô tả (tùy chọn)...",
             "visibility": "Chế độ hiển thị",
             "owner": "Chủ sở hữu",
             "createdAt": "Ngày tạo",
@@ -896,7 +900,11 @@
             "confirmDeleteMessage": "Bạn có chắc chắn muốn xóa bộ sưu tập",
             "confirmDeleteNote": "Hành động này không thể hoàn tác.",
             "deleteSuccess": "Đã xóa bộ sưu tập \"{name}\"",
-            "deleteFailed": "Không thể xóa bộ sưu tập"
+            "deleteFailed": "Không thể xóa bộ sưu tập",
+            "createSuccess": "Đã tạo bộ sưu tập \"{name}\" thành công",
+            "createFailed": "Không thể tạo bộ sưu tập",
+            "validationError": "Tên bộ sưu tập không được để trống",
+            "creating": "Đang tạo..."
         },
         "Dashboard": {
             "title": "Admin Dashboard",
