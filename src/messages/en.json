@@ -892,7 +892,21 @@
             "confirmDeleteMessage": "Are you sure you want to delete collection",
             "confirmDeleteNote": "This action cannot be undone.",
             "deleteSuccess": "Deleted collection \"{name}\"",
-            "deleteFailed": "Failed to delete collection"
+            "deleteFailed": "Failed to delete collection",
+            "createCollection": "Create New Collection",
+            "createNew": "Create New",
+            "namePlaceholder": "Enter collection name...",
+            "descriptionPlaceholder": "Enter description (optional)...",
+            "createSuccess": "Successfully created collection \"{name}\"",
+            "createFailed": "Failed to create collection",
+            "validationError": "Collection name cannot be empty",
+            "creating": "Creating...",
+            "edit": "Edit",
+            "editCollection": "Edit Collection",
+            "update": "Update",
+            "updating": "Updating...",
+            "updateSuccess": "Successfully updated collection \"{name}\"",
+            "updateFailed": "Failed to update collection"
         },
         "Dashboard": {
             "title": "Admin Dashboard",
