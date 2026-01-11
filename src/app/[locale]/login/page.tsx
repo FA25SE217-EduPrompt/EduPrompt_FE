@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { getDefaultRedirectPath } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
@@ -12,7 +13,7 @@ import Spinner from "@/components/ui/Spinner";
 
 export default function LoginPage() {
     const router = useRouter();
-    const { login, loginWithGoogle, isAuthenticated, isLoading } = useAuth();
+    const { login, loginWithGoogle, isAuthenticated, isLoading, user } = useAuth();
     const t = useTranslations('Auth');
 
     // form state (kept as-is to preserve behavior)
@@ -69,7 +70,10 @@ export default function LoginPage() {
             setSuccess(true);
             setTimeout(() => {
                 // ensure navigation only when mounted
-                if (mountedRef.current) router.replace("/");
+                if (mountedRef.current) {
+                    const redirectPath = getDefaultRedirectPath(user);
+                    router.replace(redirectPath);
+                }
             }, 400);
         } catch (err: unknown) {
             if (!mountedRef.current) return;
@@ -80,7 +84,7 @@ export default function LoginPage() {
         } finally {
             if (mountedRef.current) setSubmitting(false);
         }
-    }, [router, loginWithGoogle]);
+    }, [router, loginWithGoogle, user]);
 
     // Initialize Google Identity Services
     const initializeGoogleAuth = useCallback(() => {
@@ -180,7 +184,10 @@ export default function LoginPage() {
             if (!mountedRef.current) return;
             setSuccess(true);
             setTimeout(() => {
-                if (mountedRef.current) router.replace("/");
+                if (mountedRef.current) {
+                    const redirectPath = getDefaultRedirectPath(user);
+                    router.replace(redirectPath);
+                }
             }, 600);
         } catch (err: unknown) {
             if (!mountedRef.current) return;
@@ -191,7 +198,7 @@ export default function LoginPage() {
         } finally {
             if (mountedRef.current) setSubmitting(false);
         }
-    }, [email, password, remember, router, login]);
+    }, [email, password, remember, router, login, user]);
 
     // Show loading while checking authentication
     if (isLoading) {

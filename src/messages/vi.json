@@ -9,6 +9,7 @@
             "goToDashboard": "Vào Bảng điều khiển",
             "viewProfile": "Xem Hồ sơ",
             "schoolAdmin": "Quản trị Trường học",
+            "systemAdmin": "Quản trị Hệ thống",
             "aiTeaching": "Giảng dạy với AI",
             "madeSimple": "Thật đơn giản",
             "streamline": "Đơn giản hóa việc soạn giáo án với hệ thống quản lý gợi ý thông minh. Tạo, chia sẻ và cá nhân hóa các gợi ý AI phù hợp với phong cách giảng dạy của bạn.",
@@ -753,6 +754,15 @@
             "backToHome": "Về Trang Chủ",
             "systemAdmin": "System Admin",
             "logout": "Đăng Xuất"
+        },
+        "Dashboard": {
+            "title": "Bảng Điều Khiển Admin",
+            "description": "Quản lý tài nguyên hệ thống và người dùng",
+            "manageEntity": "Quản lý tất cả {entity} trong hệ thống",
+            "systemInfo": "Thông Tin Hệ Thống",
+            "version": "Phiên Bản",
+            "role": "Vai Trò",
+            "account": "Tài Khoản"
         },
         "Prompts": {
             "title": "Quản Lý Prompts",

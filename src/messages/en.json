@@ -9,6 +9,7 @@
             "goToDashboard": "Go to Dashboard",
             "viewProfile": "View Profile",
             "schoolAdmin": "School Administration",
+            "systemAdmin": "System Administration",
             "aiTeaching": "AI-Powered Teaching",
             "madeSimple": "Made Simple",
             "streamline": "Streamline your lesson planning with our intelligent prompt management system. Create, share, and personalize AI prompts tailored to your teaching style and curriculum.",
@@ -749,6 +750,15 @@
             "backToHome": "Back to Home",
             "systemAdmin": "System Admin",
             "logout": "Logout"
+        },
+        "Dashboard": {
+            "title": "Admin Dashboard",
+            "description": "Manage system resources and users",
+            "manageEntity": "Manage all {entity} in the system",
+            "systemInfo": "System Information",
+            "version": "Version",
+            "role": "Role",
+            "account": "Account"
         },
         "Prompts": {
             "title": "Prompts Management",
