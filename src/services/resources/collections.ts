@@ -27,5 +27,5 @@ export async function updateCollection(collectionId: string, data: UpdateCollect
 
 // Delete collection (admin)
 export async function deleteCollection(collectionId: string): Promise<void> {
-    await apiClient.delete(`/api/v1/admin/collections/${collectionId}`);
+    await apiClient.delete(`/api/v1/admin/collection/${collectionId}`);
 }
