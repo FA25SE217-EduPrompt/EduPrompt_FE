@@ -21,11 +21,11 @@ export async function createGroup(data: CreateGroupRequest): Promise<Group> {
 
 // Update group (admin)
 export async function updateGroup(groupId: string, data: UpdateGroupRequest): Promise<Group> {
-    const response = await apiClient.put(`/api/v1/admin/groups/${groupId}`, data);
+    const response = await apiClient.put(`/api/v1/admin/group/${groupId}`, data);
     return response.data;
 }
 
 // Delete group (admin)
 export async function deleteGroup(groupId: string): Promise<void> {
-    await apiClient.delete(`/api/v1/admin/groups/${groupId}`);
+    await apiClient.delete(`/api/v1/admin/group/${groupId}`);
 }

@@ -870,7 +870,13 @@
             "createSuccess": "Successfully created group \"{name}\"",
             "createFailed": "Failed to create group",
             "validationError": "Group name cannot be empty",
-            "creating": "Creating..."
+            "creating": "Creating...",
+            "edit": "Edit",
+            "editGroup": "Edit Group",
+            "update": "Update",
+            "updating": "Updating...",
+            "updateSuccess": "Successfully updated group \"{name}\"",
+            "updateFailed": "Failed to update group"
         },
         "Collections": {
             "title": "Collections Management",

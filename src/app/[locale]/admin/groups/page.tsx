@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from "react";
-import { getAllGroups, deleteGroup, createGroup } from "@/services/resources/groups";
+import { getAllGroups, deleteGroup, createGroup, updateGroup } from "@/services/resources/groups";
 import { Group } from "@/types/group.types";
 import {
     UserGroupIcon,
@@ -14,6 +14,7 @@ import {
     CheckCircleIcon,
     XCircleIcon,
     PlusIcon,
+    PencilIcon,
 } from "@heroicons/react/24/outline";
 import Spinner from "@/components/ui/Spinner";
 import { toast } from "sonner";
@@ -38,6 +39,12 @@ export default function GroupsManagementPage() {
     const [newGroupData, setNewGroupData] = useState({
         name: '',
     });
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [isUpdating, setIsUpdating] = useState(false);
+    const [editGroupData, setEditGroupData] = useState<{
+        id: string;
+        name: string;
+    } | null>(null);
     const groupsPerPage = 10;
 
     // Fetch groups from API (server-side pagination)
@@ -152,6 +159,43 @@ export default function GroupsManagementPage() {
             toast.error(t('createFailed'), { duration: 3000 });
         } finally {
             setIsCreating(false);
+        }
+    };
+
+    // Handle edit click
+    const handleEditClick = (group: Group) => {
+        setEditGroupData({
+            id: group.id,
+            name: group.name,
+        });
+        setShowEditModal(true);
+    };
+
+    // Handle update group
+    const handleUpdateGroup = async () => {
+        if (!editGroupData || !editGroupData.name.trim()) {
+            toast.error(t('validationError'), { duration: 3000 });
+            return;
+        }
+
+        setIsUpdating(true);
+        try {
+            const updateData = {
+                name: editGroupData.name.trim(),
+                isActive: true,
+            };
+
+            await updateGroup(editGroupData.id, updateData);
+            toast.success(t('updateSuccess', { name: editGroupData.name }), { duration: 3000 });
+            setShowEditModal(false);
+            setEditGroupData(null);
+            // Refresh the list
+            fetchGroups(currentPage - 1);
+        } catch (err) {
+            console.error('Failed to update group:', err);
+            toast.error(t('updateFailed'), { duration: 3000 });
+        } finally {
+            setIsUpdating(false);
         }
     };
 
@@ -314,18 +358,26 @@ export default function GroupsManagementPage() {
                                             {new Date(group.createdAt).toLocaleDateString('vi-VN')}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="flex gap-2">
+                                            <div className="flex gap-2 justify-center">
                                                 <button
                                                     onClick={() => handleViewGroup(group)}
-                                                    className="flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg font-medium text-sm transition-colors"
+                                                    className="flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg font-medium text-sm transition-colors min-w-[90px] justify-center"
                                                     title={tCommon('viewDetails')}
                                                 >
                                                     <EyeIcon className="h-4 w-4" />
                                                     {tCommon('view')}
                                                 </button>
                                                 <button
+                                                    onClick={() => handleEditClick(group)}
+                                                    className="flex items-center gap-1 px-3 py-1.5 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg font-medium text-sm transition-colors min-w-[90px] justify-center"
+                                                    title={t('edit')}
+                                                >
+                                                    <PencilIcon className="h-4 w-4" />
+                                                    {t('edit')}
+                                                </button>
+                                                <button
                                                     onClick={() => handleDeleteClick(group)}
-                                                    className="flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg font-medium text-sm transition-colors"
+                                                    className="flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg font-medium text-sm transition-colors min-w-[90px] justify-center"
                                                     title={tCommon('delete')}
                                                 >
                                                     <TrashIcon className="h-4 w-4" />
@@ -533,6 +585,70 @@ export default function GroupsManagementPage() {
                                     <>
                                         <PlusIcon className="h-5 w-5" />
                                         {t('createNew')}
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Group Modal */}
+            {showEditModal && editGroupData && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full">
+                        <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-6 rounded-t-2xl flex justify-between items-center">
+                            <h3 className="text-2xl font-bold">{t('editGroup')}</h3>
+                            <button
+                                onClick={() => {
+                                    setShowEditModal(false);
+                                    setEditGroupData(null);
+                                }}
+                                className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                            >
+                                <XMarkIcon className="h-6 w-6" />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-6">
+                            {/* Name */}
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    {t('name')} <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={editGroupData.name}
+                                    onChange={(e) => setEditGroupData({ ...editGroupData, name: e.target.value })}
+                                    placeholder={t('namePlaceholder')}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                                />
+                            </div>
+                        </div>
+                        <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+                            <button
+                                onClick={() => {
+                                    setShowEditModal(false);
+                                    setEditGroupData(null);
+                                }}
+                                className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium transition-colors"
+                                disabled={isUpdating}
+                            >
+                                {tCommon('cancel')}
+                            </button>
+                            <button
+                                onClick={handleUpdateGroup}
+                                className="px-6 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg hover:from-amber-600 hover:to-orange-600 font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
+                                disabled={isUpdating}
+                            >
+                                {isUpdating ? (
+                                    <>
+                                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                                        {t('updating')}
+                                    </>
+                                ) : (
+                                    <>
+                                        <PencilIcon className="h-5 w-5" />
+                                        {t('update')}
                                     </>
                                 )}
                             </button>
