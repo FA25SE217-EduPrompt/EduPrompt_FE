@@ -156,7 +156,7 @@ export default function TagsManagementPage() {
             setFormData({ type: "", value: "" });
         } catch (err: unknown) {
             console.error("Failed to save tag:", err);
-            const errorMessage = (err as any)?.response?.data?.message || t('saveFailed');
+            const errorMessage = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || t('saveFailed');
             toast.error(errorMessage, { duration: 3000 });
         } finally {
             setIsSaving(false);

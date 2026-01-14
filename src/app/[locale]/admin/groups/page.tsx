@@ -73,7 +73,7 @@ export default function GroupsManagementPage() {
             }
         } catch (err: unknown) {
             console.error("❌ Error fetching groups:", err);
-            const errorMsg = (err as any).response?.status === 403
+            const errorMsg = (err as { response?: { status?: number } }).response?.status === 403
                 ? t('permissionDenied')
                 : t('failedToLoad');
             setError(errorMsg);
