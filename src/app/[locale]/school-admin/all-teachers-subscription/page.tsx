@@ -27,7 +27,7 @@ export default function AllTeachersSubscriptionPage() {
 
         const mockLogs: TeacherTokenUsageLogDto[] = [
             {
-                id: '1',
+                id: 'mock-1',
                 userId: '87d261b6-8254-47b2-965b-d8a5e1234567',
                 userName: 'Nguyễn Văn An',
                 actionType: 'TEST',
@@ -35,7 +35,7 @@ export default function AllTeachersSubscriptionPage() {
                 createdAt: '2024-12-23T10:30:00Z',
             },
             {
-                id: '2',
+                id: 'mock-2',
                 userId: 'a1b2c3d4-5e6f-7890-abcd-ef1234567890',
                 userName: 'Trần Thị Bình',
                 actionType: 'OPTIMIZATION',
@@ -43,7 +43,7 @@ export default function AllTeachersSubscriptionPage() {
                 createdAt: '2024-12-23T09:15:00Z',
             },
             {
-                id: '3',
+                id: 'mock-3',
                 userId: 'f9e8d7c6-b5a4-3210-9876-543210fedcba',
                 userName: 'Lê Minh Châu',
                 actionType: 'TEST',
@@ -51,7 +51,7 @@ export default function AllTeachersSubscriptionPage() {
                 createdAt: '2024-12-22T14:45:00Z',
             },
             {
-                id: '4',
+                id: 'mock-4',
                 userId: '12345678-90ab-cdef-1234-567890abcdef',
                 userName: 'Phạm Hoàng Dũng',
                 actionType: 'TEST',
@@ -59,7 +59,7 @@ export default function AllTeachersSubscriptionPage() {
                 createdAt: '2024-12-22T11:20:00Z',
             },
             {
-                id: '5',
+                id: 'mock-5',
                 userId: 'abcdef12-3456-7890-abcd-ef1234567890',
                 userName: 'Võ Thị Em',
                 actionType: 'OPTIMIZATION',
@@ -67,7 +67,7 @@ export default function AllTeachersSubscriptionPage() {
                 createdAt: '2024-12-21T16:00:00Z',
             },
             {
-                id: '6',
+                id: 'mock-6',
                 userId: '87d261b6-8254-47b2-965b-d8a5e1234567',
                 userName: 'Nguyễn Văn An',
                 actionType: 'OPTIMIZATION',
@@ -75,7 +75,7 @@ export default function AllTeachersSubscriptionPage() {
                 createdAt: '2024-12-21T10:10:00Z',
             },
             {
-                id: '7',
+                id: 'mock-7',
                 userId: 'a1b2c3d4-5e6f-7890-abcd-ef1234567890',
                 userName: 'Trần Thị Bình',
                 actionType: 'TEST',
@@ -83,7 +83,7 @@ export default function AllTeachersSubscriptionPage() {
                 createdAt: '2024-12-20T15:30:00Z',
             },
             {
-                id: '8',
+                id: 'mock-8',
                 userId: '11111111-2222-3333-4444-555555555555',
                 userName: 'Hoàng Văn Khoa',
                 actionType: 'OPTIMIZATION',
@@ -91,7 +91,7 @@ export default function AllTeachersSubscriptionPage() {
                 createdAt: '2024-12-20T14:00:00Z',
             },
             {
-                id: '9',
+                id: 'mock-9',
                 userId: '22222222-3333-4444-5555-666666666666',
                 userName: 'Đỗ Thị Lan',
                 actionType: 'TEST',
@@ -99,7 +99,7 @@ export default function AllTeachersSubscriptionPage() {
                 createdAt: '2024-12-19T16:30:00Z',
             },
             {
-                id: '10',
+                id: 'mock-10',
                 userId: '33333333-4444-5555-6666-777777777777',
                 userName: 'Bùi Minh Nam',
                 actionType: 'OPTIMIZATION',
@@ -107,7 +107,7 @@ export default function AllTeachersSubscriptionPage() {
                 createdAt: '2024-12-19T10:45:00Z',
             },
             {
-                id: '11',
+                id: 'mock-11',
                 userId: '44444444-5555-6666-7777-888888888888',
                 userName: 'Vũ Thị Oanh',
                 actionType: 'TEST',
@@ -115,7 +115,7 @@ export default function AllTeachersSubscriptionPage() {
                 createdAt: '2024-12-18T13:20:00Z',
             },
             {
-                id: '12',
+                id: 'mock-12',
                 userId: '55555555-6666-7777-8888-999999999999',
                 userName: 'Đinh Văn Phong',
                 actionType: 'OPTIMIZATION',
@@ -123,7 +123,7 @@ export default function AllTeachersSubscriptionPage() {
                 createdAt: '2024-12-18T09:00:00Z',
             },
             {
-                id: '13',
+                id: 'mock-13',
                 userId: '66666666-7777-8888-9999-aaaaaaaaaaaa',
                 userName: 'Lý Thị Quỳnh',
                 actionType: 'TEST',
@@ -131,7 +131,7 @@ export default function AllTeachersSubscriptionPage() {
                 createdAt: '2024-12-17T15:15:00Z',
             },
             {
-                id: '14',
+                id: 'mock-14',
                 userId: '77777777-8888-9999-aaaa-bbbbbbbbbbbb',
                 userName: 'Trịnh Văn Sơn',
                 actionType: 'OPTIMIZATION',
