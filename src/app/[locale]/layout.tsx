@@ -41,7 +41,24 @@ export default async function RootLayout({
                     <QueryClientProvider client={queryClient}>
                         <AuthProvider>
                             {children}
-                            <Toaster position="top-right" richColors />
+                            <Toaster
+                                position="top-right"
+                                richColors
+                                toastOptions={{
+                                    className: 'rounded-xl border border-gray-100 shadow-xl shadow-gray-200/50 bg-white/90 backdrop-blur-md',
+                                    classNames: {
+                                        toast: 'bg-white border-gray-100',
+                                        title: 'text-sm font-bold text-slate-800',
+                                        description: 'text-xs text-slate-500',
+                                        actionButton: 'bg-blue-600 text-white hover:bg-blue-700',
+                                        cancelButton: 'bg-gray-100 text-slate-500 hover:bg-gray-200',
+                                        error: 'bg-red-50 border-red-100 text-red-600',
+                                        success: 'bg-green-50 border-green-100 text-green-600',
+                                        warning: 'bg-yellow-50 border-yellow-100 text-yellow-600',
+                                        info: 'bg-blue-50 border-blue-100 text-blue-600',
+                                    },
+                                }}
+                            />
                         </AuthProvider>
                     </QueryClientProvider>
                 </NextIntlClientProvider>

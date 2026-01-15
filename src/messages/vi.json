@@ -66,6 +66,28 @@
             "title": "Bảng giá Đơn giản, Minh bạch",
             "subtitle": "Công cụ cho mọi giai đoạn trong sự nghiệp giảng dạy của bạn",
             "perMonth": "/tháng",
+            "freeTrial": "Dùng thử miễn phí",
+            "standard": "Tiêu chuẩn",
+            "premium": "Cao cấp",
+            "schoolWide": "Toàn trường",
+            "negotiated": "Thỏa thuận",
+            "perTeacherMonth": "/giáo viên/tháng",
+            "perSchoolYear": "/trường/năm",
+            "features": {
+                "limited": "Truy cập hạn chế",
+                "oneTeacher": "Một giáo viên",
+                "basic": "Tính năng cơ bản",
+                "fullAccess": "Truy cập đầy đủ",
+                "aiPersonalization": "Cá nhân hóa AI",
+                "collaboration": "Công cụ cộng tác",
+                "prioritySupport": "Hỗ trợ ưu tiên",
+                "unlimited": "Truy cập không giới hạn",
+                "adminDashboard": "Bảng điều khiển quản trị",
+                "analytics": "Phân tích",
+                "premium": "Tính năng cao cấp",
+                "schoolNoQuota": "Không giới hạn cá nhân",
+                "schoolSharedPool": "Kho token dùng chung"
+            },
             "Tiers": {
                 "Starter": {
                     "name": "Cơ Bản",
@@ -108,8 +130,16 @@
             "buttons": {
                 "startFreeTrial": "Bắt đầu dùng thử miễn phí",
                 "getStarted": "Bắt đầu ngay",
-                "contactSales": "Liên hệ Kinh doanh"
+                "contactSales": "Liên hệ Kinh doanh",
+                "currentPlan": "Gói hiện tại",
+                "upgradeNow": "Nâng cấp ngay"
             }
+        },
+        "PricingCard": {
+            "mostPopular": "Phổ biến nhất",
+            "currentPlan": "Gói hiện tại",
+            "showLess": "Thu gọn",
+            "viewPlanDetails": "Xem chi tiết gói"
         },
         "CTA": {
             "title": "Sẵn sàng để thay đổi việc giảng dạy của bạn?",
@@ -730,6 +760,7 @@
             "79": "Giao dịch không thành công do: KH nhập sai mật khẩu thanh toán quá số lần quy định.",
             "99": "Các lỗi khác (lỗi còn lại, không có trong danh sách mã lỗi đã liệt kê)"
         },
+        "error": "Đã xảy ra lỗi khi khởi tạo thanh toán.",
         "Checkout": {
             "title": "Thanh toán",
             "subtitle": "Xem lại gói đăng ký của bạn trước khi tiếp tục.",
@@ -739,6 +770,68 @@
             "payWithVNPay": "Thanh toán {amount} qua VNPay",
             "processing": "Đang xử lý...",
             "legalDisclaimer": "Bằng cách nhấp vào \"Thanh toán\", bạn đồng ý với Điều khoản dịch vụ và Chính sách quyền riêng tư của chúng tôi. Bạn sẽ được chuyển hướng đến VNPay để hoàn tất giao dịch."
+        }
+    },
+    "Explorer": {
+        "title": "Khám phá Chương trình",
+        "searchPlaceholder": "Tìm kiếm prompt, bài học, hoặc chủ đề...",
+        "semanticSearch": "Tìm ngữ nghĩa",
+        "keywordSearch": "Tìm từ khóa",
+        "grade": "Khối",
+        "tagTypes": {
+            "subject": "Môn học"
+        },
+        "filters": {
+            "LessonPlan": "Giáo án",
+            "Slide": "Slide",
+            "Test": "Đề thi",
+            "Matrix": "Ma trận",
+            "Activity": "Hoạt động"
+        },
+        "lessonBundle": "Gói Bài Học",
+        "customize": "Tùy chỉnh",
+        "preview": "Xem trước",
+        "noSelection": "Chọn một bài học từ danh sách để xem chi tiết.",
+        "availableResources": "Tài nguyên dạy học",
+        "copyContent": "Sao chép nội dung",
+        "contentViewerPlaceholder": "Chọn bài học để xem cơ sở tri thức",
+        "actionDeck": {
+            "create": "Tạo mới"
+        }
+    },
+    "Workbench": {
+        "title": "Bàn làm việc Thông minh",
+        "editor": "Trình biên tập",
+        "assistant": "Trợ lý AI",
+        "promptTitle": "Tiêu đề Prompt",
+        "badges": {
+            "Math": "Toán",
+            "Grade10": "Lớp 10",
+            "LessonPlan": "Giáo án"
+        },
+        "configuration": "Cấu hình",
+        "advancedSettings": "Cài đặt nâng cao",
+        "instruction": "Hướng dẫn (Instruction)",
+        "instructionPlaceholder": "Đóng vai một giáo viên Toán...",
+        "context": "Ngữ cảnh (Context)",
+        "contextPlaceholder": "Nhập ngữ cảnh thủ công...",
+        "uploadZone": "Kéo thả tài liệu (PDF, Docx) để AI học phong cách của bạn.",
+        "outputFormat": "Định dạng đầu ra",
+        "generator": {
+            "tab": "Tạo ý tưởng",
+            "emptyState": "Bạn chưa có ý tưởng?",
+            "inputPlaceholder": "Mô tả thứ bạn cần (vd: Giáo án Toán 10 về Vector lấy ví dụ thực tế...)",
+            "generateBtn": "Tạo Prompt"
+        },
+        "scoring": {
+            "tab": "Chấm điểm & Kiểm toán",
+            "score": "Điểm số",
+            "clarity": "Sự rõ ràng",
+            "constraints": "Giới hạn cụ thể",
+            "personalization": "Thông tin cá nhân hóa",
+            "suggestion": "Gợi ý cải thiện",
+            "autoFix": "Tự động sửa",
+            "runAudit": "Chấm điểm ngay"
         }
     }
 }

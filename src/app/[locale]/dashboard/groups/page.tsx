@@ -16,6 +16,7 @@ export default function GroupsPage() {
     const { data: groupsData, isLoading, error } = useGetMyGroups();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
+    /* 
     if (isLoading) {
         return (
             <div className="flex justify-center items-center py-20">
@@ -31,8 +32,46 @@ export default function GroupsPage() {
             </div>
         );
     }
+    */
 
-    const groups = groupsData?.content || [];
+    // MOCK DATA FOR UI TESTING
+    const MOCK_GROUPS: GroupResponse[] = [
+        {
+            id: "group-1",
+            name: "Math Grade 10 - Class 10A",
+            description: "Advanced Algebra and Geometry for 10A students",
+            createdAt: "2024-01-15T08:00:00Z",
+            updatedAt: "2024-01-20T14:30:00Z",
+            memberCount: 25,
+            ownerId: "user-1"
+        },
+        {
+            id: "group-2",
+            name: "Science Club 2025",
+            description: "Extracurricular activities and prompt sharing for Science Club",
+            createdAt: "2024-02-01T09:00:00Z",
+            updatedAt: "2024-02-05T11:20:00Z",
+            memberCount: 12,
+            ownerId: "user-1"
+        },
+        {
+            id: "group-3",
+            name: "Literature Department",
+            description: "Shared prompts for Lit teachers",
+            createdAt: "2023-11-10T10:00:00Z",
+            updatedAt: "2024-01-05T16:45:00Z",
+            memberCount: 8,
+            ownerId: "user-2"
+        }
+    ];
+
+    // const groups = groupsData?.content || [];
+    const groups = MOCK_GROUPS;
+
+    // Build bypass for testing
+    // if (isLoading) ... 
+    // if (error) ...
+
 
     return (
         <div className="container mx-auto px-4 py-8">

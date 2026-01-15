@@ -66,6 +66,28 @@
             "title": "Simple, Transparent Pricing",
             "subtitle": "Tools for every stage of your teaching career",
             "perMonth": "/month",
+            "freeTrial": "Free Trial",
+            "standard": "Standard",
+            "premium": "Premium",
+            "schoolWide": "School-Wide",
+            "negotiated": "Negotiated",
+            "perTeacherMonth": "/teacher/month",
+            "perSchoolYear": "/school/year",
+            "features": {
+                "limited": "Limited access",
+                "oneTeacher": "One teacher",
+                "basic": "Basic features",
+                "fullAccess": "Full access",
+                "aiPersonalization": "AI Personalization",
+                "collaboration": "Collaboration tools",
+                "prioritySupport": "Priority support",
+                "unlimited": "Unlimited access",
+                "adminDashboard": "Admin dashboard",
+                "analytics": "Analytics",
+                "premium": "Premium features",
+                "schoolNoQuota": "No individual quota",
+                "schoolSharedPool": "Shared token pool"
+            },
             "Tiers": {
                 "Starter": {
                     "name": "Starter",
@@ -108,8 +130,16 @@
             "buttons": {
                 "startFreeTrial": "Start Free Trial",
                 "getStarted": "Get Started",
-                "contactSales": "Contact Sales"
+                "contactSales": "Contact Sales",
+                "currentPlan": "Current Plan",
+                "upgradeNow": "Upgrade Now"
             }
+        },
+        "PricingCard": {
+            "mostPopular": "Most Popular",
+            "currentPlan": "Current Plan",
+            "showLess": "Show Less",
+            "viewPlanDetails": "View Plan Details"
         },
         "CTA": {
             "title": "Ready to Transform Your Teaching?",
@@ -726,6 +756,7 @@
             "79": "Transaction failed: Customer entered incorrect password too many times.",
             "99": "Other errors"
         },
+        "error": "An error occurred while initializing payment.",
         "Checkout": {
             "title": "Checkout",
             "subtitle": "Review your subscription plan before proceeding.",
@@ -735,6 +766,68 @@
             "payWithVNPay": "Pay {amount} with VNPay",
             "processing": "Processing...",
             "legalDisclaimer": "By clicking \"Pay\", you agree to our Terms of Service and Privacy Policy. You will be redirected to VNPay to complete the transaction."
+        }
+    },
+    "Explorer": {
+        "title": "Curriculum Explorer",
+        "searchPlaceholder": "Search for prompts, lessons, or topics...",
+        "semanticSearch": "Semantic Search",
+        "keywordSearch": "Keyword Search",
+        "grade": "Grade",
+        "tagTypes": {
+            "subject": "Subject"
+        },
+        "filters": {
+            "LessonPlan": "Lesson Plan",
+            "Slide": "Slide",
+            "Test": "Test",
+            "Matrix": "Matrix",
+            "Activity": "Activity"
+        },
+        "lessonBundle": "Lesson Bundle",
+        "customize": "Customize",
+        "preview": "Quick Preview",
+        "noSelection": "Select a lesson from the sidebar to view details.",
+        "availableResources": "Available Resources",
+        "copyContent": "Copy Content",
+        "contentViewerPlaceholder": "Select a lesson to view knowledge base",
+        "actionDeck": {
+            "create": "Create"
+        }
+    },
+    "Workbench": {
+        "title": "Intelligent Workbench",
+        "editor": "Editor",
+        "assistant": "AI Assistant",
+        "promptTitle": "Prompt Title",
+        "badges": {
+            "Math": "Math",
+            "Grade10": "Grade 10",
+            "LessonPlan": "Lesson Plan"
+        },
+        "configuration": "Configuration",
+        "advancedSettings": "Advanced Settings",
+        "instruction": "Instruction",
+        "instructionPlaceholder": "Act as a Math teacher...",
+        "context": "Context",
+        "contextPlaceholder": "Enter manual context here...",
+        "uploadZone": "Drag & drop files (PDF, Docx) to let AI learn your style.",
+        "outputFormat": "Output Format",
+        "generator": {
+            "tab": "Generator",
+            "emptyState": "No ideas yet?",
+            "inputPlaceholder": "Describe what you need (e.g., Lesson plan for Math 10 about Vectors...)",
+            "generateBtn": "Generate Prompt"
+        },
+        "scoring": {
+            "tab": "Scoring & Audit",
+            "score": "Score",
+            "clarity": "Clarity",
+            "constraints": "Constraint Definition",
+            "personalization": "Personalization",
+            "suggestion": "Suggestion",
+            "autoFix": "Auto-Fix",
+            "runAudit": "Run Audit"
         }
     }
 }

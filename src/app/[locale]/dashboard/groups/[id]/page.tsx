@@ -21,6 +21,21 @@ export default function GroupDetailPage() {
     const deleteGroup = useDeleteGroup();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
+    // MOCK DATA FOR UI TESTING
+    const MOCK_GROUP = {
+        id: id,
+        name: "Math Grade 10 - Class 10A",
+        description: "Advanced Algebra and Geometry for 10A students. This group is for sharing daily exercises and exam prompts.",
+        createdAt: "2024-01-15T08:00:00Z",
+        updatedAt: "2024-01-20T14:30:00Z",
+        memberCount: 25,
+        ownerId: "user-1",
+    };
+
+    // const group = groupData;
+    const group = MOCK_GROUP; // Use mock data 
+
+    /*
     if (isLoading) {
         return (
             <div className="flex justify-center items-center h-[50vh]">
@@ -36,8 +51,7 @@ export default function GroupDetailPage() {
             </div>
         );
     }
-
-    const group = groupData;
+    */
 
     const handleDelete = async () => {
         if (confirm(t('confirmDelete'))) {

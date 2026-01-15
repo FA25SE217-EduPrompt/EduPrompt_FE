@@ -57,8 +57,8 @@ export const useTierPlans = () => {
         {
             id: TierId.PRO,
             name: t('standard'),
-            price: 4.99,
-            priceString: "$4.99",
+            price: 2.49,
+            priceString: "$2.49",
             period: t('perTeacherMonth'),
             features: [
                 t('features.fullAccess'),
@@ -81,8 +81,8 @@ export const useTierPlans = () => {
         {
             id: TierId.PREMIUM,
             name: t('premium'),
-            price: 29.99,
-            priceString: "$29.99",
+            price: 9.99,
+            priceString: "$9.99",
             period: t('perMonth'),
             features: [
                 t('features.unlimited'),
