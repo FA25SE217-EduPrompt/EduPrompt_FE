@@ -49,11 +49,11 @@ export const LessonBundle: React.FC<LessonBundleProps> = ({ lesson }) => {
                 <div className="flex items-center gap-2">
                     <button className="p-2 text-gray-500 hover:text-slate-900 hover:bg-white rounded-lg border border-transparent hover:border-gray-200 transition-all text-xs font-medium flex items-center gap-2">
                         <Save size={16} />
-                        Save Bundle
+                        {t('saveBundle')}
                     </button>
                     <button className="px-3 py-2 bg-slate-900 text-white rounded-lg text-xs font-medium hover:bg-slate-800 transition-all flex items-center gap-2 shadow-sm">
                         <Download size={16} />
-                        Download All
+                        {t('downloadAll')}
                     </button>
                 </div>
             </div>
@@ -61,7 +61,7 @@ export const LessonBundle: React.FC<LessonBundleProps> = ({ lesson }) => {
             {/* Card Grid */}
             <div className="p-8 bg-gray-50/30">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-                    {tasks.map((task, index) => (
+                    {tasks.map((task) => (
                         <motion.div
                             key={task.id}
                             whileHover={{ y: -2 }}
@@ -85,7 +85,7 @@ export const LessonBundle: React.FC<LessonBundleProps> = ({ lesson }) => {
 
                                 <h4 className="font-bold text-slate-900 text-sm mb-1">{t(`filters.${task.id}`)}</h4>
                                 <p className="text-[11px] text-gray-500 font-mono uppercase tracking-tight">
-                                    {task.format} • Verified
+                                    {task.format} • {t('verified')}
                                 </p>
                             </div>
 

@@ -1,20 +1,24 @@
 import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Sparkles, CheckCircle, Sliders, FileText } from 'lucide-react';
+import { CheckCircle, Sliders, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DraftTab } from './tabs/DraftTab';
 import { AuditTab } from './tabs/AuditTab';
 import { OptimizeTab } from './tabs/OptimizeTab';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export const AIAssistant: React.FC = () => {
+interface AIAssistantProps {
+    initialTab?: 'draft' | 'audit' | 'optimize';
+}
+
+export const AIAssistant: React.FC<AIAssistantProps> = ({ initialTab = 'draft' }) => {
     const t = useTranslations('Workbench');
-    const [activeTab, setActiveTab] = useState<'draft' | 'audit' | 'optimize'>('draft');
+    const [activeTab, setActiveTab] = useState<'draft' | 'audit' | 'optimize'>(initialTab);
 
     const tabs = [
-        { id: 'draft', label: 'Draft', icon: FileText },
-        { id: 'audit', label: 'Audit', icon: CheckCircle },
-        { id: 'optimize', label: 'Optimize', icon: Sliders },
+        { id: 'draft', label: t('tabs.draft.label'), icon: FileText },
+        { id: 'audit', label: t('tabs.audit.label'), icon: CheckCircle },
+        { id: 'optimize', label: t('tabs.optimize.label'), icon: Sliders },
     ];
 
     return (
@@ -24,7 +28,7 @@ export const AIAssistant: React.FC = () => {
                 {tabs.map((tab) => (
                     <button
                         key={tab.id}
-                        onClick={() => setActiveTab(tab.id as any)}
+                        onClick={() => setActiveTab(tab.id as 'draft' | 'audit' | 'optimize')}
                         className={cn(
                             "flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 relative z-10",
                             activeTab === tab.id ? "text-primary" : "text-gray-400 hover:text-gray-600"
