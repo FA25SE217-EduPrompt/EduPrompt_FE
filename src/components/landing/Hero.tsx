@@ -3,10 +3,12 @@
 import React from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { useAuth } from '@/hooks/useAuth';
 import { BarChart3, BookOpen, CheckCircle2, MoreHorizontal, Plus } from 'lucide-react';
 
 export default function Hero() {
     const t = useTranslations('LandingPage.Hero');
+    const { isAuthenticated } = useAuth();
 
     return (
         <section className="w-full bg-surface border-b border-border py-16 lg:py-24 overflow-hidden relative">
@@ -27,10 +29,10 @@ export default function Hero() {
 
                         <div className="flex flex-col sm:flex-row gap-4 pt-4 justify-center lg:justify-start">
                             <Link
-                                href="/register"
+                                href={isAuthenticated ? "/dashboard" : "/register"}
                                 className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200"
                             >
-                                {t('getStarted')}
+                                {isAuthenticated ? t('explore') : t('getStarted')}
                             </Link>
                             <Link
                                 href="/demo"

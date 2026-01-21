@@ -9,9 +9,17 @@ import Image from "next/image";
 import ErrorPopup from "@/components/ui/ErrorPopup";
 import { ErrorInput, getErrorType, mapErrorToUserMessage } from "@/utils/errorMapper";
 import Spinner from "@/components/ui/Spinner";
+import { useQueryClient } from "@tanstack/react-query";
+import { promptKeys } from "@/hooks/queries/prompt";
+import { promptsService } from '@/services/resources/prompts';
+import { collectionKeys } from "@/hooks/queries/collection";
+import { collectionService } from "@/services/resources/collection";
+import { quotaKeys } from "@/hooks/queries/quota";
+import { quotaService } from "@/services/resources/quota";
 
 export default function LoginPage() {
     const router = useRouter();
+    const queryClient = useQueryClient();
     const { login, loginWithGoogle, isAuthenticated, isLoading } = useAuth();
     const t = useTranslations('Auth');
 
@@ -67,6 +75,29 @@ export default function LoginPage() {
 
             if (!mountedRef.current) return;
             setSuccess(true);
+
+            // PREFETCHING OPTIMIZATION
+            // While the success animation plays (400-600ms), start fetching dashboard data
+            try {
+                // 1. My Prompts
+                queryClient.prefetchQuery({
+                    queryKey: [...promptKeys.all, 'my-prompt', { page: 0, size: 20 }],
+                    queryFn: () => promptsService.getMyPrompts(0, 20),
+                });
+                // 2. Collections Count
+                queryClient.prefetchQuery({
+                    queryKey: collectionKeys.count(),
+                    queryFn: () => collectionService.countMyCollections(),
+                });
+                // 3. User Quota
+                queryClient.prefetchQuery({
+                    queryKey: quotaKeys.all,
+                    queryFn: () => quotaService.getUserQuota(),
+                });
+            } catch (prefetchErr) {
+                console.warn("Prefetching failed", prefetchErr);
+            }
+
             setTimeout(() => {
                 // ensure navigation only when mounted
                 if (mountedRef.current) router.replace("/");
@@ -179,6 +210,29 @@ export default function LoginPage() {
             // success UI, then redirect (preserve 600ms)
             if (!mountedRef.current) return;
             setSuccess(true);
+
+            // PREFETCHING OPTIMIZATION
+            // While the success animation plays (400-600ms), start fetching dashboard data
+            try {
+                // 1. My Prompts
+                queryClient.prefetchQuery({
+                    queryKey: [...promptKeys.all, 'my-prompt', { page: 0, size: 20 }],
+                    queryFn: () => promptsService.getMyPrompts(0, 20),
+                });
+                // 2. Collections Count
+                queryClient.prefetchQuery({
+                    queryKey: collectionKeys.count(),
+                    queryFn: () => collectionService.countMyCollections(),
+                });
+                // 3. User Quota
+                queryClient.prefetchQuery({
+                    queryKey: quotaKeys.all,
+                    queryFn: () => quotaService.getUserQuota(),
+                });
+            } catch (prefetchErr) {
+                console.warn("Prefetching failed", prefetchErr);
+            }
+
             setTimeout(() => {
                 if (mountedRef.current) router.replace("/");
             }, 600);

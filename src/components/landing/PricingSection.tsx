@@ -31,20 +31,20 @@ export default function PricingSection() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-12">
 
-                    {/* Starter (formerly Free) */}
+                    {/* Free (renamed from Starter) */}
                     <div className="flex flex-col p-8 bg-white border border-border rounded-2xl transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:border-primary/30 shadow-sm">
                         <div className="mb-4">
                             <h3 className="text-xl font-bold text-text-main flex items-center gap-2">
-                                {t('Tiers.Starter.name')}
+                                {t('Tiers.Free.name')}
                             </h3>
                         </div>
                         <div className="mb-4 flex items-baseline">
-                            <span className="text-4xl font-bold text-text-main">{t('Tiers.Starter.price')}</span>
+                            <span className="text-4xl font-bold text-text-main">{t('Tiers.Free.price')}</span>
                         </div>
-                        <p className="text-text-muted text-sm mb-6">{t('Tiers.Starter.desc')}</p>
+                        <p className="text-text-muted text-sm mb-6">{t('Tiers.Free.desc')}</p>
 
                         <ul className="mb-8 space-y-4 flex-1">
-                            {getFeatures('Starter').map((feat, i) => (
+                            {getFeatures('Free').map((feat, i) => (
                                 <li key={i} className="flex items-start gap-3 text-sm text-text-muted">
                                     <Check className="w-5 h-5 text-gray-400 flex-shrink-0" />
                                     <span>{feat}</span>
@@ -52,30 +52,30 @@ export default function PricingSection() {
                             ))}
                         </ul>
 
-                        <Link href="/register" className="w-full py-2.5 px-4 bg-gray-50 text-text-main font-medium rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors text-center mt-auto">
+                        <Link href="/" className="w-full py-2.5 px-4 bg-gray-50 text-text-main font-medium rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors text-center mt-auto">
                             {t('buttons.startFreeTrial')}
                         </Link>
                     </div>
 
-                    {/* Professional (formerly Pro) - Highlighted */}
+                    {/* Pro (renamed from Professional) - Highlighted */}
                     <div className="flex flex-col p-8 bg-white rounded-2xl border-2 border-primary shadow-xl relative transform transition-all duration-300 md:-translate-y-4 hover:translate-y-[-24px] hover:shadow-2xl z-10">
                         <div className="absolute top-0 right-0 bg-primary text-white text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-lg flex items-center gap-1">
-                            <Star size={12} fill="currentColor" /> {t('Tiers.Professional.badge')}
+                            <Star size={12} fill="currentColor" /> {t('Tiers.Pro.badge')}
                         </div>
                         <div className="mb-4">
                             <h3 className="text-xl font-bold text-primary flex items-center gap-2">
                                 <Sparkles size={20} />
-                                {t('Tiers.Professional.name')}
+                                {t('Tiers.Pro.name')}
                             </h3>
                         </div>
                         <div className="mb-4 flex items-baseline">
-                            <span className="text-4xl font-bold text-text-main">{t('Tiers.Professional.price')}</span>
+                            <span className="text-4xl font-bold text-text-main">{t('Tiers.Pro.price')}</span>
                             <span className="text-text-muted ml-2">{t('perMonth')}</span>
                         </div>
-                        <p className="text-text-muted text-sm mb-6">{t('Tiers.Professional.desc')}</p>
+                        <p className="text-text-muted text-sm mb-6">{t('Tiers.Pro.desc')}</p>
 
                         <ul className="mb-8 space-y-4 flex-1">
-                            {getFeatures('Professional').map((feat, i) => (
+                            {getFeatures('Pro').map((feat, i) => (
                                 <li key={i} className="flex items-start gap-3 text-sm text-text-main font-medium">
                                     <Check className="w-5 h-5 text-primary flex-shrink-0" />
                                     <span>{feat}</span>
@@ -88,22 +88,22 @@ export default function PricingSection() {
                         </Link>
                     </div>
 
-                    {/* Expert (formerly Premium) */}
+                    {/* Premium (renamed from Expert) */}
                     <div className="flex flex-col p-8 bg-text-main text-white border border-text-main rounded-2xl shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl">
                         <div className="mb-4">
                             <h3 className="text-xl font-bold text-white flex items-center gap-2">
                                 <Crown size={20} className="text-amber-400" />
-                                {t('Tiers.Expert.name')}
+                                {t('Tiers.Premium.name')}
                             </h3>
                         </div>
                         <div className="mb-4 flex items-baseline">
-                            <span className="text-4xl font-bold text-white">{t('Tiers.Expert.price')}</span>
+                            <span className="text-4xl font-bold text-white">{t('Tiers.Premium.price')}</span>
                             <span className="text-white/60 ml-2">{t('perMonth')}</span>
                         </div>
-                        <p className="text-white/60 text-sm mb-6">{t('Tiers.Expert.desc')}</p>
+                        <p className="text-white/60 text-sm mb-6">{t('Tiers.Premium.desc')}</p>
 
                         <ul className="mb-8 space-y-4 flex-1">
-                            {getFeatures('Expert').map((feat, i) => (
+                            {getFeatures('Premium').map((feat, i) => (
                                 <li key={i} className="flex items-start gap-3 text-sm text-white/90">
                                     <Check className="w-5 h-5 text-amber-400 flex-shrink-0" />
                                     <span>{feat}</span>
@@ -111,8 +111,8 @@ export default function PricingSection() {
                             ))}
                         </ul>
 
-                        <Link href="/contact" className="w-full py-2.5 px-4 bg-white/10 text-white font-medium rounded-lg border border-white/20 hover:bg-white/20 transition-colors text-center mt-auto">
-                            {t('buttons.contactSales')}
+                        <Link href="/payment/checkout?tierId=d6415c57-5ef5-454d-802a-8d8e7c377b37" className="w-full py-2.5 px-4 bg-white/10 text-white font-medium rounded-lg border border-white/20 hover:bg-white/20 transition-colors text-center mt-auto">
+                            {t('buttons.getStarted')}
                         </Link>
                     </div>
 
@@ -134,7 +134,7 @@ export default function PricingSection() {
                             </p>
                         </div>
                     </div>
-                    <Link href="/contact" className="whitespace-nowrap px-8 py-4 bg-white text-primary font-bold rounded-xl border border-blue-200 hover:shadow-lg transition-all shadow-sm">
+                    <Link href="/contact-sales" className="whitespace-nowrap px-8 py-4 bg-white text-primary font-bold rounded-xl border border-blue-200 hover:shadow-lg transition-all shadow-sm">
                         {t('School.cta')}
                     </Link>
                 </div>

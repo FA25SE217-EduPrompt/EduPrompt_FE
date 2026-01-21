@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslations } from "next-intl";
+import LocaleSwitcher from "./LocaleSwitcher";
 
 export default function Navbar() {
     const t = useTranslations('Navbar');
@@ -70,6 +71,10 @@ export default function Navbar() {
                         <NavLink href="/#features">{t('features')}</NavLink>
                         <NavLink href="/#pricing">{t('pricing')}</NavLink>
                         <NavLink href="/#about">{t('about')}</NavLink>
+
+                        <div className="ml-2">
+                            <LocaleSwitcher />
+                        </div>
 
                         <div className="w-px h-6 bg-border mx-4" />
 

@@ -16,7 +16,7 @@ interface GroupModalProps {
     editingGroup?: {
         id: string;
         name: string;
-        description?: string;
+        isActive?: boolean;
     } | null;
 }
 
@@ -30,26 +30,28 @@ export const GroupModal: React.FC<GroupModalProps> = ({ open, onOpenChange, edit
     const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<CreateGroupRequest>({
         defaultValues: {
             name: "",
-            description: "",
         },
     });
 
     useEffect(() => {
         if (open && editingGroup) {
             setValue("name", editingGroup.name);
-            setValue("description", editingGroup.description || "");
         } else if (open) {
             reset({
                 name: "",
-                description: "",
             });
         }
     }, [editingGroup, setValue, reset, open]);
+    // JSX change to remove textarea is handled by omitting it
+
 
     const onSubmit = async (data: CreateGroupRequest) => {
         try {
             if (isEditing && editingGroup) {
-                await updateGroup.mutateAsync({ id: editingGroup.id, data });
+                await updateGroup.mutateAsync({
+                    id: editingGroup.id,
+                    data: { ...data, isActive: editingGroup.isActive ?? true }
+                });
                 toast.success(toastT('saveSuccess'));
             } else {
                 await createGroup.mutateAsync(data);
@@ -97,17 +99,7 @@ export const GroupModal: React.FC<GroupModalProps> = ({ open, onOpenChange, edit
                             <span className="text-sm text-red-500">{errors.name.message}</span>
                         )}
                     </div>
-                    <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700">
-                            {t('description')}
-                        </label>
-                        <textarea
-                            {...register("description")}
-                            placeholder={t('descriptionPlaceholder')}
-                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary outline-none transition-all resize-none"
-                            rows={3}
-                        />
-                    </div>
+
                     <div className="flex justify-end pt-4 gap-3">
                         <button
                             type="button"

@@ -6,7 +6,7 @@ export type GroupMember = {
     firstName: string;
     lastName: string;
     avatar?: string;
-    role: 'OWNER' | 'MEMBER'; // Assumed roles
+    role: 'admin' | 'member';
     joinedAt: string;
 };
 
@@ -18,19 +18,28 @@ export type GroupResponse = {
     updatedAt: string;
     memberCount: number;
     ownerId: string;
+    isActive: boolean;
     // members?: GroupMember[]; // Might be fetched separately
 };
 
 export type CreateGroupRequest = {
     name: string;
-    description?: string;
+};
+
+export type UpdateGroupRequest = {
+    name: string;
+    isActive: boolean;
+};
+
+export type RemoveGroupMemberRequest = {
+    userId: string;
 };
 
 export type AddMemberRequest = {
-    email: string;
+    members: { userId: string }[];
 };
 
 export type GetMyGroupsResponse = BaseResponse<PaginatedResponse<GroupResponse>>;
 export type CreateGroupResponse = BaseResponse<GroupResponse>;
 export type GetGroupResponse = BaseResponse<GroupResponse>;
-export type GetGroupMembersResponse = BaseResponse<GroupMember[]>;
+export type GetGroupMembersResponse = BaseResponse<PaginatedResponse<GroupMember>>;

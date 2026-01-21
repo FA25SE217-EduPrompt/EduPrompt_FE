@@ -29,7 +29,7 @@ const CheckIcon = ({ className }: { className?: string }) => (
     </svg>
 );
 
-const PricingCard: React.FC<PricingCardProps> = ({ title, price, pricePer, features, buttonProps, popular, details, isCurrent }) => {
+const PricingCard: React.FC<PricingCardProps & { warning?: string }> = ({ title, price, pricePer, features, buttonProps, popular, details, isCurrent, warning }) => {
     const [isExpanded, setIsExpanded] = React.useState(false);
     const t = useTranslations('LandingPage.PricingCard');
 
@@ -62,6 +62,11 @@ const PricingCard: React.FC<PricingCardProps> = ({ title, price, pricePer, featu
 
             <div className="mt-auto space-y-3">
                 <Button className="w-full" {...buttonProps} />
+                {warning && (
+                    <p className="text-xs text-red-500 text-center font-medium mt-1">
+                        {warning}
+                    </p>
+                )}
                 {details && (
                     <button
                         onClick={() => setIsExpanded(!isExpanded)}

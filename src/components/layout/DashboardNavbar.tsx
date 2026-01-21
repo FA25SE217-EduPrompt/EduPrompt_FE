@@ -48,7 +48,7 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
 
             <div className="flex items-center gap-4">
                 <Button
-                    href="/prompt/create"
+                    href="/prompt/workbench"
                     variant="primary"
                     className="!px-4 !py-2 !text-sm"
                 >

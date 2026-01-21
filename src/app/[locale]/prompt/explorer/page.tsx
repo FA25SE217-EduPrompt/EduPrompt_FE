@@ -28,9 +28,7 @@ export default function ExplorerPage() {
             <div className="flex-1 flex flex-col min-w-0">
 
                 {/* Global Header (Spans Col 2 & 3 effectively) */}
-                <ExplorerHeader
-                    onSearch={(query, mode) => console.log('Search:', query, mode)}
-                />
+                <ExplorerHeader />
 
                 {/* Content Grid: [Reader 1fr] [Deck 350px] */}
                 <div className="flex-1 grid grid-cols-[1fr_350px] overflow-hidden">
