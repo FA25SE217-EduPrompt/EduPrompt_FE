@@ -160,6 +160,14 @@ export type PromptViewLogResponse = {
     createdAt: string;
 };
 
+export type PromptViewBatchResponse = {
+    data: {
+        id: string;
+        value: boolean;
+    }[];
+    error: unknown;
+};
+
 export type PromptFilterParams = {
     createdBy?: string;
     collectionName?: string;
@@ -220,15 +228,15 @@ export type CreatePromptVersionRequest = {
 export type PromptVersionResponse = {
     id: string;
     promptId: string;
+    versionNumber: number;
     instruction: string;
     context?: string;
     inputExample?: string;
     outputFormat?: string;
     constraints?: string;
-    editorId: string;
-    versionNumber: number;
     isAiGenerated: boolean;
     createdAt: string;
+    editorId?: string; // Optional depending on backend
 };
 
 export type UpdatePromptMetadataRequest = {
@@ -266,4 +274,70 @@ export type PromptShareResponse = {
     outputFormat?: string;
     constraints?: string;
     shareToken: string;
+};
+
+// --- AI Workbench Types ---
+
+// 1. Prompt Scoring
+export type DimensionScore = {
+    dimensionName: string;
+    score: number;
+    maxScore: number;
+    issues: string[];
+    suggestions: string[];
+    isSuccess: boolean;
+};
+
+export type PromptScoreResult = {
+    overallScore: number;
+    detectedContext?: Record<string, unknown>;
+    detectedWeaknesses?: Record<string, string[]>;
+    instructionClarity: DimensionScore;
+    curriculumAlignment: DimensionScore;
+    contextCompleteness: DimensionScore;
+    outputSpecification: DimensionScore;
+    constraintStrength: DimensionScore;
+    pedagogicalQuality: DimensionScore;
+};
+
+export type ScorePromptRequest = {
+    promptContent: string;
+    lessonId?: string;
+};
+
+// 2. Prompt Optimization
+export type OptimizationMode = 'PEDAGOGICAL' | 'SAFE';
+
+export type OptimizePromptRequest = {
+    promptContent: string;
+    optimizationMode: OptimizationMode;
+    lessonId?: string;
+    selectedWeaknesses?: Record<string, string[]>;
+    customInstruction?: string;
+};
+
+export type OptimizationResponse = {
+    versionId: string | null;
+    originalPrompt: string;
+    optimizedPrompt: string;
+    originalScore: PromptScoreResult;
+    optimizedScore: PromptScoreResult;
+    improvement: number;
+    appliedFixes: string[];
+    createdAt: string;
+};
+
+// 3. Prompt Generation (File)
+export type PromptTaskType = 'LESSON_PLAN' | 'SLIDE' | 'TEST' | 'TEST_MATRIX' | 'GROUP_ACTIVITY';
+
+export type GeneratePromptFromFileResponse = {
+    instruction: string;
+    context: string;
+    inputExample: string;
+    outputFormat: string;
+    constraints: string;
+    aiModel: string;
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
 };

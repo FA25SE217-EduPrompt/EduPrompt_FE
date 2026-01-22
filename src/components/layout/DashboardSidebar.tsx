@@ -7,11 +7,12 @@ import { usePathname } from "next/navigation";
 import {
     BookOpenIcon,
     ChartBarIcon,
-    Cog6ToothIcon,
     MagnifyingGlassIcon,
     SparklesIcon,
     WalletIcon,
     XMarkIcon,
+    BeakerIcon,
+    ArrowsRightLeftIcon,
 } from "@heroicons/react/24/outline";
 import { UserAvatar } from "./UserAvatar";
 import { useAuth } from "@/hooks/useAuth";
@@ -58,7 +59,7 @@ const SchoolBadge: React.FC<{ userId?: string | number }> = ({ userId }) => {
                 if (response.data?.name) {
                     setSchoolName(response.data.name);
                 }
-            } catch (error) {
+            } catch {
                 // Silently fail if not part of a school or error
                 console.log("Not part of a school or failed to fetch school info");
             }
@@ -128,9 +129,19 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                     href="/dashboard/prompts"
                 />
                 <NavItem
-                    icon={<MagnifyingGlassIcon className="h-5 w-5" />}
-                    label={t('searchPrompts')}
-                    href="/prompt/search"
+                    icon={<MagnifyingGlassIcon className="h-5 w-5" />} // Reuse Icon or change if desired, Explorer often implies searching/browsing
+                    label="Explorer" // TODO: Add translation key
+                    href="/prompt/explorer"
+                />
+                <NavItem
+                    icon={<BeakerIcon className="h-5 w-5" />}
+                    label="Workbench" // TODO: Add translation key
+                    href="/prompt/workbench"
+                />
+                <NavItem
+                    icon={<ArrowsRightLeftIcon className="h-5 w-5" />}
+                    label="Test & Compare Prompt"
+                    href="/prompt/compare"
                 />
                 <NavItem
                     icon={<BookOpenIcon className="h-5 w-5" />}
@@ -146,11 +157,6 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                     icon={<WalletIcon className="h-5 w-5" />}
                     label={t('subscription')}
                     href="/dashboard/subscription"
-                />
-                <NavItem
-                    icon={<Cog6ToothIcon className="h-5 w-5" />}
-                    label={t('myWallet')}
-                    href="/dashboard/wallet"
                 />
             </nav>
 

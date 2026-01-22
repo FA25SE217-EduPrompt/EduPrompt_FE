@@ -1,0 +1,117 @@
+export const promptData = [
+    {
+        id: "1",
+        title: "Photosynthesis Quiz",
+        description: "A 10-question multiple choice quiz covering the key concepts of photosynthesis, including reactants, products, and the light-dependent reactions.",
+        author: "Ms. Nguyen",
+        subject: "Biology",
+        grade: "10",
+        type: "Quiz",
+        rating: 4.5,
+        isTrending: true,
+        createdAt: "2025-11-13T10:00:00Z",
+        lastUpdated: "2025-11-14T01:30:00Z",
+        tags: []
+    },
+    {
+        id: "2",
+        title: "Newton’s Laws Practice",
+        description: "A worksheet with 5 physics problems requiring students to apply Newton's first and second laws. Includes scenarios with and without friction.",
+        author: "Mr. Tran",
+        subject: "Physics",
+        grade: "11",
+        type: "Worksheet",
+        rating: 4.8,
+        isTrending: false,
+        createdAt: "2025-11-01T14:20:00Z",
+        lastUpdated: "2025-11-10T09:15:00Z",
+        tags: []
+    },
+    {
+        id: "3",
+        title: "Vietnamese Poetry Analysis",
+        description: "An essay prompt asking students to analyze the use of metaphor in 'Truyện Kiều' by Nguyễn Du, focusing on cultural context.",
+        author: "Ms. Nguyen",
+        subject: "Literature",
+        grade: "12",
+        type: "Essay",
+        rating: 4.2,
+        isTrending: false,
+        createdAt: "2025-11-12T11:00:00Z",
+        lastUpdated: "2025-11-12T11:00:00Z",
+        tags: []
+    },
+    {
+        id: "4",
+        title: "Chemical Reactions Lab",
+        description: "Lab guide for a hands-on experiment involving single and double displacement reactions. Includes safety brief and data table.",
+        author: "Mr. Pham",
+        subject: "Chemistry",
+        grade: "10",
+        type: "Activity",
+        rating: 4.7,
+        isTrending: true,
+        createdAt: "2025-10-28T08:00:00Z",
+        lastUpdated: "2025-11-05T16:45:00Z",
+        tags: []
+    },
+];
+
+export const suggestedData = [
+    {
+        id: 's1',
+        title: 'Creative Writing Assistant',
+        description: 'Helps students generate creative story ideas and plot twists.',
+        author: 'EduPrompt AI',
+        subject: 'English',
+        grade: 'All',
+        type: 'AI',
+        rating: 4.8,
+        isTrending: true,
+        createdAt: new Date().toISOString(),
+        lastUpdated: new Date().toISOString(),
+        tags: []
+    },
+    {
+        id: 's2',
+        title: 'Math Problem Solver',
+        description: 'Step-by-step explanations for complex algebra problems.',
+        author: 'EduPrompt AI',
+        subject: 'Math',
+        grade: 'High School',
+        type: 'AI',
+        rating: 4.9,
+        isTrending: true,
+        createdAt: new Date().toISOString(),
+        lastUpdated: new Date().toISOString(),
+        tags: []
+    },
+    {
+        id: 's3',
+        title: 'Science Experiment Guide',
+        description: 'Safe and educational science experiments for the classroom.',
+        author: 'EduPrompt AI',
+        subject: 'Science',
+        grade: 'Middle School',
+        type: 'AI',
+        rating: 4.7,
+        isTrending: false,
+        createdAt: new Date().toISOString(),
+        lastUpdated: new Date().toISOString(),
+        tags: []
+    },
+    {
+        id: 's4',
+        title: 'History Timeline Generator',
+        description: 'Create interactive timelines for historical events.',
+        author: 'EduPrompt AI',
+        subject: 'History',
+        grade: 'High School',
+        type: 'AI',
+        rating: 4.6,
+        isTrending: false,
+        createdAt: new Date().toISOString(),
+        lastUpdated: new Date().toISOString(),
+        tags: []
+    }
+];

@@ -35,11 +35,12 @@ const CheckoutContent = () => {
     }
 
     // Currency conversion logic
+    // Currency conversion logic
     // Hardcoded rate for now as per instructions
-    const EXCHANGE_RATE = 25000;
+    // const EXCHANGE_RATE = 25000;
 
     // Calculated values
-    const amountVND = selectedPlan.price * EXCHANGE_RATE;
+    const amountVND = selectedPlan.priceVND;
 
     const handlePayment = async () => {
         setLoading(true);
@@ -128,10 +129,11 @@ const CheckoutContent = () => {
 // Helper components to use hooks
 const PriceDisplay = ({ selectedPlan }: { selectedPlan: TierPlan }) => {
     const activeLocale = useLocale();
-    const EXCHANGE_RATE = 25000;
+    // const EXCHANGE_RATE = 25000;
 
     if (activeLocale === 'vi') {
-        const amountVND = selectedPlan.price * EXCHANGE_RATE;
+        // const amountVND = selectedPlan.price * EXCHANGE_RATE;
+        const amountVND = selectedPlan.priceVND;
         return <span className="text-3xl font-bold text-gray-900">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amountVND)}</span>;
     }
     return <span className="text-3xl font-bold text-gray-900">{selectedPlan.priceString}</span>;
@@ -140,12 +142,13 @@ const PriceDisplay = ({ selectedPlan }: { selectedPlan: TierPlan }) => {
 const PaymentButtonText = ({ loading, selectedPlan }: { loading: boolean, selectedPlan: TierPlan }) => {
     const activeLocale = useLocale();
     const t = useTranslations('Payment.Checkout');
-    const EXCHANGE_RATE = 25000;
+    // const EXCHANGE_RATE = 25000;
 
     if (loading) return <span>{t('processing')}</span>;
 
     if (activeLocale === 'vi') {
-        const amountVND = selectedPlan.price * EXCHANGE_RATE;
+        const amountVND = selectedPlan.priceVND;
+        // const amountVND = selectedPlan.price * EXCHANGE_RATE;
         const formatted = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amountVND);
         return <span>{t('payWithVNPay', { amount: formatted })}</span>;
     }

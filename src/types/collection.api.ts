@@ -20,6 +20,7 @@ export type CollectionResponse = {
     visibility: 'PRIVATE' | 'GROUP' | 'PUBLIC' | string;
     tags: TagResponse[];
     createdAt: string;
+    groupId?: string;
 };
 
 export type CreateCollectionRequest = {
@@ -27,6 +28,11 @@ export type CreateCollectionRequest = {
     description?: string;
     visibility: 'private' | 'group' | 'public';
     tags: string[]; // Array of Tag IDs
+};
+
+export type AssignCollectionToGroupRequest = {
+    collectionId: string;
+    groupId: string;
 };
 
 export type GetMyCollectionsResponse = BaseResponse<PaginatedResponse<CollectionResponse>>;

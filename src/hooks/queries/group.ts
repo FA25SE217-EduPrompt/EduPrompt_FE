@@ -1,7 +1,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { groupService } from '@/services/resources/group';
-import { CreateGroupRequest, AddMemberRequest } from '@/types/group.api';
+import { CreateGroupRequest, AddMemberRequest, UpdateGroupRequest } from '@/types/group.api';
 
 export const groupKeys = {
     all: ['groups'] as const,
@@ -58,7 +58,7 @@ export const useGetGroup = (id: string) => {
 export const useUpdateGroup = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: async ({ id, data }: { id: string; data: CreateGroupRequest }) => {
+        mutationFn: async ({ id, data }: { id: string; data: UpdateGroupRequest }) => {
             const response = await groupService.updateGroup(id, data);
             if (response.error) {
                 throw new Error(response.error.messages[0] || 'Unknown error');
@@ -88,11 +88,11 @@ export const useDeleteGroup = () => {
     });
 };
 
-export const useGetGroupMembers = (id: string) => {
+export const useGetGroupMembers = (id: string, page = 0, size = 20) => {
     return useQuery({
-        queryKey: groupKeys.members(id),
+        queryKey: [...groupKeys.members(id), { page, size }] as const,
         queryFn: async () => {
-            const response = await groupService.getGroupMembers(id);
+            const response = await groupService.getGroupMembers(id, page, size);
             if (response.error) {
                 throw new Error(response.error.messages[0] || 'Unknown error');
             }
@@ -115,6 +115,7 @@ export const useAddMember = () => {
         },
         onSuccess: (data, variables) => {
             queryClient.invalidateQueries({ queryKey: groupKeys.members(variables.id) });
+            queryClient.invalidateQueries({ queryKey: groupKeys.detail(variables.id) });
         },
     });
 };
@@ -131,6 +132,7 @@ export const useRemoveMember = () => {
         },
         onSuccess: (data, variables) => {
             queryClient.invalidateQueries({ queryKey: groupKeys.members(variables.groupId) });
+            queryClient.invalidateQueries({ queryKey: groupKeys.detail(variables.groupId) });
         },
     });
 };

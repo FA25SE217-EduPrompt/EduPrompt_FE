@@ -139,10 +139,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 }));
             }
         } catch (error: unknown) {
-            if (error instanceof Error) {
-                throw new Error(error.message);
+            console.error('Failed to fetch user data:', error);
+            // Handle error state gracefully instead of crashing
+            setAuthState(prev => ({
+                ...prev,
+                isLoading: false,
+                // Optionally keep the user logged in but with limited data, 
+                // or force logout if critical data is missing.
+                // For now, we'll just log it and potentially keep existing state or minimal state.
+            }));
+            // trigger logout if it's a critical auth error?
+            // For timeouts, we might not want to logout immediately but maybe show a toast.
+            // But since this is specific to fetching user data after "login" or token check:
+            if (error instanceof Error && error.message.includes('401')) {
+                // Token might be invalid
+                TokenManager.clearTokens();
+                setAuthState(prev => ({ ...prev, user: null, token: null, isAuthenticated: false }));
             }
-            throw new Error('Failed to fetch user data');
         }
     }, []);
 

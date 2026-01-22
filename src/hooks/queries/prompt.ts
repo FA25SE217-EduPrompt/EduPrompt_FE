@@ -9,6 +9,7 @@ import {
     PromptOptimizationRequest,
     PromptTestRequest,
     PromptTestResponse,
+    CreatePromptVersionRequest,
 } from '@/types/prompt.api';
 import { BaseResponse } from "@/types/api";
 
@@ -99,19 +100,34 @@ export const useGetPrompt = (promptId: string, opts?: ApiRequestOptions, queryOp
  */
 export const useGetPromptsByCollection = (
     collectionId: string,
-    page = 0,
-    size = 20,
+    page: number = 0,
+    size: number = 20,
     opts?: ApiRequestOptions,
-    enabled = true
 ) => {
     return useQuery({
-        queryKey: [...promptKeys.all, 'collection', collectionId, { page, size }],
+        queryKey: ['prompts', 'collection', collectionId, page, size],
         queryFn: () => promptsService.getPromptsByCollection(collectionId, page, size, opts),
-        placeholderData: keepPreviousData,
-        enabled: !!collectionId && enabled,
-        staleTime: 2 * 60 * 1000, // 2 minutes
     });
 };
+
+/**
+ * Mutation to create a new prompt version
+ */
+export const useCreatePromptVersion = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ promptId, payload, opts }: {
+            promptId: string;
+            payload: CreatePromptVersionRequest;
+            opts?: ApiRequestOptions;
+        }) => promptsService.createPromptVersion(promptId, payload, opts),
+        onSuccess: async (_, variables) => {
+            await queryClient.invalidateQueries({ queryKey: promptKeys.detail(variables.promptId) });
+            await queryClient.invalidateQueries({ queryKey: promptKeys.all });
+        },
+    });
+};
+
 
 /**
  * Query to get the current user's prompts (My Prompts)
@@ -128,6 +144,55 @@ export const useGetMyPrompts = (
         placeholderData: keepPreviousData,
         staleTime: 5 * 60 * 1000,
         enabled: queryOptions?.enabled !== false,
+    });
+};
+
+/**
+ * Query to get prompts shared via groups
+ */
+export const useGetGroupSharedPrompts = (
+    page = 0,
+    size = 20,
+    opts?: ApiRequestOptions,
+    queryOptions?: { enabled?: boolean }
+) => {
+    return useQuery({
+        queryKey: [...promptKeys.all, 'group-shared', { page, size }],
+        queryFn: () => promptsService.getGroupSharedPrompts(page, size, opts),
+        placeholderData: keepPreviousData,
+        staleTime: 5 * 60 * 1000,
+        enabled: queryOptions?.enabled !== false,
+    });
+};
+
+
+/**
+ * Query to get prompt versions
+ */
+export const useGetPromptVersions = (promptId: string, opts?: ApiRequestOptions) => {
+    return useQuery({
+        queryKey: ['prompts', 'versions', promptId],
+        queryFn: () => promptsService.getPromptVersions(promptId, opts),
+        enabled: !!promptId,
+    });
+};
+
+/**
+ * Mutation to rollback to a specific version
+ */
+export const useRollbackPromptVersion = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ promptId, versionId, opts }: {
+            promptId: string;
+            versionId: string;
+            opts?: ApiRequestOptions;
+        }) => promptsService.rollbackToVersion(promptId, versionId, opts),
+        onSuccess: async (_, variables) => {
+            await queryClient.invalidateQueries({ queryKey: promptKeys.detail(variables.promptId) });
+            await queryClient.invalidateQueries({ queryKey: ['prompts', 'versions', variables.promptId] });
+            await queryClient.invalidateQueries({ queryKey: promptKeys.all });
+        },
     });
 };
 
@@ -349,6 +414,22 @@ export const useCancelOptimization = () => {
             await queryClient.invalidateQueries({ queryKey: promptKeys.optimizationsPending() });
             await queryClient.invalidateQueries({ queryKey: promptKeys.optimizationHistoryUser(0, 0).slice(0, 3) });
             await queryClient.invalidateQueries({ queryKey: promptKeys.optimizationHistoryPrompt('', 0, 0).slice(0, 2) });
+        },
+    });
+};
+
+export const useAddPromptToCollection = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ promptId, collectionId, opts }: { promptId: string; collectionId: string; opts?: ApiRequestOptions }) =>
+            promptsService.addPromptToCollection(promptId, collectionId, opts),
+        onSuccess: (_data, variables) => {
+            queryClient.invalidateQueries({
+                queryKey: ['prompts', 'collection', variables.collectionId],
+            });
+            queryClient.invalidateQueries({
+                queryKey: [...promptKeys.all, 'my-prompt'],
+            });
         },
     });
 };

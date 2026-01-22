@@ -57,22 +57,41 @@ const SubscriptionPage: React.FC = () => {
                         <div className="text-3xl font-bold text-gray-900 mb-2">{planName}</div>
 
                         <div className="space-y-3 mt-6">
-                            <div className="flex items-center text-sm text-gray-600">
-                                <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
-                                <span>{user?.hasSchoolSubscription || user?.isPremiumTier ? t('features.accessToPremium') : t('features.accessToBasic')}</span>
-                            </div>
-                            <div className="flex items-center text-sm text-gray-600">
-                                <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
-                                <span>{t('features.tokensLimit', { count: quotaData?.data?.individualTokenLimit?.toLocaleString() || '0' })}</span>
-                            </div>
-                            <div className="flex items-center text-sm text-gray-600">
-                                <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
-                                <span>{t('features.optimizationsPerMonth', { count: quotaData?.data?.optimizationQuotaLimit || 0 })}</span>
-                            </div>
-                            <div className="flex items-center text-sm text-gray-600">
-                                <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
-                                <span>{t('features.collectionsLimit', { count: quotaData?.data?.collectionActionLimit || 0 })}</span>
-                            </div>
+                            {user?.hasSchoolSubscription ? (
+                                <>
+                                    <div className="flex items-center text-sm text-gray-600">
+                                        <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
+                                        <span>{t('schoolFeatureProFeatures')}</span>
+                                    </div>
+                                    <div className="flex items-center text-sm text-gray-600">
+                                        <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
+                                        <span>{t('schoolFeatureSharedPool')}</span>
+                                    </div>
+                                    <div className="flex items-center text-sm text-gray-600">
+                                        <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
+                                        <span>{t('schoolFeatureNoQuota')}</span>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="flex items-center text-sm text-gray-600">
+                                        <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
+                                        <span>{user?.isPremiumTier ? t('features.accessToPremium') : t('features.accessToBasic')}</span>
+                                    </div>
+                                    <div className="flex items-center text-sm text-gray-600">
+                                        <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
+                                        <span>{t('features.tokensLimit', { count: quotaData?.data?.individualTokenLimit?.toLocaleString() || '0' })}</span>
+                                    </div>
+                                    <div className="flex items-center text-sm text-gray-600">
+                                        <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
+                                        <span>{t('features.optimizationsPerMonth', { count: quotaData?.data?.optimizationQuotaLimit || 0 })}</span>
+                                    </div>
+                                    <div className="flex items-center text-sm text-gray-600">
+                                        <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
+                                        <span>{t('features.collectionsLimit', { count: quotaData?.data?.collectionActionLimit || 0 })}</span>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
 
@@ -185,13 +204,12 @@ const SubscriptionPage: React.FC = () => {
                                     <div className="p-4 bg-indigo-50 text-indigo-700 rounded-lg text-sm border border-indigo-100 flex items-start gap-3">
                                         <CheckCircleIcon className="w-5 h-5 flex-shrink-0 mt-0.5" />
                                         <div>
-                                            <p className="font-semibold mb-1">{t('unlimitedAccess')}</p>
-                                            <p>{t('schoolSubscriptionGrant')}</p>
+                                            <p className="font-semibold mb-1">{t('schoolBenefitTitle')}</p>
+                                            <p>{t('schoolBenefitDesc')}</p>
                                             <ul className="list-disc list-inside mt-2 space-y-1 opacity-90">
-                                                <li>{t('aiOptimizations')}</li>
-                                                <li>{t('testingRun')}</li>
-                                                <li>{t('collections')}</li>
-                                                <li>{t('premiumPromptLibrary')}</li>
+                                                <li>{t('schoolFeatureProFeatures')}</li>
+                                                <li>{t('schoolFeatureSharedPool')}</li>
+                                                <li>{t('schoolFeatureNoQuota')}</li>
                                             </ul>
                                         </div>
                                     </div>
@@ -212,9 +230,44 @@ const SubscriptionPage: React.FC = () => {
                     {/* For simplicity, show Pro, Premium, School. */}
 
                     {plans.filter(p => p.id !== TierId.FREE).map((plan) => {
-                        const buttonProps = plan.href !== '#'
+                        // Define tier levels for comparison
+                        const TIER_LEVELS = {
+                            [TierId.FREE]: 0,
+                            [TierId.PRO]: 1,
+                            [TierId.PREMIUM]: 2,
+                            [TierId.SCHOOL]: 3 // School is highest
+                        };
+
+                        // Determine current user level
+                        let currentLevel = 0;
+                        if (user?.hasSchoolSubscription) currentLevel = 3;
+                        else if (user?.isPremiumTier) currentLevel = 2;
+                        else if (user?.isProTier) currentLevel = 1;
+
+                        const planLevel = TIER_LEVELS[plan.id as TierId] ?? -1;
+                        const isDowngrade = planLevel < currentLevel;
+
+                        // Calculate button props
+                        let buttonProps = plan.href !== '#'
                             ? { variant: plan.buttonVariant, children: plan.buttonText, href: plan.href }
                             : { variant: plan.buttonVariant, children: plan.buttonText, onClick: plan.action };
+
+                        let warningMessage: string | undefined;
+
+                        if (isDowngrade && !plan.isCurrent) {
+                            // If trying to downgrade, disable button
+                            const disabledButtonProps = {
+                                ...buttonProps,
+                                disabled: true,
+                                href: undefined, // ensure it's not clickable as link
+                                onClick: undefined, // ensure no action
+                                children: t('upgrade.downgrade'),
+                                variant: 'neutral' // gray background, clearer disabled state
+                            };
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            buttonProps = disabledButtonProps as any;
+                            warningMessage = t('upgrade.downgradeNotAvailable');
+                        }
 
                         return (
                             <PricingCard
@@ -226,6 +279,7 @@ const SubscriptionPage: React.FC = () => {
                                 features={plan.features}
                                 buttonProps={buttonProps as ButtonProps}
                                 isCurrent={plan.isCurrent}
+                                warning={warningMessage}
                                 details={
                                     plan.limits && (
                                         <div className="mt-2 space-y-1">

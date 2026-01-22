@@ -113,6 +113,24 @@ export const collectionService = {
             }),
         );
     },
+
+    /**
+     * POST /api/collections/assign-to-group
+     * Assign a collection to a group
+     */
+    async assignCollectionToGroup(
+        payload: { collectionId: string; groupId: string },
+        opts?: ApiRequestOptions,
+    ): Promise<CreateCollectionResponse> {
+        return ApiCall(() =>
+            apiClient.request({
+                url: `${BASE}/assign-to-group`,
+                method: 'post',
+                data: payload,
+                ...buildRequestConfig(opts),
+            }),
+        );
+    },
 };
 
 export default collectionService;
