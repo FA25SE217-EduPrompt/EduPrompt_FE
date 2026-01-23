@@ -36,27 +36,38 @@ const PromptsPage: React.FC = () => {
     const [hasMore, setHasMore] = useState(false);
 
     // Helper to map PromptResponse to DisplayPrompt
-    const mapToDisplayPrompt = useCallback((p: any): DisplayPrompt => {
-        const tags = p.tags || [];
-        const subjectTag = tags.find((t: any) => t.type === 'Môn' || t.type === 'Subject')?.value || 'General';
-        const gradeTag = tags.find((t: any) => t.type === 'Khối' || t.type === 'Grade')?.value || 'N/A';
+    // Helper to map PromptResponse to DisplayPrompt
+    const mapToDisplayPrompt = useCallback((p: PromptResponse | SemanticSearchResult): DisplayPrompt => {
+        // SemanticSearchResult might not have tags, createdAt, updatedAt
+        const tags = 'tags' in p ? (p.tags || []) : [];
+        const subjectTag = tags.find((t: TagResponse) => t.type === 'Môn' || t.type === 'Subject')?.value || 'General';
+        const gradeTag = tags.find((t: TagResponse) => t.type === 'Khối' || t.type === 'Grade')?.value || 'N/A';
 
-        const otherTags = tags.filter((t: any) =>
+        const otherTags = tags.filter((t: TagResponse) =>
             t.type !== 'Môn' && t.type !== 'Subject' && t.type !== 'Khối' && t.type !== 'Grade'
-        ).map((t: any) => `${t.type}: ${t.value}`) || [];
+        ).map((t: TagResponse) => `${t.type}: ${t.value}`) || [];
+
+        // Determine description based on available fields
+        const description = 'matchedSnippet' in p ? (p.matchedSnippet || '') : (p.description || '');
+        const id = 'promptId' in p ? p.promptId : p.id;
+        const author = 'createdByName' in p ? p.createdByName : (p.fullName || 'Unknown');
+
+        // Handle timestamps which might be missing on SemanticSearchResult
+        const created = 'createdAt' in p ? p.createdAt : new Date().toISOString();
+        const updated = 'updatedAt' in p ? (p.updatedAt || created) : created;
 
         return {
-            id: p.id || p.promptId,
+            id,
             title: p.title,
-            description: p.description || p.matchedSnippet || '',
-            author: p.fullName || p.createdByName || 'Unknown',
+            description,
+            author,
             subject: subjectTag,
             grade: gradeTag,
             type: 'Prompt',
             rating: p.averageRating || 0,
             isTrending: false,
-            createdAt: p.createdAt || new Date().toISOString(),
-            lastUpdated: p.updatedAt || p.createdAt || new Date().toISOString(),
+            createdAt: created,
+            lastUpdated: updated,
             tags: otherTags,
             isOwner: p.ownerId === user?.id
         };
@@ -114,7 +125,7 @@ const PromptsPage: React.FC = () => {
 
     // Data Accumulation Logic
     useEffect(() => {
-        let newData: any[] = [];
+        let newData: (PromptResponse | SemanticSearchResult)[] = [];
         let total = 0;
         let shouldUpdate = false;
 
@@ -147,32 +158,7 @@ const PromptsPage: React.FC = () => {
 
         // Only update if we have data or if it's the first page
         if (shouldUpdate || (page === 0 && !isSearching)) {
-            const mapped = newData.map(p => {
-                // Handle missing tags in PromptMetadataResponse
-                const tags = Array.isArray(p.tags) ? p.tags : [];
-
-                const subjectTag = tags.find((t: any) => t.type === 'Môn' || t.type === 'Subject')?.value || 'General';
-                const gradeTag = tags.find((t: any) => t.type === 'Khối' || t.type === 'Grade')?.value || 'N/A';
-                const otherTags = tags.filter((t: any) =>
-                    t.type !== 'Môn' && t.type !== 'Subject' && t.type !== 'Khối' && t.type !== 'Grade'
-                ).map((t: any) => `${t.type}: ${t.value}`) || [];
-
-                return {
-                    id: p.id || p.promptId,
-                    title: p.title,
-                    description: p.description || p.matchedSnippet || '',
-                    author: p.fullName || p.createdByName || 'Unknown',
-                    subject: subjectTag,
-                    grade: gradeTag,
-                    type: 'Prompt',
-                    rating: p.averageRating || 0,
-                    isTrending: false,
-                    createdAt: p.createdAt || new Date().toISOString(),
-                    lastUpdated: p.updatedAt || p.createdAt || new Date().toISOString(),
-                    tags: otherTags,
-                    isOwner: p.ownerId === user?.id
-                };
-            });
+            const mapped = newData.map(mapToDisplayPrompt);
 
             setAllPrompts(prev => {
                 if (page === 0) {
@@ -204,7 +190,7 @@ const PromptsPage: React.FC = () => {
                 setHasMore(false);
             }
         }
-    }, [myPromptsData, keywordResults, semanticResults, isSearching, searchType, page, user, promptData]);
+    }, [myPromptsData, keywordResults, semanticResults, isSearching, searchType, page, mapToDisplayPrompt]);
 
 
     // Derived Shared Prompts

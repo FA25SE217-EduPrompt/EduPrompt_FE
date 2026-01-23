@@ -104,7 +104,7 @@ ${promptData.constraints}
 
         } catch (error: unknown) {
             console.error(error);
-            const err = error as any;
+            const err = error as { response?: { status: number, data?: { code?: string, message?: string } }, message?: string };
 
             // Check for Quota Exceeded (503)
             if (err.response?.status === 503 && err.response?.data?.code === 'QUOTA_EXCEED') {
