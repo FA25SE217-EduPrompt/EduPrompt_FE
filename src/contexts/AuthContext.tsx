@@ -28,6 +28,7 @@ export interface User {
     isProTier?: boolean;
     isPremiumTier?: boolean;
     hasSchoolSubscription?: boolean;
+    schoolId?: string;
 }
 
 
@@ -135,6 +136,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         isProTier: userData.isProTier,
                         isPremiumTier: userData.isPremiumTier,
                         hasSchoolSubscription: userData.hasSchoolSubscription,
+                        schoolId: userData.schoolId,
                     },
                 }));
             }

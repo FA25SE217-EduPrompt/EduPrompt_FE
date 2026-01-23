@@ -291,6 +291,17 @@
             "scheduleDemo": "Schedule Demo"
         }
     },
+    "Navbar": {
+        "features": "Features",
+        "pricing": "Pricing",
+        "about": "About",
+        "profile": "Profile",
+        "dashboard": "Dashboard",
+        "schoolDashboard": "School Dashboard",
+        "logout": "Log Out",
+        "signIn": "Sign In",
+        "getStarted": "Get Started"
+    },
     "LocaleSwitcher": {
         "label": "Language",
         "en": "English",
@@ -346,6 +357,7 @@
             "noResults": "No prompts found matching",
             "noPrompts": "You haven't created any prompts yet.",
             "noSharedPrompts": "No prompts have been shared with you yet.",
+            "promptNotFound": "Prompt not found or access denied.",
             "metadataUpdated": "Prompt metadata updated",
             "metadataUpdateFailed": "Failed to update metadata",
             "shareLinkGenerated": "Share link generated",
@@ -421,7 +433,9 @@
             "noAvailableCollections": "No available collections",
             "createCollectionFirst": "Create a private collection first to assign it here",
             "cancel": "Cancel",
-            "tags": "Tags"
+            "tags": "Tags",
+            "noTeachersFound": "No teachers found in your school or you haven't joined a school yet.",
+            "updateProfile": "Update your profile to join a school"
         },
         "GroupModal": {
             "createTitle": "Create New Group",
@@ -862,17 +876,6 @@
             "adminTitle": "EduPrompt Admin",
             "role": "School Administrator"
         }
-    },
-    "Navbar": {
-        "features": "Features",
-        "pricing": "Pricing",
-        "about": "About",
-        "signIn": "Sign In",
-        "profile": "Profile",
-        "dashboard": "Dashboard",
-        "logout": "Log out",
-        "getStarted": "Get Started",
-        "schoolDashboard": "School Dashboard"
     },
     "Profile": {
         "title": "My Profile",

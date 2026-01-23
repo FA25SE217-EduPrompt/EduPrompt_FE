@@ -16,12 +16,14 @@ import { PromptResponse } from "@/types/prompt.api";
 import { TagResponse } from "@/types/tag.api";
 import { SkeletonLoader as Skeleton } from "@/components/ui/SkeletonLoader";
 import Button from "@/components/ui/Button";
+import { useAuth } from "@/hooks/useAuth";
 
 const CollectionDetailPage: React.FC = () => {
     const t = useTranslations("Dashboard.Collections.Detail");
     const params = useParams();
     const router = useRouter();
     const id = params?.id as string;
+    const { user } = useAuth();
 
     const { data: collectionResponse, isLoading: isCollectionLoading } = useGetCollection(id);
     const { data: promptsResponse, isLoading: isPromptsLoading } = useGetPromptsByCollection(id);
@@ -138,8 +140,14 @@ const CollectionDetailPage: React.FC = () => {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {prompts.map((prompt: PromptResponse) => {
-                            const subject = prompt.tags?.find(t => t.type === 'Subject' || t.type === 'Môn')?.value || 'General';
-                            const grade = prompt.tags?.find(t => t.type === 'Grade' || t.type === 'Khối')?.value || 'All Levels';
+                            const tags = prompt.tags || [];
+                            const subject = tags.find(t => t.type === 'Subject' || t.type === 'Môn')?.value || 'General';
+                            const grade = tags.find(t => t.type === 'Grade' || t.type === 'Khối')?.value || 'All Levels';
+
+                            const otherTags = tags.filter(t =>
+                                t.type !== 'Subject' && t.type !== 'Môn' &&
+                                t.type !== 'Grade' && t.type !== 'Khối'
+                            ).map(t => `${t.type}: ${t.value}`);
 
                             return (
                                 <PromptCard
@@ -154,6 +162,8 @@ const CollectionDetailPage: React.FC = () => {
                                     rating={prompt.averageRating || 0}
                                     createdAt={prompt.createdAt}
                                     lastUpdated={prompt.updatedAt || prompt.createdAt}
+                                    isOwner={prompt.ownerId === user?.id}
+                                    tags={otherTags}
                                 />
                             );
                         })}

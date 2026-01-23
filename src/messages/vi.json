@@ -292,6 +292,17 @@
             "scheduleDemo": "Lên lịch Demo"
         }
     },
+    "Navbar": {
+        "features": "Tính năng",
+        "pricing": "Bảng giá",
+        "about": "Giới thiệu",
+        "profile": "Hồ sơ cá nhân",
+        "dashboard": "Bảng điều khiển",
+        "schoolDashboard": "Quản lý Trường học",
+        "logout": "Đăng xuất",
+        "signIn": "Đăng nhập",
+        "getStarted": "Bắt đầu ngay"
+    },
     "LocaleSwitcher": {
         "label": "Ngôn ngữ",
         "en": "English",
@@ -423,7 +434,9 @@
             "noAvailableCollections": "Không có bộ sưu tập nào khả dụng",
             "createCollectionFirst": "Tạo bộ sưu tập riêng tư trước để gán vào nhóm",
             "cancel": "Hủy",
-            "tags": "Thẻ"
+            "tags": "Thẻ",
+            "noTeachersFound": "Không tìm thấy giáo viên nào trong trường hoặc bạn chưa tham gia trường học.",
+            "updateProfile": "Cập nhật hồ sơ để tham gia trường học"
         },
         "GroupModal": {
             "createTitle": "Tạo Nhóm Mới",
@@ -867,17 +880,6 @@
             "adminTitle": "Quản trị EduPrompt",
             "role": "Quản trị viên Trường học"
         }
-    },
-    "Navbar": {
-        "features": "Tính năng",
-        "pricing": "Bảng giá",
-        "about": "Giới thiệu",
-        "profile": "Hồ sơ",
-        "dashboard": "Bảng điều khiển",
-        "logout": "Đăng xuất",
-        "signIn": "Đăng nhập",
-        "schoolDashboard": "Trang quản trị trường học",
-        "getStarted": "Bắt đầu ngay"
     },
     "Profile": {
         "title": "Hồ sơ của tôi",

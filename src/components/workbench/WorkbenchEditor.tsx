@@ -197,12 +197,13 @@ export const WorkbenchEditor: React.FC = () => {
 
     // Combine for Preview
     const combinedPrompt = `
+**Instruction:**
 ${promptData.instruction}
 
 **Context:**
 ${promptData.context}
 
-**Input Data:**
+**Input Example:**
 ${promptData.inputData}
 
 **Output Format:**

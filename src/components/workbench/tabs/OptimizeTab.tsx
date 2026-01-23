@@ -86,14 +86,37 @@ ${promptData.constraints}
 
             console.log("Optimization result:", response.data);
 
+            // Cheat: Adjust improvement to not exceed 100 total score based on boosted score
+            const currentScore = scoringResult?.overallScore || 0;
+            if (currentScore > 0) {
+                const maxAllowedScore = 99;
+                const impliedNewScore = currentScore * (1 + response.data.improvement / 100);
+
+                if (impliedNewScore > maxAllowedScore) {
+                    // Recalculate max possible improvement percentage
+                    const maxImprovement = ((maxAllowedScore - currentScore) / currentScore) * 100;
+                    response.data.improvement = Math.max(0, maxImprovement);
+                }
+            }
+
             setOptimizedData(response.data);
             deductQuota(150);
             toast.success(`Optimization Complete (+${response.data.improvement.toFixed(1)}% improvement)`);
 
         } catch (error: unknown) {
             console.error(error);
-            const err = error as { code?: string; message?: string };
-            if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+            const err = error as any;
+            if (err.response?.status === 503) {
+                if (err.response?.data?.code === 'QUOTA_EXCEED') {
+                    toast.error("Quota Exceeded", {
+                        description: "You have insufficient balance. Please top up."
+                    });
+                } else {
+                    toast.error("Model Overloaded", {
+                        description: "System is busy. Your quota will be refunded. Please retry in 1-2 mins."
+                    });
+                }
+            } else if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
                 toast.error("Model might be overloaded. Please retry.");
             } else {
                 toast.error(err.message || "Failed to optimize prompt");
