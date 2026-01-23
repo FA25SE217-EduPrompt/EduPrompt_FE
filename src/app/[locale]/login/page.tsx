@@ -10,9 +10,17 @@ import Image from "next/image";
 import ErrorPopup from "@/components/ui/ErrorPopup";
 import { ErrorInput, getErrorType, mapErrorToUserMessage } from "@/utils/errorMapper";
 import Spinner from "@/components/ui/Spinner";
+import { useQueryClient } from "@tanstack/react-query";
+import { promptKeys } from "@/hooks/queries/prompt";
+import { promptsService } from '@/services/resources/prompts';
+import { collectionKeys } from "@/hooks/queries/collection";
+import { collectionService } from "@/services/resources/collection";
+import { quotaKeys } from "@/hooks/queries/quota";
+import { quotaService } from "@/services/resources/quota";
 
 export default function LoginPage() {
     const router = useRouter();
+    const queryClient = useQueryClient();
     const { login, loginWithGoogle, isAuthenticated, isLoading, user } = useAuth();
     const t = useTranslations('Auth');
 
@@ -68,6 +76,29 @@ export default function LoginPage() {
 
             if (!mountedRef.current) return;
             setSuccess(true);
+
+            // PREFETCHING OPTIMIZATION
+            // While the success animation plays (400-600ms), start fetching dashboard data
+            try {
+                // 1. My Prompts
+                queryClient.prefetchQuery({
+                    queryKey: [...promptKeys.all, 'my-prompt', { page: 0, size: 20 }],
+                    queryFn: () => promptsService.getMyPrompts(0, 20),
+                });
+                // 2. Collections Count
+                queryClient.prefetchQuery({
+                    queryKey: collectionKeys.count(),
+                    queryFn: () => collectionService.countMyCollections(),
+                });
+                // 3. User Quota
+                queryClient.prefetchQuery({
+                    queryKey: quotaKeys.all,
+                    queryFn: () => quotaService.getUserQuota(),
+                });
+            } catch (prefetchErr) {
+                console.warn("Prefetching failed", prefetchErr);
+            }
+
             setTimeout(() => {
                 // ensure navigation only when mounted
                 if (mountedRef.current) {
@@ -183,6 +214,29 @@ export default function LoginPage() {
             // success UI, then redirect (preserve 600ms)
             if (!mountedRef.current) return;
             setSuccess(true);
+
+            // PREFETCHING OPTIMIZATION
+            // While the success animation plays (400-600ms), start fetching dashboard data
+            try {
+                // 1. My Prompts
+                queryClient.prefetchQuery({
+                    queryKey: [...promptKeys.all, 'my-prompt', { page: 0, size: 20 }],
+                    queryFn: () => promptsService.getMyPrompts(0, 20),
+                });
+                // 2. Collections Count
+                queryClient.prefetchQuery({
+                    queryKey: collectionKeys.count(),
+                    queryFn: () => collectionService.countMyCollections(),
+                });
+                // 3. User Quota
+                queryClient.prefetchQuery({
+                    queryKey: quotaKeys.all,
+                    queryFn: () => quotaService.getUserQuota(),
+                });
+            } catch (prefetchErr) {
+                console.warn("Prefetching failed", prefetchErr);
+            }
+
             setTimeout(() => {
                 if (mountedRef.current) {
                     const redirectPath = getDefaultRedirectPath(user);
@@ -203,8 +257,8 @@ export default function LoginPage() {
     // Show loading while checking authentication
     if (isLoading) {
         return (
-            <div className="min-h-screen gradient-bg flex items-center justify-center">
-                <Spinner size="page" variant="white" />
+            <div className="min-h-screen bg-surface flex items-center justify-center">
+                <Spinner size="page" variant="primary" />
             </div>
         );
     }
@@ -215,35 +269,38 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="min-h-screen gradient-bg flex items-center justify-center px-4 py-12">
+        <div className="min-h-screen bg-surface relative flex items-center justify-center px-4 py-12 overflow-hidden">
+            {/* Background Decoration */}
+            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-primary/5 rounded-full blur-3xl opacity-50 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-blue-400/10 rounded-full blur-3xl opacity-50 pointer-events-none" />
+
             <div
-                className="w-full max-w-lg bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden p-12 md:p-16 border border-white/30">
+                className="w-full max-w-lg bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-100 p-8 md:p-12 relative z-10 transition-all duration-300">
+
                 {/* Header */}
                 <header className="text-center mb-10">
                     <div className="inline-flex items-center justify-center mb-6">
-                        <Image
-                            src="/logo.png"
-                            alt="EduPrompt Logo"
-                            width={64}
-                            height={64}
-                            className="w-16 h-16 rounded-xl shadow-lg"
-                        />
-                        <span
-                            className="ml-4 text-4xl font-bold bg-gradient-to-r from-blue-800 to-indigo-800 bg-clip-text text-transparent">
-                            EduPrompt
-                        </span>
+                        <Link href="/" className="inline-block group">
+                            <Image
+                                src="/logo.png"
+                                alt="EduPrompt Logo"
+                                width={56}
+                                height={56}
+                                className="w-14 h-14 rounded-xl shadow-sm group-hover:scale-105 transition-transform duration-300"
+                            />
+                        </Link>
                     </div>
-                    <h1 className="text-4xl font-bold text-blue-800 mb-2">{t('welcomeBack')}</h1>
-                    <p className="text-gray-600 text-lg">{t('signInSubtitle')}</p>
+                    <h1 className="text-3xl font-bold text-text-main mb-2">{t('welcomeBack')}</h1>
+                    <p className="text-text-muted">{t('signInSubtitle')}</p>
                 </header>
 
                 {/* Login Form */}
-                <form onSubmit={handleSubmit} className="space-y-8">
+                <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Email Field */}
                     <div className="group">
                         <label
                             htmlFor="email"
-                            className="block text-sm font-semibold text-gray-700 mb-3 transition-colors group-focus-within:text-blue-600"
+                            className="block text-sm font-medium text-text-main mb-2 transition-colors"
                         >
                             {t('emailLabel')}
                         </label>
@@ -255,20 +312,14 @@ export default function LoginPage() {
                                 onChange={(e) => setEmail(e.target.value)}
                                 onFocus={() => setFocusedId("email")}
                                 onBlur={() => setFocusedId(null)}
-                                className={`block w-full px-6 py-5 border border-gray-200 rounded-xl text-gray-900 text-lg placeholder-gray-400 
-                         bg-white/90 backdrop-blur-sm
-                         focus:outline-none focus:ring-0 focus:border-blue-400 focus:bg-white
-                         transition-all duration-300 ease-out
-                         hover:border-gray-300 hover:bg-white/95
-                         ${focusedId === "email" ? "transform scale-[1.02] shadow-lg shadow-blue-100/50" : ""}`}
+                                className={`block w-full px-4 py-3 border rounded-lg text-text-main placeholder-gray-400 
+                         bg-white
+                         focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary
+                         transition-all duration-200
+                         ${focusedId === "email" ? "border-primary" : "border-gray-200 hover:border-gray-300"}`}
                                 required
                                 placeholder={t('emailPlaceholder')}
                             />
-                            <div
-                                className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
-                            ${focusedId === "email" ? "from-blue-400/10 via-blue-400/5 to-blue-400/10" : ""} 
-                            transition-all duration-300 pointer-events-none`}
-                            ></div>
                         </div>
                     </div>
 
@@ -276,7 +327,7 @@ export default function LoginPage() {
                     <div className="group">
                         <label
                             htmlFor="password"
-                            className="block text-sm font-semibold text-gray-700 mb-3 transition-colors group-focus-within:text-blue-600"
+                            className="block text-sm font-medium text-text-main mb-2 transition-colors"
                         >
                             {t('passwordLabel')}
                         </label>
@@ -288,51 +339,42 @@ export default function LoginPage() {
                                 onChange={(e) => setPassword(e.target.value)}
                                 onFocus={() => setFocusedId("password")}
                                 onBlur={() => setFocusedId(null)}
-                                className={`block w-full px-6 py-5 border border-gray-200 rounded-xl text-gray-900 text-lg placeholder-gray-400 
-                         bg-white/90 backdrop-blur-sm
-                         focus:outline-none focus:ring-0 focus:border-blue-400 focus:bg-white
-                         transition-all duration-300 ease-out
-                         hover:border-gray-300 hover:bg-white/95
-                         ${focusedId === "password" ? "transform scale-[1.02] shadow-lg shadow-blue-100/50" : ""}`}
+                                className={`block w-full px-4 py-3 border rounded-lg text-text-main placeholder-gray-400 
+                         bg-white
+                         focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary
+                         transition-all duration-200
+                         ${focusedId === "password" ? "border-primary" : "border-gray-200 hover:border-gray-300"}`}
                                 required
                                 placeholder={t('passwordPlaceholder')}
                             />
-                            <div
-                                className={`absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 via-blue-400/0 to-blue-400/0 
-                            ${focusedId === "password" ? "from-blue-400/10 via-blue-400/5 to-blue-400/10" : ""} 
-                            transition-all duration-300 pointer-events-none`}
-                            ></div>
                         </div>
                     </div>
 
                     {/* Remember Me & Forgot Password */}
                     <div className="flex items-center justify-between">
-                        <label className="flex items-center gap-3 text-gray-600 cursor-pointer group">
+                        <label className="flex items-center gap-2 text-text-muted cursor-pointer group select-none">
                             <input
                                 type="checkbox"
                                 id="remember"
                                 checked={remember}
                                 onChange={(e) => setRemember(e.target.checked)}
-                                className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2
-                         transition-all duration-200 group-hover:border-blue-400"
+                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary focus:ring-2 transition-all"
                             />
-                            <span className="text-sm font-medium group-hover:text-blue-600 transition-colors">
+                            <span className="text-sm group-hover:text-text-main transition-colors">
                                 {t('rememberMe')}
                             </span>
                         </label>
                         <Link
                             href="/forgot-password"
-                            className="text-sm text-blue-600 font-semibold hover:text-blue-800 transition-colors duration-200
-                       hover:underline underline-offset-2"
+                            className="text-sm text-primary font-medium hover:text-blue-700 transition-colors"
                         >
                             {t('forgotPassword')}
                         </Link>
                     </div>
 
-                    {/* Error Message - Keep for form validation errors */}
+                    {/* Error Message */}
                     {errorMessage && !showErrorPopup && (
-                        <div className="text-red-600 text-sm text-center bg-red-50 p-4 rounded-xl border border-red-200
-                          animate-pulse">
+                        <div className="text-red-600 text-sm text-center bg-red-50 p-3 rounded-lg border border-red-100">
                             {errorMessage}
                         </div>
                     )}
@@ -341,16 +383,14 @@ export default function LoginPage() {
                     <button
                         type="submit"
                         disabled={submitting}
-                        className={`w-full text-white py-5 rounded-xl 
-                     font-semibold text-lg shadow-lg hover:shadow-xl
-                     transition-all duration-300 ease-out
-                     transform hover:-translate-y-1 hover:scale-[1.02]
-                     focus:outline-none focus:ring-4 focus:ring-blue-300/50
-                     disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none
-                     active:scale-[0.98]
+                        className={`w-full text-white py-3.5 rounded-lg 
+                     font-medium text-base shadow-sm hover:shadow-md
+                     transition-all duration-200
+                     focus:outline-none focus:ring-4 focus:ring-primary/20
+                     disabled:opacity-70 disabled:cursor-not-allowed
                      ${success
-                                ? "bg-green-500 hover:bg-green-600"
-                                : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
+                                ? "bg-green-600 hover:bg-green-700"
+                                : "bg-primary hover:bg-blue-700"
                             }`}
                     >
                         <span className="inline-flex items-center justify-center">
@@ -363,7 +403,7 @@ export default function LoginPage() {
                                 </>
                             ) : submitting ? (
                                 <>
-                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg"
+                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg"
                                         fill="none" viewBox="0 0 24 24">
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                                             strokeWidth="4"></circle>
@@ -381,29 +421,29 @@ export default function LoginPage() {
 
                 {/* Social Login */}
                 {googleClientId && (
-                    <div className="mt-6">
+                    <div className="mt-8">
                         <div className="relative">
-                            <div className="flex items-center">
-                                <div className="flex-grow h-px bg-gray-200" />
-                                <span className="mx-3 text-gray-400 text-sm">{t('orContinueWith')}</span>
-                                <div className="flex-grow h-px bg-gray-200" />
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-gray-200" />
                             </div>
-                            <div className="mt-4 flex justify-center">
-                                {/* Use the ref to render google button */}
-                                <div id="googleSignInBtn" ref={googleBtnRef}></div>
+                            <div className="relative flex justify-center text-sm">
+                                <span className="px-2 bg-white text-text-muted">{t('orContinueWith')}</span>
                             </div>
+                        </div>
+                        <div className="mt-6 flex justify-center">
+                            {/* Use the ref to render google button */}
+                            <div id="googleSignInBtn" ref={googleBtnRef}></div>
                         </div>
                     </div>
                 )}
 
                 {/* Sign Up Link */}
-                <footer className="mt-8 text-center">
-                    <p className="text-gray-600">
+                <footer className="mt-8 text-center text-sm text-text-muted">
+                    <p>
                         {t('noAccount')}{" "}
                         <Link
                             href="/register"
-                            className="text-blue-600 font-semibold hover:text-blue-800 transition-colors duration-200
-                       hover:underline underline-offset-2"
+                            className="text-primary font-medium hover:text-blue-700 hover:underline transition-colors"
                         >
                             {t('createOne')}
                         </Link>

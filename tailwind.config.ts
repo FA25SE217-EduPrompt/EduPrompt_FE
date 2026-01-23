@@ -45,7 +45,12 @@ const config: Config = {
             },
         },
     },
-    plugins: [],
+    plugins: [
+        // [SCHOOL_ADMIN_DASHBOARD] - Start
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        require('@tailwindcss/typography'),
+        // [SCHOOL_ADMIN_DASHBOARD] - End
+    ],
 };
 
 export default config;

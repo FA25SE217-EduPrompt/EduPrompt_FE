@@ -2,7 +2,6 @@
 "use client";
 
 import React from "react";
-import Button from "@/components/ui/Button";
 import { AppBreadcrumb } from "@/components/common/AppBreadcrumb";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useTranslations } from "next-intl";
@@ -24,28 +23,36 @@ export const GroupHeader: React.FC<GroupHeaderProps> = ({
 }) => {
     const t = useTranslations('Dashboard.Group');
     return (
-        <div className="mb-8">
-            <div className="mb-4">
-                <AppBreadcrumb items={breadcrumbItems} />
-            </div>
+        <div className="bg-white border-b sticky top-0 z-20">
+            <div className="px-6 py-4">
+                <div className="flex flex-col gap-4">
+                    <AppBreadcrumb items={breadcrumbItems} />
 
-            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
-                    {description && (
-                        <p className="mt-2 text-gray-600 max-w-2xl">{description}</p>
-                    )}
-                </div>
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+                            {description && (
+                                <p className="mt-1 text-sm text-gray-600 max-w-2xl">{description}</p>
+                            )}
+                        </div>
 
-                <div className="flex items-center gap-2">
-                    <Button variant="outline" onClick={onEdit}>
-                        <PencilIcon className="h-4 w-4 mr-2" />
-                        {t('editGroup')}
-                    </Button>
-                    <Button variant="destructive" onClick={onDelete}>
-                        <TrashIcon className="h-4 w-4 mr-2" />
-                        {t('deleteGroup')}
-                    </Button>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={onEdit}
+                                className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                            >
+                                <PencilIcon className="w-4 h-4" />
+                                {t('editGroup')}
+                            </button>
+                            <button
+                                onClick={onDelete}
+                                className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 bg-white border border-gray-300 rounded-lg hover:bg-red-50 hover:border-red-200 transition-colors"
+                            >
+                                <TrashIcon className="w-4 h-4" />
+                                {t('deleteGroup')}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

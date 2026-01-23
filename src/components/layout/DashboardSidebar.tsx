@@ -7,11 +7,12 @@ import { usePathname } from "next/navigation";
 import {
     BookOpenIcon,
     ChartBarIcon,
-    Cog6ToothIcon,
     MagnifyingGlassIcon,
     SparklesIcon,
     WalletIcon,
     XMarkIcon,
+    BeakerIcon,
+    ArrowsRightLeftIcon,
 } from "@heroicons/react/24/outline";
 import { UserAvatar } from "./UserAvatar";
 import { useAuth } from "@/hooks/useAuth";
@@ -44,12 +45,12 @@ const NavItem: React.FC<{
 import { SchoolService } from "@/services/resources/school";
 import { AcademicCapIcon } from "@heroicons/react/24/solid";
 
-const SchoolBadge: React.FC<{ userId?: string | number }> = ({ userId }) => {
+const SchoolBadge: React.FC<{ userId?: string | number; userRole?: string }> = ({ userId, userRole }) => {
     const [schoolName, setSchoolName] = React.useState<string | null>(null);
 
     React.useEffect(() => {
         const fetchSchool = async () => {
-            if (!userId) return;
+            if (!userId || userRole !== 'SCHOOL_ADMIN') return;
             try {
                 const response = await SchoolService.getSchoolByUserId(userId);
                 // Adjust based on actual response structure. 
@@ -58,13 +59,13 @@ const SchoolBadge: React.FC<{ userId?: string | number }> = ({ userId }) => {
                 if (response.data?.name) {
                     setSchoolName(response.data.name);
                 }
-            } catch (error) {
+            } catch {
                 // Silently fail if not part of a school or error
                 console.log("Not part of a school or failed to fetch school info");
             }
         };
         fetchSchool();
-    }, [userId]);
+    }, [userId, userRole]);
 
     if (!schoolName) return null;
 
@@ -128,9 +129,19 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                     href="/dashboard/prompts"
                 />
                 <NavItem
-                    icon={<MagnifyingGlassIcon className="h-5 w-5" />}
-                    label={t('searchPrompts')}
-                    href="/prompt/search"
+                    icon={<MagnifyingGlassIcon className="h-5 w-5" />} // Reuse Icon or change if desired, Explorer often implies searching/browsing
+                    label={t('explorer')}
+                    href="/prompt/explorer"
+                />
+                <NavItem
+                    icon={<BeakerIcon className="h-5 w-5" />}
+                    label={t('workbench')}
+                    href="/prompt/workbench"
+                />
+                <NavItem
+                    icon={<ArrowsRightLeftIcon className="h-5 w-5" />}
+                    label={t('comparePrompts')}
+                    href="/prompt/compare"
                 />
                 <NavItem
                     icon={<BookOpenIcon className="h-5 w-5" />}
@@ -147,15 +158,10 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                     label={t('subscription')}
                     href="/dashboard/subscription"
                 />
-                <NavItem
-                    icon={<Cog6ToothIcon className="h-5 w-5" />}
-                    label={t('myWallet')}
-                    href="/dashboard/wallet"
-                />
             </nav>
 
             {/* School Badge */}
-            <SchoolBadge userId={user?.id} />
+            <SchoolBadge userId={user?.id} userRole={user?.role} />
 
             <div className="p-4 border-t border-gray-100">
                 <div className="flex items-center gap-3">

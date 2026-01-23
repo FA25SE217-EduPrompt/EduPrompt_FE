@@ -1,5 +1,4 @@
 import React from 'react';
-import Link from 'next/link';
 import { AppBreadcrumb } from '@/components/common/AppBreadcrumb';
 import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
 
@@ -9,6 +8,7 @@ interface CollectionHeaderProps {
     onEdit: () => void;
     onDelete: () => void;
     isDeleting?: boolean;
+    children?: React.ReactNode;
 }
 
 export const CollectionHeader: React.FC<CollectionHeaderProps> = ({
@@ -17,6 +17,7 @@ export const CollectionHeader: React.FC<CollectionHeaderProps> = ({
     onEdit,
     onDelete,
     isDeleting = false,
+    children,
 }) => {
     return (
         <div className="bg-white border-b sticky top-0 z-20">
@@ -40,6 +41,7 @@ export const CollectionHeader: React.FC<CollectionHeaderProps> = ({
                         </div>
 
                         <div className="flex items-center gap-2">
+                            {children}
                             <button
                                 onClick={onEdit}
                                 className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"

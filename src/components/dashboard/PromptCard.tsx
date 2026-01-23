@@ -5,6 +5,7 @@ import { BoltIcon, ChevronDownIcon, StarIcon, PencilSquareIcon } from "@heroicon
 import { Badge } from "./Badge";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 
 interface PromptCardProps {
     id: string;
@@ -48,6 +49,7 @@ const formatDate = (dateString: string): string => {
 
 export const PromptCard: React.FC<PromptCardProps> = (props) => {
     const t = useTranslations('Dashboard.PromptCard');
+    const router = useRouter();
     const [isExpanded, setIsExpanded] = useState(false);
     const showNewBadge = isNew(props.createdAt);
 
@@ -106,7 +108,7 @@ export const PromptCard: React.FC<PromptCardProps> = (props) => {
                         {props.isOwner && (
                             <Link
                                 href={`/dashboard/prompts/${props.id}/manage`}
-                                className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors z-10"
+                                className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all active:scale-95 z-10"
                                 onClick={(e) => e.stopPropagation()}
                                 title={t('manageTooltip')}
                             >
@@ -116,9 +118,10 @@ export const PromptCard: React.FC<PromptCardProps> = (props) => {
 
                         <button
                             aria-label={`${t('optimize')} prompt ${props.title}`}
-                            className="btn-optimize z-10"
+                            className="btn-optimize z-10 active:scale-95 transition-transform"
                             onClick={(e) => {
                                 e.stopPropagation(); // Prevent card from expanding when clicking optimize
+                                router.push(`/prompt/workbench?loadPromptId=${props.id}&tab=optimize`);
                             }}
                         >
                             <BoltIcon className="h-4 w-4" />

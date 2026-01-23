@@ -22,6 +22,7 @@ import {
     PromptRatingCreateRequest,
     PromptRatingResponse,
     PromptShareResponse,
+    PromptViewBatchResponse,
 } from '@/types/prompt.api';
 
 const BASE = "/api/prompts";
@@ -351,28 +352,24 @@ export const promptsService = {
         );
     },
 
-    // Get prompt versions
-    async getPromptVersions(promptId: string, opts?: ApiRequestOptions): Promise<BaseResponse<PromptVersionResponse[]>> {
-        return ApiCall<PromptVersionResponse[]>(() =>
-            apiClient.request({
-                url: `${BASE}/${encodeURIComponent(promptId)}/versions`,
-                method: 'get',
-                ...buildRequestConfig(opts),
-            })
-        );
+    // Check if multiple prompts are viewed/unlocked (Batch)
+    async checkPromptsViewedBatch(promptIds: string[], opts?: ApiRequestOptions): Promise<PromptViewBatchResponse> {
+        // This endpoint returns a specific structure not wrapped in BaseResponse based on docs
+        // or effectively BaseResponse<PromptViewBatchResponse["data"]> ? 
+        // Docs say: Returns { data: [...], error: null }
+        // Our ApiCall wrapper usually expects BaseResponse.
+        // Let's use apiClient directly if the response structure is custom or wrapped standardly.
+        // Assuming standard axios usage for custom return shape.
+        const response = await apiClient.request<PromptViewBatchResponse>({
+            url: `${BASE}/prompt-view-log/batch-viewed`,
+            method: 'post',
+            data: promptIds, // Request Body is just the list
+            ...buildRequestConfig(opts),
+        });
+        return response.data;
     },
 
-    // Create prompt version
-    async createPromptVersion(promptId: string, payload: CreatePromptVersionRequest, opts?: ApiRequestOptions): Promise<BaseResponse<PromptVersionResponse>> {
-        return ApiCall<PromptVersionResponse>(() =>
-            apiClient.request({
-                url: `${BASE}/${encodeURIComponent(promptId)}/versions`,
-                method: 'post',
-                data: payload,
-                ...buildRequestConfig(opts),
-            })
-        );
-    },
+
 
     // Update prompt metadata
     async updatePromptMetadata(promptId: string, payload: UpdatePromptMetadataRequest, opts?: ApiRequestOptions): Promise<BaseResponse<PromptResponse>> {
@@ -386,7 +383,6 @@ export const promptsService = {
         );
     },
 
-    // Update prompt visibility
     async updatePromptVisibility(promptId: string, payload: UpdatePromptVisibilityRequest, opts?: ApiRequestOptions): Promise<BaseResponse<PromptResponse>> {
         return ApiCall<PromptResponse>(() =>
             apiClient.request({
@@ -398,8 +394,40 @@ export const promptsService = {
         );
     },
 
-    // Rollback prompt version
-    async rollbackPromptVersion(promptId: string, versionId: string, opts?: ApiRequestOptions): Promise<BaseResponse<PromptResponse>> {
+    // Versioning
+    async createPromptVersion(
+        promptId: string,
+        payload: CreatePromptVersionRequest,
+        opts?: ApiRequestOptions,
+    ): Promise<BaseResponse<PromptVersionResponse>> {
+        const url = `${BASE}/${promptId}/versions`;
+        const method = 'post';
+        return ApiCall<PromptVersionResponse>(() =>
+            apiClient.request({
+                url,
+                method,
+                data: payload,
+                ...buildRequestConfig(opts),
+            })
+        );
+    },
+
+    async getPromptVersions(
+        promptId: string,
+        opts?: ApiRequestOptions
+    ): Promise<BaseResponse<PromptVersionResponse[]>> {
+        const url = `${BASE}/${promptId}/versions`;
+        const method = 'get';
+        return ApiCall<PromptVersionResponse[]>(() =>
+            apiClient.request({
+                url,
+                method,
+                ...buildRequestConfig(opts),
+            })
+        );
+    },
+
+    async rollbackToVersion(promptId: string, versionId: string, opts?: ApiRequestOptions): Promise<BaseResponse<PromptResponse>> {
         return ApiCall<PromptResponse>(() =>
             apiClient.request({
                 url: `${BASE}/${encodeURIComponent(promptId)}/rollback/${encodeURIComponent(versionId)}`,
@@ -443,6 +471,21 @@ export const promptsService = {
         );
     },
 
+    // Add prompt to collection
+    async addPromptToCollection(promptId: string, collectionId: string, opts?: ApiRequestOptions): Promise<BaseResponse<PromptResponse>> {
+        const url = `${BASE}/add-to-collection`;
+        const method = 'post';
+        const data = { promptId, collectionId };
+        return ApiCall<PromptResponse>(() =>
+            apiClient.request({
+                url,
+                method,
+                data,
+                ...buildRequestConfig(opts),
+            })
+        );
+    },
+
     // Get Shared Prompt (Public Access)
     async getSharedPrompt(promptId: string, token: string, opts?: ApiRequestOptions): Promise<BaseResponse<PromptShareResponse>> {
         return ApiCall<PromptShareResponse>(() =>
@@ -453,7 +496,20 @@ export const promptsService = {
             })
         );
     },
+    // [SCHOOL_ADMIN_DASHBOARD] - Start
+    // Get group shared prompts
+    async getGroupSharedPrompts(page = 0, size = 20, opts?: ApiRequestOptions): Promise<BaseResponse<PaginatedResponse<PromptResponse>>> {
+        return ApiCall<PaginatedResponse<PromptResponse>>(() =>
+            apiClient.request({
+                url: `${BASE}/my-group-shared?page=${page}&size=${size}`,
+                method: 'get',
+                ...buildRequestConfig(opts),
+            })
+        );
+    },
+    // [SCHOOL_ADMIN_DASHBOARD] - End
 
+    // [System Admin Merge Ref] Accepted change from system-admin-dashboard branch
     // ========== ADMIN FUNCTIONS ==========
     // Get all prompts (admin only)
     async getAllPromptsAdmin(page = 0, size = 20, opts?: ApiRequestOptions): Promise<BaseResponse<PaginatedResponse<PromptResponse>>> {

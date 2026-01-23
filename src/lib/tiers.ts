@@ -15,6 +15,7 @@ export type TierPlan = {
     id: string;
     name: string;
     price: number;
+    priceVND: number;
     priceString: string;
     period: string;
     features: string[];
@@ -39,32 +40,33 @@ export const useTierPlans = () => {
     const allPlans: TierPlan[] = [
         {
             id: TierId.FREE,
-            name: t('freeTrial'),
+            name: t('Tiers.Free.name'),
             price: 0,
-            priceString: "$0",
+            priceVND: 0,
+            priceString: t('Tiers.Free.price'),
             period: t('perMonth'),
             features: [
-                t('features.limited'),
-                t('features.oneTeacher'),
-                t('features.basic')
+                t('Tiers.Free.features.0'),
+                t('Tiers.Free.features.1'),
+                t('Tiers.Free.features.2')
             ],
             buttonText: t('buttons.startFreeTrial'),
             buttonVariant: 'neutral' as const,
             href: '/register',
             recommended: false,
-            isCurrent: false
+            isCurrent: !!user?.isFreeTier
         },
         {
             id: TierId.PRO,
-            name: t('standard'),
-            price: 4.99,
-            priceString: "$4.99",
+            name: t('Tiers.Pro.name'),
+            price: 2.49,
+            priceVND: 59000,
+            priceString: t('Tiers.Pro.price'),
             period: t('perTeacherMonth'),
             features: [
-                t('features.fullAccess'),
-                t('features.aiPersonalization'),
-                t('features.collaboration'),
-                t('features.prioritySupport')
+                t('Tiers.Pro.features.0'),
+                t('Tiers.Pro.features.1'),
+                t('Tiers.Pro.features.2')
             ],
             limits: {
                 tokens: "1,000,000",
@@ -80,15 +82,15 @@ export const useTierPlans = () => {
         },
         {
             id: TierId.PREMIUM,
-            name: t('premium'),
-            price: 29.99,
-            priceString: "$29.99",
+            name: t('Tiers.Premium.name'),
+            price: 9.99,
+            priceVND: 239000,
+            priceString: t('Tiers.Premium.price'),
             period: t('perMonth'),
             features: [
-                t('features.unlimited'),
-                t('features.adminDashboard'),
-                t('features.analytics'),
-                t('features.premium')
+                t('Tiers.Premium.features.0'),
+                t('Tiers.Premium.features.1'),
+                t('Tiers.Premium.features.2')
             ],
             limits: {
                 tokens: "10,000,000",
@@ -104,26 +106,19 @@ export const useTierPlans = () => {
         },
         {
             id: TierId.SCHOOL,
-            name: t('schoolWide'),
+            name: t('School.title'),
             price: -1,
+            priceVND: -1,
             priceString: t('negotiated'),
             period: t('perSchoolYear'),
-            features: user?.hasSchoolSubscription ? [
+            features: [
+                t('School.subtitle'),
                 t('features.schoolNoQuota'),
-                t('features.schoolSharedPool'),
-                t('features.unlimited'),
-                t('features.adminDashboard'),
-                t('features.analytics')
-            ] : [
-                t('features.unlimited'),
-                t('features.adminDashboard'),
-                t('features.analytics'),
-                t('features.premium')
+                t('features.schoolSharedPool')
             ],
             buttonText: user?.hasSchoolSubscription ? t('buttons.currentPlan') : t('buttons.contactSales'),
             buttonVariant: user?.hasSchoolSubscription ? 'outline' as const : 'outline' as const,
-            href: '#',
-            action: () => console.log("Contact Sales"),
+            href: '/contact-sales',
             recommended: false,
             isCurrent: !!user?.hasSchoolSubscription
         }
