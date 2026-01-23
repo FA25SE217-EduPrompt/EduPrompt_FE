@@ -1,3 +1,5 @@
+'use client';
+
 import { BaseResponse } from '@/types/api';
 import { PromptResponse } from '@/types/prompt.api';
 import { useState } from 'react';
