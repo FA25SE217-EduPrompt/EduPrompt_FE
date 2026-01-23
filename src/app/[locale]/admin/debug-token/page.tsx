@@ -15,7 +15,8 @@ export default function DebugTokenPage() {
         try {
             const response = await apiClient.get('/api/v1/admin/schools');
             setTestResult(`✅ Success!\n${JSON.stringify(response.data, null, 2)}`);
-        } catch (error: any) {
+        } catch (err: unknown) {
+            const error = err as { message: string, response?: { status: number, data?: { message?: string } } };
             setTestResult(`❌ Error!\nStatus: ${error.response?.status}\nMessage: ${error.response?.data?.message || error.message}\n\nFull Response:\n${JSON.stringify(error.response?.data, null, 2)}`);
         }
     };
@@ -66,7 +67,7 @@ export default function DebugTokenPage() {
                         <div className="space-y-2">
                             <p className="text-sm"><strong>Token exists:</strong> ✅ Yes</p>
                             <p className="text-xs break-all bg-gray-100 p-2 rounded">{token.substring(0, 100)}...</p>
-                            
+
                             {decodedToken && (
                                 <div className="mt-4">
                                     <p className="text-sm font-semibold mb-2">Decoded Token:</p>
@@ -90,7 +91,7 @@ export default function DebugTokenPage() {
                     >
                         Test GET /api/v1/admin/schools
                     </button>
-                    
+
                     {testResult && (
                         <div className={`p-4 rounded-lg ${testResult.includes('✅') ? 'bg-green-50' : 'bg-red-50'}`}>
                             <pre className="text-xs whitespace-pre-wrap">{testResult}</pre>

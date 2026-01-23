@@ -24,7 +24,7 @@ export default function SubscriptionsPage() {
         const response = await createSubscriptionMutation.mutateAsync({
             schoolId,
             payload: {
-                tier,
+                planId: tier,
                 startDate: new Date(startDate).toISOString(),
                 endDate: new Date(endDate).toISOString(),
                 maxTokens,
@@ -57,7 +57,7 @@ export default function SubscriptionsPage() {
                 {/* Form */}
                 <div className="bg-white rounded-lg shadow p-6">
                     <h2 className="text-xl font-semibold mb-6">Subscription Details</h2>
-                    
+
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -146,9 +146,8 @@ export default function SubscriptionsPage() {
                 <div className="space-y-6">
                     {/* Result */}
                     {result && (
-                        <div className={`p-4 rounded-lg ${
-                            result.includes('✅') ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
-                        }`}>
+                        <div className={`p-4 rounded-lg ${result.includes('✅') ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+                            }`}>
                             <h3 className="font-semibold mb-2">Result:</h3>
                             <pre className="text-sm whitespace-pre-wrap overflow-auto">{result}</pre>
                         </div>

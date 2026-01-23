@@ -343,3 +343,15 @@ export type GeneratePromptFromFileResponse = {
     totalTokens: number;
 };
 // [SCHOOL_ADMIN_DASHBOARD] - End
+
+// [SCHOOL_ADMIN_DASHBOARD] - End
+
+export interface AdminCreatePromptRequest extends Omit<PromptCreateRequest, 'visibility' | 'tagIds'> {
+    visibility: 'private' | 'group' | 'public' | 'school';
+    tagIds?: string[];
+}
+
+export interface AdminCreatePromptInCollectionRequest extends Omit<PromptCreateWithCollectionRequest, 'visibility' | 'tagIds'> {
+    visibility: 'private' | 'group' | 'public' | 'school';
+    tagIds?: string[];
+}

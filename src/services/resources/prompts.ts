@@ -19,6 +19,8 @@ import {
     CreatePromptVersionRequest,
     UpdatePromptMetadataRequest,
     UpdatePromptVisibilityRequest,
+    AdminCreatePromptRequest,
+    AdminCreatePromptInCollectionRequest,
     PromptRatingCreateRequest,
     PromptRatingResponse,
     PromptShareResponse,
@@ -539,6 +541,50 @@ export const promptsService = {
             apiClient.request({
                 url: `/api/v1/admin/prompts/${encodeURIComponent(promptId)}`,
                 method: 'delete',
+                ...buildRequestConfig(opts),
+            })
+        );
+    },
+
+    async createPromptStandaloneAdmin(payload: AdminCreatePromptRequest, opts?: ApiRequestOptions): Promise<BaseResponse<PromptResponse>> {
+        return ApiCall<PromptResponse>(() =>
+            apiClient.request({
+                url: `/api/v1/admin/prompts`,
+                method: 'post',
+                data: payload,
+                ...buildRequestConfig(opts),
+            })
+        );
+    },
+
+    async createPromptInCollectionAdmin(payload: AdminCreatePromptInCollectionRequest, opts?: ApiRequestOptions): Promise<BaseResponse<PromptResponse>> {
+        return ApiCall<PromptResponse>(() =>
+            apiClient.request({
+                url: `/api/v1/admin/prompts/collection`,
+                method: 'post',
+                data: payload,
+                ...buildRequestConfig(opts),
+            })
+        );
+    },
+
+    async updatePromptMetadataAdmin(promptId: string, payload: UpdatePromptMetadataRequest, opts?: ApiRequestOptions): Promise<BaseResponse<PromptResponse>> {
+        return ApiCall<PromptResponse>(() =>
+            apiClient.request({
+                url: `/api/v1/admin/prompts/${encodeURIComponent(promptId)}/metadata`,
+                method: 'put',
+                data: payload,
+                ...buildRequestConfig(opts),
+            })
+        );
+    },
+
+    async updatePromptVisibilityAdmin(promptId: string, payload: UpdatePromptVisibilityRequest, opts?: ApiRequestOptions): Promise<BaseResponse<PromptResponse>> {
+        return ApiCall<PromptResponse>(() =>
+            apiClient.request({
+                url: `/api/v1/admin/prompts/${encodeURIComponent(promptId)}/visibility`,
+                method: 'put',
+                data: payload,
                 ...buildRequestConfig(opts),
             })
         );

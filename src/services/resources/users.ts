@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { User, UsersResponse } from '@/types/user.types';
 import { TokenManager } from '@/utils/tokenManager';
+import { BaseResponse, PaginatedResponse } from '@/types/api';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -31,8 +32,8 @@ adminClient.interceptors.request.use(
  * Get all users from the admin endpoint
  * Requires authentication token
  */
-export async function getAllUsers(page: number = 0, size: number = 20): Promise<unknown> {
-    const response = await adminClient.get(`/api/v1/admin/users?page=${page}&size=${size}`);
+export async function getAllUsers(page: number = 0, size: number = 20): Promise<BaseResponse<PaginatedResponse<User>>> {
+    const response = await adminClient.get<BaseResponse<PaginatedResponse<User>>>(`/api/v1/admin/users?page=${page}&size=${size}`);
     return response.data;
 }
 

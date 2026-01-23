@@ -166,7 +166,7 @@ export const useAdminCreateSchoolSubscription = () => {
             payload,
             opts,
         }: {
-            schoolId: number;
+            schoolId: string;
             payload: CreateSchoolSubscriptionRequest;
             opts?: ApiRequestOptions;
         }) => adminService.createSchoolSubscription(schoolId, payload, opts),

@@ -1,5 +1,5 @@
-'use client';
-
+import { BaseResponse } from '@/types/api';
+import { PromptResponse } from '@/types/prompt.api';
 import { useState } from 'react';
 import { useAdminCreatePromptStandalone, useAdminCreatePromptInCollection } from '@/hooks/queries/admin';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
@@ -28,7 +28,7 @@ export default function CreatePromptPage() {
     const createStandalone = useAdminCreatePromptStandalone();
     const createInCollection = useAdminCreatePromptInCollection();
 
-    const handleChange = (field: string, value: any) => {
+    const handleChange = (field: string, value: string | string[]) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
@@ -37,8 +37,8 @@ export default function CreatePromptPage() {
         setResult('Creating prompt...');
 
         try {
-            let response;
-            
+            let response: BaseResponse<PromptResponse>;
+
             if (promptType === 'standalone') {
                 response = await createStandalone.mutateAsync({
                     payload: {
@@ -52,7 +52,7 @@ export default function CreatePromptPage() {
                         visibility: formData.visibility,
                         tagIds: formData.tagIds.length > 0 ? formData.tagIds : undefined,
                     },
-                });
+                }) as BaseResponse<PromptResponse>;
             } else {
                 if (!formData.collectionId) {
                     setResult('❌ Error: Collection ID is required for in-collection prompts');
@@ -71,7 +71,7 @@ export default function CreatePromptPage() {
                         collectionId: formData.collectionId,
                         tagIds: formData.tagIds.length > 0 ? formData.tagIds : undefined,
                     },
-                });
+                }) as BaseResponse<PromptResponse>;
             }
 
             if (response.error) {
@@ -83,7 +83,8 @@ export default function CreatePromptPage() {
                     router.push('/admin/prompts');
                 }, 2000);
             }
-        } catch (error: any) {
+        } catch (err: unknown) {
+            const error = err as { message: string };
             setResult(`❌ Exception: ${error.message}`);
         }
     };
@@ -117,11 +118,10 @@ export default function CreatePromptPage() {
                             <button
                                 type="button"
                                 onClick={() => setPromptType('standalone')}
-                                className={`p-4 rounded-lg border-2 transition-all ${
-                                    promptType === 'standalone'
-                                        ? 'border-blue-500 bg-blue-50'
-                                        : 'border-gray-300 hover:border-gray-400'
-                                }`}
+                                className={`p-4 rounded-lg border-2 transition-all ${promptType === 'standalone'
+                                    ? 'border-blue-500 bg-blue-50'
+                                    : 'border-gray-300 hover:border-gray-400'
+                                    }`}
                             >
                                 <h3 className="font-semibold mb-1">Standalone</h3>
                                 <p className="text-sm text-gray-600">Prompt độc lập</p>
@@ -129,11 +129,10 @@ export default function CreatePromptPage() {
                             <button
                                 type="button"
                                 onClick={() => setPromptType('in-collection')}
-                                className={`p-4 rounded-lg border-2 transition-all ${
-                                    promptType === 'in-collection'
-                                        ? 'border-blue-500 bg-blue-50'
-                                        : 'border-gray-300 hover:border-gray-400'
-                                }`}
+                                className={`p-4 rounded-lg border-2 transition-all ${promptType === 'in-collection'
+                                    ? 'border-blue-500 bg-blue-50'
+                                    : 'border-gray-300 hover:border-gray-400'
+                                    }`}
                             >
                                 <h3 className="font-semibold mb-1">In Collection</h3>
                                 <p className="text-sm text-gray-600">Thuộc collection</p>
@@ -294,9 +293,8 @@ export default function CreatePromptPage() {
                 <div className="space-y-6">
                     {/* Result */}
                     {result && (
-                        <div className={`p-4 rounded-lg ${
-                            result.includes('✅') ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
-                        }`}>
+                        <div className={`p-4 rounded-lg ${result.includes('✅') ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+                            }`}>
                             <h3 className="font-semibold mb-2">Result:</h3>
                             <pre className="text-sm whitespace-pre-wrap">{result}</pre>
                         </div>
