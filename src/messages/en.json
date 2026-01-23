@@ -356,7 +356,8 @@
             "rollBackFailed": "Failed to rollback prompt",
             "optimizationStarted": "Optimization started. Check your notifications for results.",
             "optimizationFailed": "Failed to start optimization",
-            "confirmRollback": "Are you sure you want to rollback to this version? Current changes will be saved as a new version."
+            "confirmRollback": "Are you sure you want to rollback to this version? Current changes will be saved as a new version.",
+            "loadMore": "Load More"
         },
         "Teacher": {
             "promptsCreated": "Prompts Created",
@@ -368,7 +369,9 @@
         },
         "Sidebar": {
             "myPrompts": "My Prompts",
-            "comparePrompts": "Compare Prompts",
+            "comparePrompts": "Test & Compare",
+            "explorer": "Explorer",
+            "workbench": "Workbench",
             "myCollections": "My Collections",
             "myGroups": "My Groups",
             "mySchool": "My School",
@@ -799,7 +802,7 @@
             "showSettings": "Show Settings",
             "hideSettings": "Hide Settings",
             "globalSettings": "GLOBAL TEST SETTINGS",
-            "temperature": "Temperature (Creative)",
+            "temperature": "Temperature",
             "topP": "Top P (Diverse)",
             "maxTokens": "Max Tokens",
             "runComparison": "Run Comparison",
@@ -999,6 +1002,7 @@
             "create": "Create"
         },
         "loadMoreResults": "Load more results",
+        "pageTitle": "Curriculum Explorer",
         "loadingRemaining": "remaining",
         "searchPoweredBy": "Search powered by",
         "failedToLoad": "Failed to load content",

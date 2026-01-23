@@ -6,6 +6,8 @@ import { WorkbenchEditor } from '@/components/workbench/WorkbenchEditor';
 import { AIAssistant } from '@/components/workbench/AIAssistant';
 import { WorkbenchProvider } from '@/components/workbench/WorkbenchContext';
 import { toast } from 'sonner';
+import { DashboardNavbar } from '@/components/layout/DashboardNavbar';
+import { useTranslations } from 'next-intl';
 
 import { PROMPT_TEMPLATES } from '@/data/prompt_templates';
 
@@ -109,9 +111,22 @@ const WorkbenchContent = () => {
 };
 
 export default function WorkbenchPage() {
+    const t = useTranslations('Workbench');
+    const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+
     return (
-        <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
-            <WorkbenchContent />
-        </Suspense>
+        <>
+            <DashboardNavbar
+                isSidebarOpen={isSidebarOpen}
+                setIsSidebarOpen={setIsSidebarOpen}
+                hideSidebarTrigger={true}
+                hideCreateButton={true}
+            />
+            <div className="pt-16">
+                <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+                    <WorkbenchContent />
+                </Suspense>
+            </div>
+        </>
     );
 }

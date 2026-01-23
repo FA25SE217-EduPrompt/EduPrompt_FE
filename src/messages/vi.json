@@ -358,7 +358,8 @@
             "rollBackFailed": "Không thể khôi phục Prompt",
             "optimizationStarted": "Đã bắt đầu tối ưu hóa. Kiểm tra thông báo của bạn để xem kết quả.",
             "optimizationFailed": "Không thể bắt đầu tối ưu hóa",
-            "confirmRollback": "Bạn có chắc chắn muốn khôi phục về phiên bản này không? Các thay đổi hiện tại sẽ được lưu dưới dạng phiên bản mới."
+            "confirmRollback": "Bạn có chắc chắn muốn khôi phục về phiên bản này không? Các thay đổi hiện tại sẽ được lưu dưới dạng phiên bản mới.",
+            "loadMore": "Tải thêm"
         },
         "Teacher": {
             "promptsCreated": "Prompt đã tạo",
@@ -370,7 +371,9 @@
         },
         "Sidebar": {
             "myPrompts": "Prompt của tôi",
-            "comparePrompts": "So sánh Prompt",
+            "comparePrompts": "Kiểm thử & So sánh",
+            "explorer": "Khám phá",
+            "workbench": "Bàn làm việc",
             "myCollections": "Bộ sưu tập của tôi",
             "myGroups": "Nhóm của tôi",
             "mySchool": "Trường của tôi",
@@ -804,7 +807,7 @@
             "showSettings": "Hiện cài đặt",
             "hideSettings": "Ẩn cài đặt",
             "globalSettings": "CÀI ĐẶT KIỂM THỬ CHUNG",
-            "temperature": "Nhiệt độ (Sáng tạo)",
+            "temperature": "Temperature",
             "topP": "Top P (Đa dạng)",
             "maxTokens": "Độ dài tối đa",
             "runComparison": "Chạy So sánh",
@@ -1004,6 +1007,7 @@
             "create": "Tạo mới"
         },
         "loadMoreResults": "Tải thêm kết quả",
+        "pageTitle": "Khám phá Chương trình",
         "loadingRemaining": "còn lại",
         "searchPoweredBy": "Tìm kiếm được hỗ trợ bởi",
         "failedToLoad": "Không thể tải nội dung",

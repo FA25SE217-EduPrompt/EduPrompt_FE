@@ -10,7 +10,7 @@ import { PromptResponse, PromptTestResponse, PromptAiModel, PromptMetadataRespon
 import { CollectionResponse } from '@/types/collection.api';
 import { BaseResponse, PaginatedResponse } from '@/types/api';
 import { toast, Toaster } from 'sonner';
-import { CreatorNavbar } from '@/components/layout/CreatorNavbar';
+import { DashboardNavbar } from '@/components/layout/DashboardNavbar';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -33,12 +33,18 @@ const MODEL_OPTIONS = [
     { label: 'Gemini 2.5 Flash', value: 'GEMINI_2_5_FLASH', description: 'Quick responses' },
 ];
 
-const InfoTooltip = ({ text }: { text: string }) => (
+const InfoTooltip = ({ text, placement = 'right' }: { text: string, placement?: 'left' | 'right' }) => (
     <div className="group relative inline-block ml-1">
         <Info className="w-4 h-4 text-gray-400 hover:text-blue-500 cursor-help" />
-        <div className="invisible group-hover:visible absolute z-10 w-64 p-3 text-xs bg-gray-900 text-white rounded-lg shadow-lg -top-2 left-6 transform transition-all">
+        <div className={cn(
+            "invisible group-hover:visible absolute z-50 w-64 p-3 text-xs bg-gray-900 text-white rounded-lg shadow-lg -top-2 transform transition-all",
+            placement === 'right' ? 'left-6' : 'right-6'
+        )}>
             {text}
-            <div className="absolute top-3 -left-1 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+            <div className={cn(
+                "absolute top-3 w-2 h-2 bg-gray-900 transform rotate-45",
+                placement === 'right' ? '-left-1' : '-right-1'
+            )}></div>
         </div>
     </div>
 );
@@ -485,6 +491,7 @@ const PromptTestingPage = () => {
     }, [isAuthenticated, isAuthLoading, router]);
 
     // State
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [executedSearchQuery, setExecutedSearchQuery] = useState('');
     const [searchType, setSearchType] = useState<'keyword' | 'semantic'>('keyword');
@@ -740,12 +747,14 @@ const PromptTestingPage = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 font-sans text-gray-800">
-            <CreatorNavbar
-                title={t('pageTitle')}
-                breadcrumbs={[{ label: t('pageTitle') }]}
+            <DashboardNavbar
+                isSidebarOpen={isSidebarOpen}
+                setIsSidebarOpen={setIsSidebarOpen}
+                hideSidebarTrigger={true}
+                hideCreateButton={true}
             />
 
-            <div className="max-w-7xl mx-auto p-6">
+            <div className="max-w-7xl mx-auto p-6 pt-20">
                 <Toaster position="top-right" />
 
                 {/* Header Actions */}
@@ -831,23 +840,23 @@ const PromptTestingPage = () => {
                                         <TrendingUp className="w-4 h-4 text-emerald-500" />
                                         <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">{t('maxTokens')}</label>
                                     </div>
-                                    <InfoTooltip text={t('maxTokensTooltip')} />
+                                    <InfoTooltip text={t('maxTokensTooltip')} placement="left" />
                                 </div>
                                 <div className="relative">
                                     <input
                                         type="number"
                                         value={maxTokens}
-                                        onChange={(e) => setMaxTokens(Math.max(100, Math.min(8192, parseInt(e.target.value) || 2048)))}
+                                        onChange={(e) => setMaxTokens(Math.max(100, Math.min(16384, parseInt(e.target.value) || 2048)))}
                                         min="100"
-                                        max="8192"
+                                        max="16384"
                                         step="100"
-                                        className="w-full px-3 py-2 text-sm font-mono border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                                        className="w-full pl-3 pr-16 py-2 text-sm font-mono border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
                                     />
                                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-gray-400 pointer-events-none">
                                         tokens
                                     </div>
                                 </div>
-                                <div className="text-[10px] text-gray-400 text-right">Max: 8192</div>
+                                <div className="text-[10px] text-gray-400 text-right">Max: 16384</div>
                             </div>
                         </div>
                     </motion.div>

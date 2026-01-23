@@ -130,17 +130,17 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                 />
                 <NavItem
                     icon={<MagnifyingGlassIcon className="h-5 w-5" />} // Reuse Icon or change if desired, Explorer often implies searching/browsing
-                    label="Explorer" // TODO: Add translation key
+                    label={t('explorer')}
                     href="/prompt/explorer"
                 />
                 <NavItem
                     icon={<BeakerIcon className="h-5 w-5" />}
-                    label="Workbench" // TODO: Add translation key
+                    label={t('workbench')}
                     href="/prompt/workbench"
                 />
                 <NavItem
                     icon={<ArrowsRightLeftIcon className="h-5 w-5" />}
-                    label="Test & Compare Prompt"
+                    label={t('comparePrompts')}
                     href="/prompt/compare"
                 />
                 <NavItem
