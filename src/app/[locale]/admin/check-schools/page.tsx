@@ -17,7 +17,8 @@ export default function CheckSchoolsPage() {
                 url: endpoint,
             });
             setResult(`✅ Success!\n\nEndpoint: ${method} ${endpoint}\n\nResponse:\n${JSON.stringify(response.data, null, 2)}`);
-        } catch (error: any) {
+        } catch (err: unknown) {
+            const error = err as { message: string; response?: { status: number; data?: { message?: string } } };
             setResult(`❌ Error\n\nEndpoint: ${method} ${endpoint}\n\nStatus: ${error.response?.status}\n\nMessage: ${error.response?.data?.message || error.message}\n\nResponse:\n${JSON.stringify(error.response?.data, null, 2)}`);
         } finally {
             setLoading(false);
@@ -69,9 +70,8 @@ export default function CheckSchoolsPage() {
                             <p className="mt-2 text-gray-600">Checking...</p>
                         </div>
                     ) : result ? (
-                        <div className={`p-4 rounded-lg ${
-                            result.includes('✅') ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
-                        }`}>
+                        <div className={`p-4 rounded-lg ${result.includes('✅') ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+                            }`}>
                             <pre className="text-xs whitespace-pre-wrap overflow-auto max-h-96">{result}</pre>
                         </div>
                     ) : (
