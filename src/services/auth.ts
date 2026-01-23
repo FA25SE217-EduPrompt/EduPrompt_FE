@@ -1,5 +1,5 @@
 import axios from 'axios';
-import {TokenManager} from '@/utils/tokenManager';
+import { TokenManager } from '@/utils/tokenManager';
 
 // Use fallback to deployed backend if env var is not configured to avoid silent 404s.
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://eduprompt.up.railway.app/BE';
@@ -16,7 +16,7 @@ let refreshSubscribers: Array<(token: string | null, error?: Error) => void> = [
 // Create axios instance with default config
 export const apiClient = axios.create({
     baseURL: API_BASE_URL,
-    timeout: 10000,
+    timeout: 30000,
     headers: {
         'Content-Type': 'application/json',
     },
@@ -25,7 +25,7 @@ export const apiClient = axios.create({
 // Create a clean axios instance for refresh calls (no interceptors)
 const refreshClient = axios.create({
     baseURL: API_BASE_URL,
-    timeout: 10000,
+    timeout: 30000,
     headers: {
         'Content-Type': 'application/json',
     },
@@ -233,9 +233,9 @@ export async function refreshToken() {
     if (response.data?.data?.token) {
         const newToken = response.data.data.token;
         TokenManager.setToken(newToken);
-        return {data: {token: newToken}, error: null};
+        return { data: { token: newToken }, error: null };
     } else if (response.data?.error) {
-        return {data: null, error: response.data.error};
+        return { data: null, error: response.data.error };
     } else {
         throw new Error('Invalid refresh token response');
     }

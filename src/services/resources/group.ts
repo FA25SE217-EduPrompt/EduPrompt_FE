@@ -2,6 +2,7 @@ import { apiClient } from '@/services/auth';
 import { BaseResponse } from '@/types/api';
 import {
     CreateGroupRequest,
+    UpdateGroupRequest,
     CreateGroupResponse,
     GetMyGroupsResponse,
     GetGroupResponse,
@@ -16,7 +17,7 @@ const BASE = '/api/groups';
 
 export const groupService = {
     /**
-     * GET /api/groups/my-group
+     * GET /api/groups/my-groups
      * Get paginated groups for the current user.
      */
     async getMyGroups(
@@ -26,7 +27,7 @@ export const groupService = {
     ): Promise<GetMyGroupsResponse> {
         return ApiCall(() =>
             apiClient.request({
-                url: `${BASE}/my-group?page=${page}&size=${size}`,
+                url: `${BASE}/my-groups?page=${page}&size=${size}`,
                 method: 'get',
                 ...buildRequestConfig(opts),
             }),
@@ -74,7 +75,7 @@ export const groupService = {
      */
     async updateGroup(
         id: string,
-        payload: CreateGroupRequest,
+        payload: UpdateGroupRequest,
         opts?: ApiRequestOptions,
     ): Promise<CreateGroupResponse> {
         return ApiCall(() =>
@@ -110,11 +111,13 @@ export const groupService = {
      */
     async getGroupMembers(
         id: string,
+        page = 0,
+        size = 20,
         opts?: ApiRequestOptions,
     ): Promise<GetGroupMembersResponse> {
         return ApiCall(() =>
             apiClient.request({
-                url: `${BASE}/${id}/members`,
+                url: `${BASE}/${id}/members?page=${page}&size=${size}`,
                 method: 'get',
                 ...buildRequestConfig(opts),
             }),
@@ -152,8 +155,9 @@ export const groupService = {
     ): Promise<BaseResponse<void>> {
         return ApiCall(() =>
             apiClient.request({
-                url: `${BASE}/${groupId}/members?userId=${userId}`,
+                url: `${BASE}/${groupId}/members`,
                 method: 'delete',
+                data: { userId },
                 ...buildRequestConfig(opts),
             }),
         );

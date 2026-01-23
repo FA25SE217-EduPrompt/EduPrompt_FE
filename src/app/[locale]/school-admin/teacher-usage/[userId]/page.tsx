@@ -66,7 +66,7 @@ export default function TeacherUsagePage() {
                 createdAt: '2024-12-16T11:00:00Z',
             },
         ];
-        
+
         setLogs(mockLogs);
         setTotalPages(1);
         setTotalElements(mockLogs.length);
@@ -84,7 +84,7 @@ export default function TeacherUsagePage() {
         });
 
         if (result.error) {
-            setError(mapErrorToUserMessage(result.error));
+            setError(mapErrorToUserMessage({ error: result.error }));
             setLoading(false);
             return;
         }
@@ -146,11 +146,10 @@ export default function TeacherUsagePage() {
                     </div>
                     <button
                         onClick={() => setUseMockData(!useMockData)}
-                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                            useMockData 
-                                ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${useMockData
+                                ? 'bg-blue-600 text-white hover:bg-blue-700'
                                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
+                            }`}
                     >
                         {useMockData ? '📊 Mock Data' : '🔌 Real API'}
                     </button>
@@ -192,8 +191,8 @@ export default function TeacherUsagePage() {
                                             <tr key={log.id} className="hover:bg-gray-50">
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${log.actionType === 'TEST' ? 'bg-blue-100 text-blue-800' :
-                                                            log.actionType === 'OPTIMIZATION' ? 'bg-purple-100 text-purple-800' :
-                                                                'bg-gray-100 text-gray-800'
+                                                        log.actionType === 'OPTIMIZATION' ? 'bg-purple-100 text-purple-800' :
+                                                            'bg-gray-100 text-gray-800'
                                                         }`}>
                                                         {log.actionType}
                                                     </span>

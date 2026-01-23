@@ -28,6 +28,10 @@ export interface User {
     isProTier?: boolean;
     isPremiumTier?: boolean;
     hasSchoolSubscription?: boolean;
+    schoolId?: string;
+    // [SCHOOL_ADMIN_DASHBOARD] - Start
+    role?: string;
+    // [SCHOOL_ADMIN_DASHBOARD] - End
 }
 
 
@@ -135,14 +139,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         isProTier: userData.isProTier,
                         isPremiumTier: userData.isPremiumTier,
                         hasSchoolSubscription: userData.hasSchoolSubscription,
+                        schoolId: userData.schoolId,
                     },
                 }));
             }
         } catch (error: unknown) {
-            if (error instanceof Error) {
-                throw new Error(error.message);
+            console.error('Failed to fetch user data:', error);
+            // Handle error state gracefully instead of crashing
+            setAuthState(prev => ({
+                ...prev,
+                isLoading: false,
+                // Optionally keep the user logged in but with limited data, 
+                // or force logout if critical data is missing.
+                // For now, we'll just log it and potentially keep existing state or minimal state.
+            }));
+            // trigger logout if it's a critical auth error?
+            // For timeouts, we might not want to logout immediately but maybe show a toast.
+            // But since this is specific to fetching user data after "login" or token check:
+            if (error instanceof Error && error.message.includes('401')) {
+                // Token might be invalid
+                TokenManager.clearTokens();
+                setAuthState(prev => ({ ...prev, user: null, token: null, isAuthenticated: false }));
             }
-            throw new Error('Failed to fetch user data');
         }
     }, []);
 
@@ -166,6 +184,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         isSystemAdmin: payload.role === SYSTEM_ADMIN_ROLE,
                         isSchoolAdmin: payload.role === SCHOOL_ADMIN_ROLE,
                         isTeacher: payload.role === TEACHER_ROLE,
+                        role: payload.role, // [SCHOOL_ADMIN_DASHBOARD]
                     };
 
                     setAuthState({
@@ -237,6 +256,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 isSystemAdmin: payload.role === SYSTEM_ADMIN_ROLE,
                 isSchoolAdmin: payload.role === SCHOOL_ADMIN_ROLE,
                 isTeacher: payload.role === TEACHER_ROLE,
+                role: payload.role, // [SCHOOL_ADMIN_DASHBOARD]
             };
 
             // Store remember email preference
@@ -315,6 +335,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 isSystemAdmin: payload.role === SYSTEM_ADMIN_ROLE,
                 isSchoolAdmin: payload.role === SCHOOL_ADMIN_ROLE,
                 isTeacher: payload.role === TEACHER_ROLE,
+                role: payload.role, // [SCHOOL_ADMIN_DASHBOARD]
             };
 
             setAuthState({

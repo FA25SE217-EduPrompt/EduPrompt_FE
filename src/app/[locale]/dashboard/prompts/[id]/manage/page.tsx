@@ -98,7 +98,7 @@ export default function PromptManagePage() {
     });
 
     const rollbackMutation = useMutation({
-        mutationFn: (versionId: string) => promptsService.rollbackPromptVersion(promptId, versionId),
+        mutationFn: (versionId: string) => promptsService.rollbackToVersion(promptId, versionId),
         onSuccess: () => {
             toast.success(tManage('rolledBack'));
             queryClient.invalidateQueries({ queryKey: ['prompts', 'detail', promptId] });

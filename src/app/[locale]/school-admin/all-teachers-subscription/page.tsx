@@ -146,11 +146,11 @@ export default function AllTeachersSubscriptionPage() {
             const startIndex = pageNum * size;
             const endIndex = startIndex + size;
             const paginatedMockLogs = mockLogs.slice(startIndex, endIndex);
-            
+
             setLogs(paginatedMockLogs);
             setTotalPages(Math.ceil(mockLogs.length / size));
             setTotalElements(mockLogs.length);
-            setError(mapErrorToUserMessage(result.error));
+            setError(mapErrorToUserMessage({ error: result.error }));
             setLoading(false);
             return;
         }
@@ -159,12 +159,12 @@ export default function AllTeachersSubscriptionPage() {
             const realLogs = result.data.content || [];
             // Kết hợp real data với fake data
             const combinedLogs = [...realLogs, ...mockLogs];
-            
+
             // Phân trang cho combined data
             const startIndex = pageNum * size;
             const endIndex = startIndex + size;
             const paginatedLogs = combinedLogs.slice(startIndex, endIndex);
-            
+
             setLogs(paginatedLogs);
             setTotalPages(Math.ceil(combinedLogs.length / size));
             setTotalElements(combinedLogs.length);
@@ -173,7 +173,7 @@ export default function AllTeachersSubscriptionPage() {
             const startIndex = pageNum * size;
             const endIndex = startIndex + size;
             const paginatedMockLogs = mockLogs.slice(startIndex, endIndex);
-            
+
             setLogs(paginatedMockLogs);
             setTotalPages(Math.ceil(mockLogs.length / size));
             setTotalElements(mockLogs.length);
@@ -256,8 +256,8 @@ export default function AllTeachersSubscriptionPage() {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${log.actionType === 'TEST' ? 'bg-blue-100 text-blue-800' :
-                                                            log.actionType === 'OPTIMIZATION' ? 'bg-purple-100 text-purple-800' :
-                                                                'bg-gray-100 text-gray-800'
+                                                        log.actionType === 'OPTIMIZATION' ? 'bg-purple-100 text-purple-800' :
+                                                            'bg-gray-100 text-gray-800'
                                                         }`}>
                                                         {log.actionType}
                                                     </span>

@@ -1,9 +1,9 @@
-import {BaseResponse, ErrorPayload} from '@/types/api';
+import { BaseResponse, ErrorPayload } from '@/types/api';
 
 // Define possible error response structures using standardized types
 interface AxiosErrorResponse {
     response?: {
-        data?: BaseResponse | { message?: string };
+        data?: BaseResponse | { message?: string } | string;
         status?: number;
     };
     message?: string;

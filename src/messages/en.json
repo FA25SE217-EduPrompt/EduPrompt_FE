@@ -1,6 +1,148 @@
 {
+    "Workbench": {
+        "title": "Prompt Workbench",
+        "save": "Save",
+        "saved": "Saved",
+        "myPrompt": "My Prompt",
+        "edit": "Edit",
+        "editor": "Editor",
+        "preview": "Preview",
+        "untitled": "Untitled Prompt",
+        "versionHistory": "Version History",
+        "viewingOlder": "Viewing older version",
+        "cancel": "Cancel",
+        "restore": "Restore this version",
+        "viewing": "Viewing",
+        "noHistory": "No history available",
+        "startTyping": "Start typing in the editor to see your prompt here...",
+        "sections": {
+            "instruction": "1. Instruction",
+            "context": "2. Context",
+            "inputData": "3. Input Data",
+            "outputFormat": "4. Output Format",
+            "constraints": "5. Constraints"
+        },
+        "placeholders": {
+            "instruction": "Describe explicitly what the AI should do...",
+            "context": "Paste background info or drag files here...",
+            "inputData": "Specific data the AI needs to process...",
+            "outputFormat": "e.g. Markdown table, JSON, Bullet points...",
+            "constraints": "Any limitations or negative constraints..."
+        },
+        "dropFile": "Drop files or type",
+        "tabs": {
+            "draft": {
+                "label": "Draft",
+                "save": "Save Prompt",
+                "file": "From File",
+                "uploadSource": "Upload Source Material",
+                "fileHint": "PDF, DOCX, TXT (Max 10MB)",
+                "taskType": "Task Type",
+                "tasks": {
+                    "LESSON_PLAN": "Lesson Plan",
+                    "SLIDE_OUTLINE": "Slide Deck Outline",
+                    "QUIZ": "Quiz / Assessment",
+                    "TEST_MATRIX": "Test Matrix",
+                    "GROUP_ACTIVITY": "Group Activity"
+                },
+                "customNote": "Custom Note (Optional)",
+                "notePlaceholder": "e.g. Focus on Chapter 3, make it engaging for kids...",
+                "generate": "Generate Draft",
+                "generating": "Generating Draft...",
+                "tags": "Tags",
+                "tagType": "Tag Type",
+                "tagPlaceholder": "Tag value",
+                "add": "Add",
+                "tagTypes": {
+                    "subject": "Subject",
+                    "topic": "Topic",
+                    "level": "Level",
+                    "other": "Other"
+                },
+                "visibilityCollection": "Visibility & Collection",
+                "private": "Private",
+                "public": "Public",
+                "noCollection": "No Collection",
+                "createNewCollection": "+ Create New Collection",
+                "newCollectionName": "New Collection Name",
+                "newCollectionPlaceholder": "e.g. Biology Grade 10",
+                "saveNewVersion": "Save New Version",
+                "saveAsCopy": "Save as Copy",
+                "saving": "Saving..."
+            },
+            "audit": {
+                "label": "Audit",
+                "ready": "Ready to Audit",
+                "description": "Analyze your prompt for clarity, missing context, and potential improvements.",
+                "scorePrompt": "Score Prompt",
+                "scoring": "Scoring...",
+                "evaluating": "Evaluating across 6 dimensions...",
+                "overall": "Overall",
+                "dimensions": "Dimensions",
+                "detectedIssues": "Detected Issues",
+                "clickToFix": "Click to fix in {field}",
+                "reScore": "Re-score"
+            },
+            "optimize": {
+                "label": "Optimize",
+                "settings": "Optimization Settings",
+                "mode": "Optimization Mode",
+                "modes": {
+                    "PEDAGOGICAL": "Pedagogical",
+                    "SAFE": "Safe Mode"
+                },
+                "pedagogicalDesc": "Enhances educational value, clarity, and engagement.",
+                "safeDesc": "Strict adherence to safety guidelines and constraints.",
+                "focusAreas": "Focus Areas",
+                "auditDetected": "(Detected from Audit)",
+                "noWeakness": "No specific weaknesses detected. Score your prompt in the Audit tab to see targeted suggestions.",
+                "aiAnalyze": "AI will analyze your prompt and suggest structural and semantic improvements.",
+                "optimize": "Optimize Prompt",
+                "processing": "Processing...",
+                "refining": "AI is refining your pedagogical approach...",
+                "result": "Optimization Result",
+                "scoreImproved": "Score Improved",
+                "appliedImprovements": "Applied Improvements",
+                "fullComparison": "Full Prompt Comparison",
+                "original": "Original",
+                "optimized": "Optimized",
+                "discard": "Discard",
+                "apply": "Apply Changes"
+            }
+        },
+        "assistant": "AI Assistant",
+        "promptTitle": "Prompt Title",
+        "badges": {
+            "Math": "Math",
+            "Grade10": "Grade 10",
+            "LessonPlan": "Lesson Plan"
+        },
+        "configuration": "Configuration",
+        "advancedSettings": "Advanced Settings",
+        "instruction": "Instruction",
+        "instructionPlaceholder": "Act as a Math teacher...",
+        "context": "Context",
+        "contextPlaceholder": "Enter manual context here...",
+        "uploadZone": "Drag & drop files (PDF, Docx) to let AI learn your style.",
+        "outputFormat": "Output Format",
+        "generator": {
+            "tab": "Generator",
+            "emptyState": "No ideas yet?",
+            "inputPlaceholder": "Describe what you need (e.g., Lesson plan for Math 10 about Vectors...)",
+            "generateBtn": "Generate Prompt"
+        },
+        "scoring": {
+            "tab": "Scoring & Audit",
+            "score": "Score",
+            "clarity": "Clarity",
+            "constraints": "Constraint Definition",
+            "personalization": "Personalization",
+            "suggestion": "Suggestion",
+            "autoFix": "Auto-Fix",
+            "runAudit": "Run Audit"
+        }
+    },
     "HomePage": {
-        "title": "EduPrompt - AI-Powered Education Platform",
         "description": "Transform your teaching with AI-powered prompts and educational tools",
         "Hero": {
             "welcomeBack": "Welcome back, {name}!",
@@ -16,61 +158,131 @@
         }
     },
     "LandingPage": {
+        "Hero": {
+            "headline": "The AI-Powered Teaching Assistant for High Schools.",
+            "subhead": "Generate lesson plans, quizzes, and grading rubrics aligned with your curriculum standards in seconds.",
+            "getStarted": "Get Started Free",
+            "explore": "Let's start exploring",
+            "watchDemo": "Watch Demo",
+            "mockup": {
+                "math": "Mathematics / Toán",
+                "grade": "Grade 10 • Algebra",
+                "lessonPlan": "Lesson Plan Generated",
+                "lessonDetails": "Quadratic Equations • 45 mins",
+                "quiz": "Quiz Grading Rubric",
+                "quizDetails": "Standardized • 10 Questions",
+                "generate": "Generate Resource"
+            }
+        },
+        "SocialTicker": {
+            "trustedBy": "Trusted by educators from top institutions"
+        },
         "Features": {
-            "title": "Everything You Need to Enhance Teaching",
-            "subtitle": "Discover powerful features designed specifically for high school educators",
-            "repository": "Prompt Repository",
-            "repositoryDesc": "Access thousands of categorized prompts organized by subject, grade level, and teaching objectives.",
-            "personalization": "Personalization Engine",
-            "personalizationDesc": "AI adapts prompts to match your unique teaching style, subject expertise, and classroom needs.",
-            "collaboration": "Collaboration Hub",
-            "collaborationDesc": "Share, rate, and collaborate on prompts with fellow educators in your school and beyond.",
-            "suggestions": "AI Suggestions",
-            "suggestionsDesc": "Get intelligent recommendations based on your teaching patterns and curriculum requirements.",
-            "access": "Role-Based Access",
-            "accessDesc": "Secure permissions system for teachers, administrators, and system managers.",
-            "crossPlatform": "Cross-Platform",
-            "crossPlatformDesc": "Access your prompts anywhere with our responsive web platform and mobile app."
+            "title": "Core Features",
+            "subtitle": "Everything you need to enhance your teaching workflow",
+            "score": "Score",
+            "tags": [
+                "Lesson Plans",
+                "Slides",
+                "Tests",
+                "Matrices",
+                "Activities"
+            ],
+            "repository": {
+                "title": "Smart Repository",
+                "body": "Semantic search for 5 essential teaching tasks: Lesson Plans, Slides, Tests, Matrices, and Group Activities. Fully aligned with the curriculum."
+            },
+            "personalization": {
+                "title": "Context-Aware Generation",
+                "body": "Upload your own materials. Our AI generates prompts tailored to your specific teaching style and profile."
+            },
+            "optimization": {
+                "title": "Prompt Auditor",
+                "body": "Get instant scores on your prompts. We detect weaknesses and auto-optimize them for better AI results."
+            },
+            "ecosystem": {
+                "title": "Cross-Platform",
+                "body": "Access your collections anywhere via our Browser Extension and Mobile App."
+            }
         },
         "Pricing": {
-            "title": "Choose Your Plan",
-            "subtitle": "Flexible pricing options for individual teachers and schools",
+            "title": "Simple, Transparent Pricing",
+            "subtitle": "Tools for every stage of your teaching career",
+            "perMonth": "/month",
             "freeTrial": "Free Trial",
             "standard": "Standard",
             "premium": "Premium",
             "schoolWide": "School-Wide",
-            "perMonth": "/month",
+            "negotiated": "Negotiated",
             "perTeacherMonth": "/teacher/month",
             "perSchoolYear": "/school/year",
             "features": {
-                "limited": "Limited prompt library",
-                "oneTeacher": "1 teacher per school",
+                "limited": "Limited access",
+                "oneTeacher": "One teacher",
                 "basic": "Basic features",
-                "fullAccess": "Full repository access",
-                "aiPersonalization": "AI personalization",
-                "collaboration": "Collaboration features",
+                "fullAccess": "Full access",
+                "aiPersonalization": "AI Personalization",
+                "collaboration": "Collaboration tools",
                 "prioritySupport": "Priority support",
-                "unlimited": "Unlimited teachers",
+                "unlimited": "Unlimited access",
                 "adminDashboard": "Admin dashboard",
-                "analytics": "Analytics & reporting",
-                "premium": "Premium add-ons",
-                "schoolNoQuota": "Free of action, testing & optimization quotas",
-                "schoolSharedPool": "Usage counts toward school token pool"
+                "analytics": "Analytics",
+                "premium": "Premium features",
+                "schoolNoQuota": "No individual quota",
+                "schoolSharedPool": "Shared token pool"
+            },
+            "Tiers": {
+                "Free": {
+                    "name": "Free",
+                    "price": "$0",
+                    "desc": "Essential tools for every teacher.",
+                    "features": [
+                        "Access to standard models",
+                        "Search 5 core task types",
+                        "Basic Collection management"
+                    ]
+                },
+                "Pro": {
+                    "name": "Pro",
+                    "price": "$2.49",
+                    "desc": "For power users.",
+                    "features": [
+                        "Higher Token Quota",
+                        "Access to Advanced Models",
+                        "Prompt Optimization Tools"
+                    ],
+                    "badge": "Popular"
+                },
+                "Premium": {
+                    "name": "Premium",
+                    "price": "$9.99",
+                    "desc": "Unlimited potential.",
+                    "features": [
+                        "10x Token Quota",
+                        "Early Access to new features",
+                        "Priority Generation Speed"
+                    ]
+                }
+            },
+            "School": {
+                "title": "EduPrompt for Schools",
+                "subtitle": "Everything in Pro + shared token pool for whole school.",
+                "benefit": "One subscription covers all teacher emails. Utilize a Shared School Token Pool for flexible usage across staff.",
+                "cta": "Contact for Custom Quote"
             },
             "buttons": {
                 "startFreeTrial": "Start Free Trial",
-                "getStarted": "Get Started Now",
+                "getStarted": "Get Started",
                 "contactSales": "Contact Sales",
-                "upgradeNow": "Upgrade Now",
-                "currentPlan": "Current Plan"
-            },
-            "negotiated": "Negotiated"
+                "currentPlan": "Current Plan",
+                "upgradeNow": "Upgrade Now"
+            }
         },
         "PricingCard": {
             "mostPopular": "Most Popular",
-            "viewPlanDetails": "View Plan Details",
+            "currentPlan": "Current Plan",
             "showLess": "Show Less",
-            "currentPlan": "Current Plan"
+            "viewPlanDetails": "View Plan Details"
         },
         "CTA": {
             "title": "Ready to Transform Your Teaching?",
@@ -78,6 +290,22 @@
             "startTrial": "Start Your Free Trial",
             "scheduleDemo": "Schedule Demo"
         }
+    },
+    "Navbar": {
+        "features": "Features",
+        "pricing": "Pricing",
+        "about": "About",
+        "profile": "Profile",
+        "dashboard": "Dashboard",
+        "schoolDashboard": "School Dashboard",
+        "logout": "Log Out",
+        "signIn": "Sign In",
+        "getStarted": "Get Started"
+    },
+    "LocaleSwitcher": {
+        "label": "Language",
+        "en": "English",
+        "vi": "Tiếng Việt"
     },
     "Dashboard": {
         "PromptCard": {
@@ -124,9 +352,12 @@
             "aiSuggestions": "AI Suggestions",
             "searchResults": "Search Results",
             "myPrompts": "My Prompts",
+            "sharedPrompts": "Prompts Shared with Me",
             "create": "Create",
             "noResults": "No prompts found matching",
             "noPrompts": "You haven't created any prompts yet.",
+            "noSharedPrompts": "No prompts have been shared with you yet.",
+            "promptNotFound": "Prompt not found or access denied.",
             "metadataUpdated": "Prompt metadata updated",
             "metadataUpdateFailed": "Failed to update metadata",
             "shareLinkGenerated": "Share link generated",
@@ -137,7 +368,8 @@
             "rollBackFailed": "Failed to rollback prompt",
             "optimizationStarted": "Optimization started. Check your notifications for results.",
             "optimizationFailed": "Failed to start optimization",
-            "confirmRollback": "Are you sure you want to rollback to this version? Current changes will be saved as a new version."
+            "confirmRollback": "Are you sure you want to rollback to this version? Current changes will be saved as a new version.",
+            "loadMore": "Load More"
         },
         "Teacher": {
             "promptsCreated": "Prompts Created",
@@ -149,7 +381,9 @@
         },
         "Sidebar": {
             "myPrompts": "My Prompts",
-            "searchPrompts": "Search Prompts",
+            "comparePrompts": "Test & Compare",
+            "explorer": "Explorer",
+            "workbench": "Workbench",
             "myCollections": "My Collections",
             "myGroups": "My Groups",
             "mySchool": "My School",
@@ -166,7 +400,9 @@
             "createFirst": "Create your first group",
             "members": "Members",
             "addMember": "Add Member",
-            "addMemberPlaceholder": "Add member by email...",
+            "addMemberPlaceholder": "Select a user to add...",
+            "noUsersAvailable": "No users available",
+            "noResults": "No results found",
             "manageMembers": "Manage Members",
             "groupInfo": "Group Info",
             "created": "Created",
@@ -182,7 +418,24 @@
             "addMemberFailed": "Failed to add member",
             "removeMemberSuccess": "Member removed successfully",
             "removeMemberFailed": "Failed to remove member",
-            "removeConfirm": "Are you sure you want to remove this member?"
+            "removeMember": "Remove Member",
+            "removeConfirm": "Are you sure you want to remove this member?",
+            "loadError": "Error loading groups. Please try again.",
+            "groupNotFound": "Group not found or access denied.",
+            "dashboard": "Dashboard",
+            "collections": "Collections",
+            "addCollection": "Add Collection",
+            "noCollections": "No collections in this group yet",
+            "assignCollection": "Assign Collection",
+            "assign": "Assign",
+            "assignCollectionSuccess": "Collection assigned successfully",
+            "assignCollectionFailed": "Failed to assign collection",
+            "noAvailableCollections": "No available collections",
+            "createCollectionFirst": "Create a private collection first to assign it here",
+            "cancel": "Cancel",
+            "tags": "Tags",
+            "noTeachersFound": "No teachers found in your school or you haven't joined a school yet.",
+            "updateProfile": "Update your profile to join a school"
         },
         "GroupModal": {
             "createTitle": "Create New Group",
@@ -212,6 +465,11 @@
             "unlimitedAccess": "Unlimited Access",
             "schoolSubscriptionGrant": "Your school subscription grants you unlimited access to:",
             "premiumPromptLibrary": "Premium Prompt Library",
+            "schoolBenefitTitle": "School Subscription Benefits",
+            "schoolBenefitDesc": "Your school subscription unlocks the full power of EduPrompt for your entire faculty:",
+            "schoolFeatureProFeatures": "Everything in Pro — advanced AI models, optimization tools & priority support",
+            "schoolFeatureSharedPool": "School-wide shared token pool for flexible usage across all teachers",
+            "schoolFeatureNoQuota": "No individual limits — collaborate freely without quota restrictions",
             "currentSubscription": "Current Subscription",
             "manageBilling": "Manage your billing and plan details",
             "active": "Active",
@@ -260,7 +518,31 @@
                 "premiumAddons": "Premium add-ons",
                 "customSchoolLimits": "Custom limits tailored for school-wide usage with centralized billing and admin controls.",
                 "oneMillionTokens": "1M Tokens",
-                "tenMillionTokens": "10M Tokens"
+                "tenMillionTokens": "10M Tokens",
+                "downgradeNotAvailable": "You are already on a higher plan",
+                "downgrade": "Unavailable"
+            }
+        },
+        "Collections": {
+            "Detail": {
+                "notFound": "Collection not found",
+                "updateSuccess": "Collection updated successfully",
+                "updateError": "Failed to update collection",
+                "deleteConfirm": "Are you sure you want to delete this collection? This action cannot be undone.",
+                "deleteSuccess": "Collection deleted successfully",
+                "deleteError": "Failed to delete collection",
+                "addPrompt": "Add Prompt",
+                "noPrompts": "No prompts yet",
+                "emptyDescription": "This collection is empty. Add existing prompts or create new ones to get started.",
+                "addPromptToCollection": "Add Prompt to Collection"
+            },
+            "AddPromptModal": {
+                "title": "Add Prompt to Collection",
+                "searchPlaceholder": "Search prompts...",
+                "noPrompts": "No prompts found",
+                "addSelected": "Add Selected",
+                "cancel": "Cancel",
+                "add": "Add"
             }
         }
     },
@@ -507,7 +789,7 @@
             "selectPlaceholder": "Select..."
         },
         "Search": {
-            "pageTitle": "Search & Test Prompts",
+            "pageTitle": "Prompt Compare",
             "searchPlaceholder": "Search prompts...",
             "search": "Search",
             "keyword": "Keyword",
@@ -534,7 +816,7 @@
             "showSettings": "Show Settings",
             "hideSettings": "Hide Settings",
             "globalSettings": "GLOBAL TEST SETTINGS",
-            "temperature": "Temperature (Creative)",
+            "temperature": "Temperature",
             "topP": "Top P (Diverse)",
             "maxTokens": "Max Tokens",
             "runComparison": "Run Comparison",
@@ -670,16 +952,6 @@
             "role": "School Administrator"
         }
     },
-    "Navbar": {
-        "features": "Features",
-        "pricing": "Pricing",
-        "about": "About",
-        "profile": "Profile",
-        "dashboard": "Dashboard",
-        "logout": "Logout",
-        "signIn": "Sign In",
-        "schoolDashboard": "School Dashboard"
-    },
     "Profile": {
         "title": "My Profile",
         "personalInfo": "Personal Information",
@@ -761,6 +1033,7 @@
             "79": "Transaction failed: Customer entered incorrect password too many times.",
             "99": "Other errors"
         },
+        "error": "An error occurred while initializing payment.",
         "Checkout": {
             "title": "Checkout",
             "subtitle": "Review your subscription plan before proceeding.",
@@ -771,5 +1044,69 @@
             "processing": "Processing...",
             "legalDisclaimer": "By clicking \"Pay\", you agree to our Terms of Service and Privacy Policy. You will be redirected to VNPay to complete the transaction."
         }
+    },
+    "Explorer": {
+        "title": "Curriculum Explorer",
+        "searchPlaceholder": "Search for prompts, lessons, or topics...",
+        "semanticSearch": "Semantic Search",
+        "keywordSearch": "Keyword Search",
+        "grade": "Grade",
+        "tagTypes": {
+            "subject": "Subject"
+        },
+        "filters": {
+            "title": "Filter By:",
+            "LessonPlan": "Lesson Plan",
+            "Slide": "Slides",
+            "Test": "Test/Quiz",
+            "Matrix": "Test Matrix",
+            "Activity": "Activities",
+            "clearFilters": "Clear filters"
+        },
+        "searchResults": "Search Results",
+        "searchNoResults": "No results found for",
+        "noDescription": "No description",
+        "lessonBundle": "Lesson Bundle",
+        "customize": "Customize",
+        "preview": "Quick Preview",
+        "noSelection": "Select a lesson from the sidebar to view details.",
+        "promptTasks": "Prompt Templates",
+        "availableResources": "Available Resources",
+        "copyContent": "Copy",
+        "copySuccess": "Content copied to clipboard!",
+        "contentViewerPlaceholder": "Select a Lesson",
+        "contentViewerHint": "Select a lesson from the sidebar to view its theories, examples, and knowledge base.",
+        "actionDeck": {
+            "create": "Create"
+        },
+        "loadMoreResults": "Load more results",
+        "pageTitle": "Curriculum Explorer",
+        "loadingRemaining": "remaining",
+        "searchPoweredBy": "Search powered by",
+        "failedToLoad": "Failed to load content",
+        "failedToLoadDesc": "Something went wrong while fetching the lesson data.",
+        "noContent": "No content available for this lesson.",
+        "failedToLoadPrompts": "Failed to load specific prompts.",
+        "noPrompts": "No prompts available for this lesson.",
+        "comingSoon": "Coming Soon",
+        "examGenerator": "Exam Generator",
+        "unableToLoadCurriculum": "Unable to load curriculum",
+        "checkConnection": "Please check your connection and try again.",
+        "noCurriculumData": "No curriculum data available.",
+        "saveBundle": "Save Bundle",
+        "downloadAll": "Download All",
+        "verified": "Verified"
+    },
+    "ContactSales": {
+        "title": "Contact Sales",
+        "subtitle": "Get a custom plan for your school",
+        "schoolName": "School Name",
+        "address": "Address",
+        "fullName": "Your Name",
+        "position": "Position / Role",
+        "email": "Email Address",
+        "details": "Additional Details",
+        "submit": "Send Request",
+        "successMessage": "Request sent successfully! We will contact you soon."
     }
 }

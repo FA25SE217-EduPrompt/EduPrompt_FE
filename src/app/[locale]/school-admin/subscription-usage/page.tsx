@@ -23,18 +23,25 @@ export default function SubscriptionUsagePage() {
         const result = await SchoolAdminService.getSubscriptionUsage();
 
         const mockUsage: SubscriptionUsageDto = {
+            subscriptionId: 'mock-sub-id',
+            subscriptionType: 'Standard School',
             tokensUsed: 45000,
             totalTokensLimit: 100000,
+            tokensRemaining: 55000,
             testsUsed: 120,
             testsLimit: 500,
+            testsRemaining: 380,
             optimizationsUsed: 85,
             optimizationsLimit: 200,
+            optimizationsRemaining: 115,
+            resetDate: new Date().toISOString(),
+            isActive: true,
         };
 
         if (result.error) {
             // Nếu API lỗi, dùng fake data
             setUsage(mockUsage);
-            setError(mapErrorToUserMessage(result.error));
+            setError(mapErrorToUserMessage({ error: result.error }));
             setLoading(false);
             return;
         }
@@ -112,8 +119,8 @@ export default function SubscriptionUsagePage() {
                     <div className="flex items-center">
                         <span
                             className={`px-3 py-1 rounded-full text-sm font-medium ${usage?.isActive
-                                    ? 'bg-green-100 text-green-800'
-                                    : 'bg-red-100 text-red-800'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800'
                                 }`}
                         >
                             {usage?.isActive ? t('active') : t('inactive')}

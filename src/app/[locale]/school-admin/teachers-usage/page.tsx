@@ -136,7 +136,7 @@ export default function TeachersUsagePage() {
                 schoolTokensUsed: 25000,
                 individualTokensUsed: 10000,
             },
-             {
+            {
                 userId: 'abcdef12-3456-7890-abcd-ef1234567890',
                 firstName: 'Võ Thị',
                 lastName: 'Em',
@@ -145,7 +145,7 @@ export default function TeachersUsagePage() {
                 schoolTokensUsed: 25000,
                 individualTokensUsed: 10000,
             },
-             {
+            {
                 userId: 'abcdef12-3456-7890-abcd-ef1234567890',
                 firstName: 'Võ Thị',
                 lastName: 'Em',
@@ -154,7 +154,7 @@ export default function TeachersUsagePage() {
                 schoolTokensUsed: 25000,
                 individualTokensUsed: 10000,
             },
-             {
+            {
                 userId: 'abcdef12-3456-7890-abcd-ef1234567890',
                 firstName: 'Võ Thị',
                 lastName: 'Em',
@@ -163,7 +163,7 @@ export default function TeachersUsagePage() {
                 schoolTokensUsed: 25000,
                 individualTokensUsed: 10000,
             },
-             {
+            {
                 userId: 'abcdef12-3456-7890-abcd-ef1234567890',
                 firstName: 'Võ Thị',
                 lastName: 'Em',
@@ -172,7 +172,7 @@ export default function TeachersUsagePage() {
                 schoolTokensUsed: 25000,
                 individualTokensUsed: 10000,
             },
-             {
+            {
                 userId: 'abcdef12-3456-7890-abcd-ef1234567890',
                 firstName: 'Võ Thị',
                 lastName: 'Em',
@@ -181,7 +181,7 @@ export default function TeachersUsagePage() {
                 schoolTokensUsed: 25000,
                 individualTokensUsed: 10000,
             },
-            
+
         ];
 
         if (result.error) {
@@ -189,7 +189,7 @@ export default function TeachersUsagePage() {
             const startIndex = pageNum * size;
             const endIndex = startIndex + size;
             const paginatedMockUsers = mockUsers.slice(startIndex, endIndex);
-            
+
             const mockSchoolInfo: SchoolUsageSummaryDto = {
                 schoolName: 'THPT Chuyên Lê Hồng Phong',
                 totalTeachers: mockUsers.length,
@@ -203,7 +203,7 @@ export default function TeachersUsagePage() {
             setUsers(paginatedMockUsers);
             setTotalPages(Math.ceil(mockUsers.length / size));
             setTotalElements(mockUsers.length);
-            setError(mapErrorToUserMessage(result.error));
+            setError(mapErrorToUserMessage({ error: result.error }));
             setLoading(false);
             return;
         }
@@ -212,12 +212,12 @@ export default function TeachersUsagePage() {
             const realUsers = result.data.users || [];
             // Kết hợp real data với fake data
             const combinedUsers = [...realUsers, ...mockUsers];
-            
+
             // Phân trang cho combined data
             const startIndex = pageNum * size;
             const endIndex = startIndex + size;
             const paginatedUsers = combinedUsers.slice(startIndex, endIndex);
-            
+
             setSchoolInfo({
                 ...result.data,
                 totalTeachers: combinedUsers.length,

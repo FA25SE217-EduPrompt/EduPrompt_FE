@@ -1,76 +1,289 @@
 {
+    "Workbench": {
+        "title": "Bàn làm việc Prompt",
+        "save": "Lưu",
+        "saved": "Đã lưu",
+        "myPrompt": "Prompt của tôi",
+        "edit": "Chỉnh sửa",
+        "editor": "Trình chỉnh sửa",
+        "preview": "Xem trước",
+        "untitled": "Prompt chưa đặt tên",
+        "versionHistory": "Lịch sử Phiên bản",
+        "viewingOlder": "Đang xem phiên bản cũ",
+        "cancel": "Hủy",
+        "restore": "Khôi phục phiên bản này",
+        "viewing": "Đang xem",
+        "noHistory": "Không có lịch sử",
+        "startTyping": "Bắt đầu nhập liệu để xem kết quả prompt tại đây...",
+        "sections": {
+            "instruction": "1. Hướng dẫn",
+            "context": "2. Bối cảnh",
+            "inputData": "3. Dữ liệu Đầu vào",
+            "outputFormat": "4. Định dạng Đầu ra",
+            "constraints": "5. Các ràng buộc"
+        },
+        "placeholders": {
+            "instruction": "Mô tả cụ thể những gì AI nên làm...",
+            "context": "Dán thông tin cơ bản hoặc kéo thả tệp vào đây...",
+            "inputData": "Dữ liệu cụ thể AI cần xử lý...",
+            "outputFormat": "ví dụ: Bảng Markdown, JSON, Gạch đầu dòng...",
+            "constraints": "Bất kỳ giới hạn hoặc ràng buộc phủ định nào..."
+        },
+        "dropFile": "Thả tệp hoặc nhập",
+        "tabs": {
+            "draft": {
+                "label": "Nháp",
+                "save": "Lưu Prompt",
+                "file": "Từ Tệp",
+                "uploadSource": "Tải lên Tài liệu Nguồn",
+                "fileHint": "PDF, DOCX, TXT (Tối đa 10MB)",
+                "taskType": "Loại nhiệm vụ",
+                "tasks": {
+                    "LESSON_PLAN": "Giáo án",
+                    "SLIDE_OUTLINE": "Đề cương Slide",
+                    "QUIZ": "Bài kiểm tra / Đánh giá",
+                    "TEST_MATRIX": "Ma trận đề thi",
+                    "GROUP_ACTIVITY": "Hoạt động nhóm"
+                },
+                "customNote": "Ghi chú tùy chọn",
+                "notePlaceholder": "vd: Tập trung vào Chương 3, làm cho hấp dẫn với trẻ em...",
+                "generate": "Tạo bản nháp",
+                "generating": "Đang tạo bản nháp...",
+                "tags": "Thẻ (Tags)",
+                "tagType": "Loại thẻ",
+                "tagPlaceholder": "Giá trị thẻ",
+                "add": "Thêm",
+                "tagTypes": {
+                    "subject": "Môn học",
+                    "topic": "Chủ đề",
+                    "level": "Cấp độ",
+                    "other": "Khác"
+                },
+                "visibilityCollection": "Hiển thị & Bộ sưu tập",
+                "private": "Riêng tư",
+                "public": "Công khai",
+                "noCollection": "Không có bộ sưu tập",
+                "createNewCollection": "+ Tạo bộ sưu tập mới",
+                "newCollectionName": "Tên bộ sưu tập mới",
+                "newCollectionPlaceholder": "vd: Sinh học lớp 10",
+                "saveNewVersion": "Lưu phiên bản mới",
+                "saveAsCopy": "Lưu bản sao",
+                "saving": "Đang lưu..."
+            },
+            "audit": {
+                "label": "Đánh giá",
+                "ready": "Sẵn sàng đánh giá",
+                "description": "Phân tích prompt của bạn về độ rõ ràng, thiếu ngữ cảnh và các cải tiến tiềm năng.",
+                "scorePrompt": "Chấm điểm Prompt",
+                "scoring": "Đang chấm điểm...",
+                "evaluating": "Đang đánh giá qua 6 khía cạnh...",
+                "overall": "Tổng quát",
+                "dimensions": "Khía cạnh",
+                "detectedIssues": "Các vấn đề phát hiện",
+                "clickToFix": "Nhấp để sửa trong {field}",
+                "reScore": "Chấm điểm lại"
+            },
+            "optimize": {
+                "label": "Tối ưu hóa",
+                "settings": "Cài đặt tối ưu hóa",
+                "mode": "Chế độ tối ưu hóa",
+                "modes": {
+                    "PEDAGOGICAL": "Sư phạm",
+                    "SAFE": "An toàn"
+                },
+                "pedagogicalDesc": "Nâng cao giá trị giáo dục, độ rõ ràng và sự tham gia.",
+                "safeDesc": "Tuân thủ nghiêm ngặt các hướng dẫn an toàn và ràng buộc.",
+                "focusAreas": "Khu vực tập trung",
+                "auditDetected": "(Phát hiện từ Đánh giá)",
+                "noWeakness": "Không phát hiện điểm yếu cụ thể nào. Hãy chấm điểm prompt trong tab Đánh giá để thấy các gợi ý mục tiêu.",
+                "aiAnalyze": "AI sẽ phân tích prompt của bạn và đề xuất các cải tiến về cấu trúc và ngữ nghĩa.",
+                "optimize": "Tối ưu hóa Prompt",
+                "processing": "Đang xử lý...",
+                "refining": "AI đang tinh chỉnh phương pháp sư phạm của bạn...",
+                "result": "Kết quả tối ưu hóa",
+                "scoreImproved": "Điểm đã cải thiện",
+                "appliedImprovements": "Các cải tiến đã áp dụng",
+                "fullComparison": "So sánh đầy đủ Prompt",
+                "original": "Gốc",
+                "optimized": "Đã tối ưu",
+                "discard": "Hủy bỏ",
+                "apply": "Áp dụng thay đổi"
+            }
+        },
+        "assistant": "Trợ lý AI",
+        "promptTitle": "Tiêu đề Prompt",
+        "badges": {
+            "Math": "Toán",
+            "Grade10": "Lớp 10",
+            "LessonPlan": "Giáo án"
+        },
+        "configuration": "Cấu hình",
+        "advancedSettings": "Cài đặt nâng cao",
+        "instruction": "Hướng dẫn (Instruction)",
+        "instructionPlaceholder": "Đóng vai một giáo viên Toán...",
+        "context": "Ngữ cảnh (Context)",
+        "contextPlaceholder": "Nhập ngữ cảnh thủ công...",
+        "uploadZone": "Kéo thả tài liệu (PDF, Docx) để AI học phong cách của bạn.",
+        "outputFormat": "Định dạng đầu ra",
+        "generator": {
+            "tab": "Tạo ý tưởng",
+            "emptyState": "Bạn chưa có ý tưởng?",
+            "inputPlaceholder": "Mô tả thứ bạn cần (vd: Giáo án Toán 10 về Vector lấy ví dụ thực tế...)",
+            "generateBtn": "Tạo Prompt"
+        },
+        "scoring": {
+            "tab": "Chấm điểm & Đánh giá",
+            "score": "Điểm số",
+            "clarity": "Sự rõ ràng",
+            "constraints": "Giới hạn cụ thể",
+            "personalization": "Thông tin cá nhân hóa",
+            "suggestion": "Gợi ý cải thiện",
+            "autoFix": "Tự động sửa",
+            "runAudit": "Chấm điểm ngay"
+        }
+    },
     "HomePage": {
         "title": "EduPrompt - Nền tảng Giáo dục Hỗ trợ AI",
-        "description": "Biến đổi công việc giảng dạy của bạn với các gợi ý và công cụ giáo dục được hỗ trợ bởi AI",
+        "description": "Biến đổi công việc giảng dạy của bạn với các Prompt và công cụ giáo dục được hỗ trợ bởi AI",
         "Hero": {
             "welcomeBack": "Chào mừng trở lại, {name}!",
             "readyToCreate": "Sẵn sàng để tạo ra những bài học tuyệt vời?",
-            "continueJourney": "Tiếp tục hành trình của bạn với các công cụ giảng dạy AI. Truy cập các gợi ý đã lưu, tạo mới và khám phá ý tưởng cho lớp học.",
+            "continueJourney": "Tiếp tục hành trình của bạn với các công cụ giảng dạy AI. Truy cập các Prompt đã lưu, tạo mới và khám phá ý tưởng cho lớp học.",
             "goToDashboard": "Vào Bảng điều khiển",
             "viewProfile": "Xem Hồ sơ",
             "aiTeaching": "Giảng dạy với AI",
             "madeSimple": "Thật đơn giản",
-            "streamline": "Đơn giản hóa việc soạn giáo án với hệ thống quản lý gợi ý thông minh. Tạo, chia sẻ và cá nhân hóa các gợi ý AI phù hợp với phong cách giảng dạy của bạn.",
+            "streamline": "Đơn giản hóa việc soạn giáo án với hệ thống quản lý Prompt thông minh. Tạo, chia sẻ và cá nhân hóa các Prompt AI phù hợp với phong cách giảng dạy của bạn.",
             "startFreeTrial": "Dùng thử miễn phí",
             "watchDemo": "Xem Demo"
         }
     },
     "LandingPage": {
+        "Hero": {
+            "headline": "Trợ lý AI Đắc lực cho Giáo dục Trung học Phổ thông.",
+            "subhead": "Tạo giáo án, đề kiểm tra và tiêu chí chấm điểm chuẩn theo khung chương trình chỉ trong vài giây.",
+            "getStarted": "Bắt đầu miễn phí",
+            "explore": "Hãy bắt đầu khám phá",
+            "watchDemo": "Xem Demo",
+            "mockup": {
+                "math": "Toán học / Mathematics",
+                "grade": "Lớp 10 • Đại số",
+                "lessonPlan": "Đã tạo Giáo án",
+                "lessonDetails": "Phương trình bậc hai • 45 phút",
+                "quiz": "Tiêu chí chấm điểm",
+                "quizDetails": "Tiêu chuẩn • 10 Câu hỏi",
+                "generate": "Tạo tài nguyên"
+            }
+        },
+        "SocialTicker": {
+            "trustedBy": "Được tin dùng bởi giáo viên từ các trường hàng đầu"
+        },
         "Features": {
-            "title": "Tất cả những gì bạn cần để nâng cao việc giảng dạy",
-            "subtitle": "Khám phá các tính năng mạnh mẽ được thiết kế dành riêng cho giáo viên cấp 3",
-            "repository": "Kho gợi ý",
-            "repositoryDesc": "Truy cập hàng ngàn gợi ý được phân loại theo môn học, cấp lớp và mục tiêu giảng dạy.",
-            "personalization": "Công cụ Cá nhân hóa",
-            "personalizationDesc": "AI điều chỉnh các gợi ý để phù hợp với phong cách giảng dạy, chuyên môn và nhu cầu lớp học của bạn.",
-            "collaboration": "Trung tâm Hợp tác",
-            "collaborationDesc": "Chia sẻ, đánh giá và cộng tác trên các gợi ý với đồng nghiệp trong trường và hơn thế nữa.",
-            "suggestions": "Gợi ý AI",
-            "suggestionsDesc": "Nhận các đề xuất thông minh dựa trên thói quen giảng dạy và yêu cầu chương trình học của bạn.",
-            "access": "Truy cập dựa trên vai trò",
-            "accessDesc": "Hệ thống phân quyền an toàn cho giáo viên, quản trị viên và người quản lý hệ thống.",
-            "crossPlatform": "Đa nền tảng",
-            "crossPlatformDesc": "Truy cập gợi ý của bạn ở mọi nơi với nền tảng web và ứng dụng di động đáp ứng của chúng tôi."
+            "title": "Tính Năng Cốt Lỗi",
+            "subtitle": "Mọi thứ bạn cần để nâng cao quy trình giảng dạy",
+            "score": "Điểm số",
+            "tags": [
+                "Giáo án",
+                "Slide",
+                "Đề kiểm tra",
+                "Ma trận đề",
+                "Hoạt động nhóm"
+            ],
+            "repository": {
+                "title": "Kho Tài Nguyên Thông Minh",
+                "body": "Tìm kiếm ngữ nghĩa cho 5 tác vụ trọng tâm: Giáo án, Slide, Đề kiểm tra, Ma trận đề, và Hoạt động nhóm. Chuẩn hóa theo chương trình GDPT."
+            },
+            "personalization": {
+                "title": "Tạo Tác Vụ Theo Ngữ Cảnh",
+                "body": "Tải lên tài liệu của bạn. AI sẽ tạo prompt được cá nhân hóa theo phong cách giảng dạy và hồ sơ giáo viên riêng biệt."
+            },
+            "optimization": {
+                "title": "Đánh Giá & Tối Ưu Prompt",
+                "body": "Chấm điểm prompt ngay lập tức. Hệ thống tự động phát hiện điểm yếu và tối ưu hóa để có kết quả đầu ra tốt nhất."
+            },
+            "ecosystem": {
+                "title": "Đa Nền Tảng",
+                "body": "Truy cập bộ sưu tập mọi lúc mọi nơi qua Tiện ích mở rộng và Ứng dụng di động."
+            }
         },
         "Pricing": {
-            "title": "Chọn gói của bạn",
-            "subtitle": "Các tùy chọn giá linh hoạt cho giáo viên cá nhân và trường học",
+            "title": "Bảng giá Đơn giản, Minh bạch",
+            "subtitle": "Công cụ cho mọi giai đoạn trong sự nghiệp giảng dạy của bạn",
+            "perMonth": "/tháng",
             "freeTrial": "Dùng thử miễn phí",
             "standard": "Tiêu chuẩn",
             "premium": "Cao cấp",
             "schoolWide": "Toàn trường",
-            "perMonth": "/tháng",
+            "negotiated": "Thỏa thuận",
             "perTeacherMonth": "/giáo viên/tháng",
             "perSchoolYear": "/trường/năm",
             "features": {
-                "limited": "Thư viện gợi ý giới hạn",
-                "oneTeacher": "1 giáo viên mỗi trường",
-                "basic": "Các tính năng cơ bản",
-                "fullAccess": "Truy cập đầy đủ kho lưu trữ",
+                "limited": "Truy cập hạn chế",
+                "oneTeacher": "Một giáo viên",
+                "basic": "Tính năng cơ bản",
+                "fullAccess": "Truy cập đầy đủ",
                 "aiPersonalization": "Cá nhân hóa AI",
-                "collaboration": "Tính năng cộng tác",
+                "collaboration": "Công cụ cộng tác",
                 "prioritySupport": "Hỗ trợ ưu tiên",
-                "unlimited": "Không giới hạn giáo viên",
+                "unlimited": "Truy cập không giới hạn",
                 "adminDashboard": "Bảng điều khiển quản trị",
-                "analytics": "Phân tích và báo cáo",
-                "premium": "Tiện ích bổ sung cao cấp",
-                "schoolNoQuota": "Miễn phí các hạn ngạch thao tác, kiểm thử & tối ưu hóa",
-                "schoolSharedPool": "Mức sử dụng được tính vào nhóm token của trường"
+                "analytics": "Phân tích",
+                "premium": "Tính năng cao cấp",
+                "schoolNoQuota": "Không giới hạn cá nhân",
+                "schoolSharedPool": "Kho token dùng chung"
+            },
+            "Tiers": {
+                "Free": {
+                    "name": "Miễn Phí",
+                    "price": "0đ",
+                    "desc": "Công cụ thiết yếu cho giáo viên.",
+                    "features": [
+                        "Truy cập các model chuẩn",
+                        "Tìm kiếm 5 loại tác vụ chính",
+                        "Quản lý Bộ sưu tập cơ bản"
+                    ]
+                },
+                "Pro": {
+                    "name": "Pro",
+                    "price": "59.000đ",
+                    "desc": "Dành cho giáo viên 4.0.",
+                    "features": [
+                        "Tăng hạn mức Token",
+                        "Truy cập các Model cao cấp",
+                        "Công cụ Tối ưu hóa Prompt"
+                    ],
+                    "badge": "Phổ biến"
+                },
+                "Premium": {
+                    "name": "Premium",
+                    "price": "239.000đ",
+                    "desc": "Mở khóa tiềm năng vô hạn.",
+                    "features": [
+                        "Gấp 10 lần hạn mức Token",
+                        "Trải nghiệm tính năng mới sớm nhất",
+                        "Tốc độ tạo nội dung ưu tiên"
+                    ]
+                }
+            },
+            "School": {
+                "title": "Gói Trường Học & Tổ Chức",
+                "subtitle": "Tất cả tính năng của Pro + kho token dùng chung cho toàn trường.",
+                "benefit": "Một gói đăng ký cho toàn trường. Sử dụng Kho Token Dùng Chung linh hoạt cho tất cả giáo viên được cấp quyền.",
+                "cta": "Liên hệ Báo giá"
             },
             "buttons": {
                 "startFreeTrial": "Bắt đầu dùng thử miễn phí",
                 "getStarted": "Bắt đầu ngay",
                 "contactSales": "Liên hệ Kinh doanh",
-                "upgradeNow": "Nâng cấp Ngay",
-                "currentPlan": "Gói hiện tại"
-            },
-            "negotiated": "Thỏa thuận"
+                "currentPlan": "Gói hiện tại",
+                "upgradeNow": "Nâng cấp ngay"
+            }
         },
         "PricingCard": {
             "mostPopular": "Phổ biến nhất",
-            "viewPlanDetails": "Xem chi tiết gói",
+            "currentPlan": "Gói hiện tại",
             "showLess": "Thu gọn",
-            "currentPlan": "Gói hiện tại"
+            "viewPlanDetails": "Xem chi tiết gói"
         },
         "CTA": {
             "title": "Sẵn sàng để thay đổi việc giảng dạy của bạn?",
@@ -78,6 +291,22 @@
             "startTrial": "Bắt đầu dùng thử miễn phí",
             "scheduleDemo": "Lên lịch Demo"
         }
+    },
+    "Navbar": {
+        "features": "Tính năng",
+        "pricing": "Bảng giá",
+        "about": "Giới thiệu",
+        "profile": "Hồ sơ cá nhân",
+        "dashboard": "Bảng điều khiển",
+        "schoolDashboard": "Quản lý Trường học",
+        "logout": "Đăng xuất",
+        "signIn": "Đăng nhập",
+        "getStarted": "Bắt đầu ngay"
+    },
+    "LocaleSwitcher": {
+        "label": "Ngôn ngữ",
+        "en": "English",
+        "vi": "Tiếng Việt"
     },
     "Dashboard": {
         "PromptCard": {
@@ -124,24 +353,27 @@
             "aiSuggestions": "Gợi ý AI",
             "searchResults": "Kết quả tìm kiếm",
             "myPrompts": "Prompt của tôi",
+            "sharedPrompts": "Prompt được chia sẻ trong nhóm",
             "create": "Tạo mới",
             "noResults": "Không tìm thấy kết quả",
             "noPrompts": "Bạn chưa tạo prompt nào.",
-            "promptNotFound": "Không tìm thấy gợi ý hoặc bị từ chối truy cập.",
-            "metadataUpdated": "Đã cập nhật siêu dữ liệu gợi ý",
+            "noSharedPrompts": "Chưa có prompt nào được chia sẻ với bạn.",
+            "promptNotFound": "Không tìm thấy Prompt hoặc bị từ chối truy cập.",
+            "metadataUpdated": "Đã cập nhật siêu dữ liệu Prompt",
             "metadataUpdateFailed": "Không thể cập nhật siêu dữ liệu",
             "shareLinkGenerated": "Đã tạo liên kết chia sẻ",
             "shareLinkFailed": "Không thể tạo liên kết chia sẻ",
             "shareLinkRevoked": "Đã thu hồi liên kết chia sẻ",
             "shareLinkRevokeFailed": "Không thể thu hồi liên kết chia sẻ",
-            "rolledBack": "Đã khôi phục gợi ý về phiên bản cũ",
-            "rollBackFailed": "Không thể khôi phục gợi ý",
+            "rolledBack": "Đã khôi phục Prompt về phiên bản cũ",
+            "rollBackFailed": "Không thể khôi phục Prompt",
             "optimizationStarted": "Đã bắt đầu tối ưu hóa. Kiểm tra thông báo của bạn để xem kết quả.",
             "optimizationFailed": "Không thể bắt đầu tối ưu hóa",
-            "confirmRollback": "Bạn có chắc chắn muốn khôi phục về phiên bản này không? Các thay đổi hiện tại sẽ được lưu dưới dạng phiên bản mới."
+            "confirmRollback": "Bạn có chắc chắn muốn khôi phục về phiên bản này không? Các thay đổi hiện tại sẽ được lưu dưới dạng phiên bản mới.",
+            "loadMore": "Tải thêm"
         },
         "Teacher": {
-            "promptsCreated": "Gợi ý đã tạo",
+            "promptsCreated": "Prompt đã tạo",
             "collectionsOwned": "Bộ sưu tập sở hữu",
             "optimizationsUsed": "Lượt tối ưu hóa đã dùng",
             "tokensRemaining": "Token còn lại",
@@ -150,7 +382,9 @@
         },
         "Sidebar": {
             "myPrompts": "Prompt của tôi",
-            "searchPrompts": "Tìm kiếm Prompt",
+            "comparePrompts": "Kiểm thử & So sánh",
+            "explorer": "Khám phá",
+            "workbench": "Bàn làm việc",
             "myCollections": "Bộ sưu tập của tôi",
             "myGroups": "Nhóm của tôi",
             "mySchool": "Trường của tôi",
@@ -167,7 +401,9 @@
             "createFirst": "Tạo nhóm đầu tiên",
             "members": "Thành viên",
             "addMember": "Thêm thành viên",
-            "addMemberPlaceholder": "Thêm thành viên bằng email...",
+            "addMemberPlaceholder": "Chọn người dùng để thêm...",
+            "noUsersAvailable": "Không có người dùng nào để thêm",
+            "noResults": "Không tìm thấy kết quả",
             "manageMembers": "Quản lý Thành viên",
             "groupInfo": "Thông tin Nhóm",
             "created": "Đã tạo",
@@ -183,7 +419,24 @@
             "addMemberFailed": "Không thể thêm thành viên",
             "removeMemberSuccess": "Đã xóa thành viên thành công",
             "removeMemberFailed": "Không thể xóa thành viên",
-            "removeConfirm": "Bạn có chắc chắn muốn xóa thành viên này?"
+            "removeMember": "Xóa thành viên",
+            "removeConfirm": "Bạn có chắc chắn muốn xóa thành viên này?",
+            "loadError": "Lỗi khi tải nhóm. Vui lòng thử lại.",
+            "groupNotFound": "Không tìm thấy nhóm hoặc bị từ chối truy cập.",
+            "dashboard": "Bảng điều khiển",
+            "collections": "Bộ sưu tập",
+            "addCollection": "Thêm Bộ sưu tập",
+            "noCollections": "Nhóm này chưa có bộ sưu tập nào",
+            "assignCollection": "Gán Bộ sưu tập",
+            "assign": "Gán",
+            "assignCollectionSuccess": "Đã gán bộ sưu tập thành công",
+            "assignCollectionFailed": "Không thể gán bộ sưu tập",
+            "noAvailableCollections": "Không có bộ sưu tập nào khả dụng",
+            "createCollectionFirst": "Tạo bộ sưu tập riêng tư trước để gán vào nhóm",
+            "cancel": "Hủy",
+            "tags": "Thẻ",
+            "noTeachersFound": "Không tìm thấy giáo viên nào trong trường hoặc bạn chưa tham gia trường học.",
+            "updateProfile": "Cập nhật hồ sơ để tham gia trường học"
         },
         "GroupModal": {
             "createTitle": "Tạo Nhóm Mới",
@@ -213,6 +466,11 @@
             "unlimitedAccess": "Truy cập Không giới hạn",
             "schoolSubscriptionGrant": "Gói đăng ký trường học của bạn cấp quyền truy cập không giới hạn vào:",
             "premiumPromptLibrary": "Thư viện Prompt Cao cấp",
+            "schoolBenefitTitle": "Quyền lợi Gói Trường học",
+            "schoolBenefitDesc": "Gói trường học mở khóa toàn bộ sức mạnh của EduPrompt cho đội ngũ giáo viên:",
+            "schoolFeatureProFeatures": "Tất cả tính năng Pro — AI nâng cao, công cụ tối ưu & hỗ trợ ưu tiên",
+            "schoolFeatureSharedPool": "Kho token dùng chung toàn trường, linh hoạt cho mọi giáo viên",
+            "schoolFeatureNoQuota": "Không giới hạn cá nhân — cộng tác tự do không lo hết quota",
             "currentSubscription": "Gói Đăng ký Hiện tại",
             "manageBilling": "Quản lý thanh toán và chi tiết gói",
             "active": "Đang hoạt động",
@@ -260,8 +518,32 @@
                 "analytics": "Phân tích & báo cáo",
                 "premiumAddons": "Tiện ích bổ sung cao cấp",
                 "customSchoolLimits": "Các giới hạn tùy chỉnh dành cho quy mô toàn trường với thanh toán tập trung và quyền quản trị.",
-                "oneMillionTokens": "1 Triệu Token",
-                "tenMillionTokens": "10 Triệu Token"
+                "oneMillionTokens": "10 Triệu Token",
+                "tenMillionTokens": "10 Triệu Token",
+                "downgradeNotAvailable": "Bạn đang sử dụng gói cao cấp hơn",
+                "downgrade": "Không khả dụng"
+            }
+        },
+        "Collections": {
+            "Detail": {
+                "notFound": "Không tìm thấy bộ sưu tập",
+                "updateSuccess": "Cập nhật bộ sưu tập thành công",
+                "updateError": "Không thể cập nhật bộ sưu tập",
+                "deleteConfirm": "Bạn có chắc chắn muốn xóa bộ sưu tập này? Hành động này không thể hoàn tác.",
+                "deleteSuccess": "Đã xóa bộ sưu tập thành công",
+                "deleteError": "Không thể xóa bộ sưu tập",
+                "addPrompt": "Thêm Prompt",
+                "noPrompts": "Chưa có prompt nào",
+                "emptyDescription": "Bộ sưu tập này đang trống. Thêm prompt có sẵn hoặc tạo mới để bắt đầu.",
+                "addPromptToCollection": "Thêm Prompt vào Bộ sưu tập"
+            },
+            "AddPromptModal": {
+                "title": "Thêm Prompt vào Bộ sưu tập",
+                "searchPlaceholder": "Tìm kiếm prompt...",
+                "noPrompts": "Không tìm thấy prompt nào",
+                "addSelected": "Thêm đã chọn",
+                "cancel": "Hủy",
+                "add": "Thêm"
             }
         }
     },
@@ -511,7 +793,7 @@
             "selectPlaceholder": "Chọn..."
         },
         "Search": {
-            "pageTitle": "Tìm kiếm & Kiểm thử Prompt",
+            "pageTitle": "So sánh Prompt",
             "searchPlaceholder": "Tìm kiếm prompt...",
             "search": "Tìm kiếm",
             "keyword": "Từ khóa",
@@ -538,7 +820,7 @@
             "showSettings": "Hiện cài đặt",
             "hideSettings": "Ẩn cài đặt",
             "globalSettings": "CÀI ĐẶT KIỂM THỬ CHUNG",
-            "temperature": "Nhiệt độ (Sáng tạo)",
+            "temperature": "Temperature",
             "topP": "Top P (Đa dạng)",
             "maxTokens": "Độ dài tối đa",
             "runComparison": "Chạy So sánh",
@@ -674,16 +956,6 @@
             "role": "Quản trị viên Trường học"
         }
     },
-    "Navbar": {
-        "features": "Tính năng",
-        "pricing": "Bảng giá",
-        "about": "Giới thiệu",
-        "profile": "Hồ sơ",
-        "dashboard": "Bảng điều khiển",
-        "logout": "Đăng xuất",
-        "signIn": "Đăng nhập",
-        "schoolDashboard": "Trang quản trị trường học"
-    },
     "Profile": {
         "title": "Hồ sơ của tôi",
         "personalInfo": "Thông tin cá nhân",
@@ -765,6 +1037,7 @@
             "79": "Giao dịch không thành công do: KH nhập sai mật khẩu thanh toán quá số lần quy định.",
             "99": "Các lỗi khác (lỗi còn lại, không có trong danh sách mã lỗi đã liệt kê)"
         },
+        "error": "Đã xảy ra lỗi khi khởi tạo thanh toán.",
         "Checkout": {
             "title": "Thanh toán",
             "subtitle": "Xem lại gói đăng ký của bạn trước khi tiếp tục.",
@@ -775,5 +1048,69 @@
             "processing": "Đang xử lý...",
             "legalDisclaimer": "Bằng cách nhấp vào \"Thanh toán\", bạn đồng ý với Điều khoản dịch vụ và Chính sách quyền riêng tư của chúng tôi. Bạn sẽ được chuyển hướng đến VNPay để hoàn tất giao dịch."
         }
+    },
+    "Explorer": {
+        "title": "Khám phá Chương trình",
+        "searchPlaceholder": "Tìm kiếm prompt, bài học, hoặc chủ đề...",
+        "semanticSearch": "Tìm ngữ nghĩa",
+        "keywordSearch": "Tìm từ khóa",
+        "grade": "Khối",
+        "tagTypes": {
+            "subject": "Môn học"
+        },
+        "filters": {
+            "title": "Lọc theo:",
+            "LessonPlan": "Giáo án",
+            "Slide": "Slide bài giảng",
+            "Test": "Đề kiểm tra",
+            "Matrix": "Ma trận đề",
+            "Activity": "Hoạt động nhóm",
+            "clearFilters": "Xóa bộ lọc"
+        },
+        "searchResults": "Kết quả",
+        "searchNoResults": "Không tìm thấy kết quả cho",
+        "noDescription": "Không có mô tả",
+        "lessonBundle": "Gói bài học",
+        "customize": "Tùy chỉnh",
+        "preview": "Xem trước",
+        "noSelection": "Chọn một bài học",
+        "promptTasks": "Mẫu Prompt",
+        "availableResources": "Tài nguyên dạy học",
+        "copyContent": "Sao chép",
+        "copySuccess": "Đã sao chép nội dung vào clipboard!",
+        "contentViewerPlaceholder": "Chọn một bài học",
+        "contentViewerHint": "Chọn một bài học từ thanh bên để xem lý thuyết, ví dụ và kiến thức cơ bản.",
+        "actionDeck": {
+            "create": "Tạo mới"
+        },
+        "loadMoreResults": "Tải thêm kết quả",
+        "pageTitle": "Khám phá Chương trình",
+        "loadingRemaining": "còn lại",
+        "searchPoweredBy": "Tìm kiếm được hỗ trợ bởi",
+        "failedToLoad": "Không thể tải nội dung",
+        "failedToLoadDesc": "Đã xảy ra lỗi khi tải dữ liệu bài học.",
+        "noContent": "Không có nội dung cho bài học này.",
+        "failedToLoadPrompts": "Không thể tải prompt cụ thể.",
+        "noPrompts": "Chưa có prompt nào cho bài học này.",
+        "comingSoon": "Sắp ra mắt",
+        "examGenerator": "Bộ sinh đề thi",
+        "unableToLoadCurriculum": "Không thể tải khung chương trình",
+        "checkConnection": "Vui lòng kiểm tra kết nối và thử lại.",
+        "noCurriculumData": "Không có dữ liệu chương trình.",
+        "saveBundle": "Lưu gói",
+        "downloadAll": "Tải tất cả",
+        "verified": "Đã xác minh"
+    },
+    "ContactSales": {
+        "title": "Liên hệ Kinh doanh",
+        "subtitle": "Nhận gói tùy chỉnh cho trường học của bạn",
+        "schoolName": "Tên trường",
+        "address": "Địa chỉ",
+        "fullName": "Họ và tên",
+        "position": "Chức vụ",
+        "email": "Địa chỉ Email",
+        "details": "Thông tin bổ sung",
+        "submit": "Gửi yêu cầu",
+        "successMessage": "Yêu cầu đã được gửi thành công! Chúng tôi sẽ liên hệ với bạn sớm."
     }
 }
