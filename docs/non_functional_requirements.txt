@@ -1,0 +1,34 @@
+4. NON-FUNCTIONAL REQUIREMENTS
+
+4.1 EXTERNAL INTERFACES
+
+- User Interfaces: 
+  The system is a web-based application accessible via modern web browsers (Chrome, Firefox, Edge, Safari). It features a responsive design that adapts standard layouts for desktop and simplified views for mobile devices.
+
+- Authentication Interface: 
+  Integrates with Google Identity Services for OAuth 2.0 Single Sign-On (SSO). It also interacts with email providers to handle verification and password reset flows.
+
+- Payment Interface: 
+  Connects directly with the VNPAY payment gateway for processing local subscription transactions (converting USD plan prices to VND).
+
+- AI Service Interface: 
+  Communicates with AI providers (e.g., Gemini, OpenAI) via backend APIs to perform prompt generation, optimization, and comparison tasks.
+
+- Export & Communication: 
+  Supports email notifications for system alerts (e.g., school invites). (Note: Chrome extension and file export features are currently not implemented in the main web scope).
+
+4.2 QUALITY ATTRIBUTES
+
+4.2.1 Usability
+- Bilingual Support: The interface is fully localized for both Vietnamese and English users.
+- User-Centric Design: Workflows are streamlined for teachers, allowing them to create and test prompts within minutes.
+- Feedback: The system provides clear visual indicators (loading spinners, toast notifications) for all user actions to ensure system status visibility.
+
+4.2.2 Reliability
+- Availability: Designed for high uptime during school hours.
+- Data Integrity: Ensures that prompt versions and collection data are saved accurately. Role-based access control prevents unauthorized data modification (e.g., students cannot modify teacher prompts).
+
+4.2.3 Performance
+- Responsiveness: Pages and interactive elements load quickly using client-side optimization.
+- Scalability: The architecture supports concurrent usage by multiple teachers within a school subscription without significant lag.
+- Resource Efficiency: Manages AI token quotas effectively to prevent overuse while maintaining service speed.

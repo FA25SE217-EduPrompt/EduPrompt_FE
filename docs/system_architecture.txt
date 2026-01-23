@@ -1,0 +1,73 @@
+1. SYSTEM DESIGN
+
+1.1 SYSTEM ARCHITECTURE
+
+The EduPrompt system is architected as a robust, scalable, and modern distributed application. It employs a client-server model where multiple client interfaces interact with a centralized, containerized backend. This architecture ensures separation of concerns, maintainability, and the ability to scale different components independently.
+
+### 1.1.1 End User Clients
+The system supports multiple platforms to ensure accessibility for various user contexts (desktop planning, mobile review).
+
+*   **Frontend (NextJS):** 
+    *   **Role:** The primary web interface for the application.
+    *   **Description:** Built using the Next.js React framework, it delivers a high-performance, responsive user experience. It utilizes both Server-Side Rendering (SSR) for SEO and initial load speed, and Client-Side Rendering (CSR) for dynamic interactivity.
+    *   **Responsibilities:** Handles user authentication flows, displays the prompt management UI, renders complex collection views, and manages state for the interactive prompt workbench. It communicates with the backend via secure RESTful APIs.
+
+*   **Mobile (Flutter):**
+    *   **Role:** The mobile counterpart for on-the-go access.
+    *   **Description:** Developed with Flutter to provide a native-like experience on both iOS and Android from a single codebase.
+    *   **Responsibilities:** Focused on consumption and quick actions—allowing teachers to review prompts, approve requests, or browse collections while away from their desks. It shares the same API contracts as the web frontend, ensuring data consistency.
+
+### 1.1.2 Backend Core
+The backbone of the system is a Java-based API server, robustly designed for enterprise-grade logic and security.
+
+*   **Java Spring Boot Application:**
+    *   **Role:** The central logic and API provider.
+    *   **Description:** Built on the Spring ecosystem, this monolithic application manages the core business rules. It includes modules for User Management, Prompt Engineering, Subscription Billing, and System Administration.
+    *   **Responsibilities:**
+        *   **Security:** Validates JWT tokens and handles OAuth2 integration with Google.
+        *   **Orchestration:** Coordinates calls between the database, AI models, and external services.
+        *   **Business Logic:** Implements the rules for prompt validation, versioning, and quota tracking.
+
+*   **Docker Container:**
+    *   **Role:** Deployment and isolation unit.
+    *   **Description:** The Spring Boot application is packaged within a Docker container.
+    *   **Benefits:** This ensures environment consistency, eliminating "works on my machine" issues. It allows the backend to be easily deployed to any cloud provider or on-premise server that supports container runtimes, and facilitates horizontal scaling by spinning up additional container instances behind a load balancer.
+
+### 1.1.3 Data Persistence & Caching
+The data layer is designed for reliability and high-speed access using a hybrid approach.
+
+*   **Postgres (Relational Database):**
+    *   **Role:** Primary reliable storage.
+    *   **Description:** A powerful, open-source object-relational database system.
+    *   **Responsibilities:** Stores all persistent data including user accounts, prompt templates, collection hierarchies, and transaction logs. It maintains strict data integrity through foreign key constraints and ACID-compliant transactions, essential for financial and user data.
+
+*   **Redis (Cache):**
+    *   **Role:** High-speed caching layer.
+    *   **Description:** An in-memory key-value store.
+    *   **Responsibilities:** Reduces load on the Postgres database by caching frequently accessed read-heavy data, such as public prompt collections, system configurations, and active user sessions. It ensures low-latency responses for common requests.
+
+### 1.1.4 Advanced Features
+Specialized components handling AI-specific and media-heavy workloads.
+
+*   **RAG System (File Search Store):**
+    *   **Role:** Retrieval-Augmented Generation engine.
+    *   **Description:** A specialized subsystem designed to ingest, index, and retrieve relevant documentation or curriculum files.
+    *   **Responsibilities:** When a user creates a prompt dependent on specific textbooks or guides, this system retrieves the relevant context and feeds it to the AI Model. This massively improves the accuracy and relevance of AI-generated content compared to standard LLM training data.
+
+*   **Image Cloud Storage (Cloudinary):**
+    *   **Role:** Media Asset Management.
+    *   **Description:** A SaaS solution for storing and transforming images.
+    *   **Responsibilities:** Hosting user avatars, thumbnail images for collections, and any visual assets attached to prompts. Offloading binary data storage to the cloud reduces the complexity and bandwidth requirements of the main backend server.
+
+### 1.1.5 External Services (Integrations)
+The system leverages third-party APIs for specialized functionalities outside its core domain.
+
+*   **Model Provider (Gemini / OpenAI):**
+    *   **Role:** AI Interface Layer.
+    *   **Description:** The backend acts as a proxy and orchestrator for calls to Generative AI providers.
+    *   **Responsibilities:** Sending constructed prompts to LLMs and receiving generated text. The backend ensures API keys are kept secure (never exposed to the frontend) and abstracts the differences between providers, allowing the system to switch between or compare models like Gemini and GPT-4 easily.
+
+*   **Payment (VNPay):**
+    *   **Role:** Financial Transaction Gateway.
+    *   **Description:** A local payment gateway integration specific to the Vietnamese market.
+    *   **Responsibilities:** Securely processing credit card and local bank transfer payments for subscription upgrades. The system handles the "Checkout" flow initiation and processes the secure "Callback/IPN" from VNPay to update user subscription statuses automatically upon successful payment.

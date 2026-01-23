@@ -1,0 +1,50 @@
+5. REQUIREMENT APPENDIX
+
+5.1 BUSINESS RULES
+
+- BR.01 - Account Uniqueness: Email addresses must be unique across the system. A user cannot register with an existing confirmed email.
+- BR.02 - Role Hierarchy:
+  - System Admin: Full access to all resources.
+  - School Admin: Access to school-specific subscriptions and teacher management.
+  - Teacher: Access to Prompt creation, Groups, and Collections.
+- BR.03 - Quota Enforcement:
+  - Free Tier: Limited tokens/day, no private prompts.
+  - Pro Tier: Higher limits, priority processing.
+  - School Subscription: Shared school token pool; no individual hard limits unless configured.
+  - User cannot execute prompts if quota is exhausted.
+- BR.04 - Content Moderation: Prompts containing prohibited keywords (profanity, self-harm) are automatically flagged or blocked by the AI provider filter.
+- BR.05 - Membership: A teacher can belong to multiple Groups but is typically linked to only one School Subscription for payment purposes.
+
+5.2 COMMON REQUIREMENTS
+
+5.2.1 User Interface (UI)
+- Responsiveness: The interface must display correctly on devices with widths ranging from 375px (Mobile) to 1920px (Desktop).
+- Standard Layout: "Dashboard" pages must follow a consistent layout with the sidebar navigation on the left and content area on the right.
+- Language: All UI text must be localizable. The system supports English (en) and Vietnamese (vi), defaulting to Vietnamese for local IPs.
+- Tables: All data tables must support pagination (default 10 rows per page) if data exceeds 20 records.
+- Icons: Use standard icon sets (Heroicons/Lucide) consistently for common actions (e.g., Pencil for Edit, Trash can for Delete).
+
+5.2.2 Data Validation & Formatting
+- Date Format: Display all dates in `DD/MM/YYYY` format (e.g., 15/01/2026).
+- Time Format: Use 24-hour format `HH:mm` (e.g., 14:30).
+- Currency: Monetary values display in localized format (e.g., "$10.00" for USD, "250.000 ₫" for VND).
+- Required Fields: Input fields strictly required for an action must be marked with a red asterisk (*).
+- Submission: "Submit/Save" buttons must be disabled immediately after click to prevent duplicate submissions.
+
+5.2.3 System Behavior
+- Feedback: Every create/update/delete action must trigger a Toast Notification (Success or Error) appearing at the top-right corner.
+- Confirmations: Critical destructive actions (Delete Prompt, Remove Member) must require a confirmation modal dialog.
+- Timeouts: API requests exceeding 30 seconds should display a friendly "Request timed out" message to the user rather than a generic browser error.
+- session Management: Tokens expire after 7 days (refresh token flow). Users are redirected to Login screen upon token invalidation.
+
+5.3 APPLICATION MESSAGES LIST
+
+| ID      | Type    | Context                                           | Content (EN)                                      | Content (VI)                                         |
+|---------|---------|---------------------------------------------------|---------------------------------------------------|------------------------------------------------------|
+| MSG-001 | Success | General generic success                           | Operation completed successfully.                 | Thao tác thành công.                                 |
+| MSG-002 | Error   | Unhandled exception/API failure                   | System error occurred. Please try again later.    | Có lỗi hệ thống. Vui lòng thử lại sau.               |
+| MSG-003 | Warning | Delete confirmation prompt                        | Are you sure you want to delete this item?        | Bạn có chắc chắn muốn xóa mục này không?             |
+| MSG-004 | Info    | Empty search results or list                      | No data found.                                    | Không tìm thấy dữ liệu.                              |
+| MSG-005 | Error   | Login failure                                     | Invalid email or password.                        | Email hoặc mật khẩu không đúng.                      |
+| MSG-006 | Error   | Access Control violation                          | You do not have permission to access this resource.| Bạn không có quyền truy cập tài nguyên này.          |
+| MSG-007 | Info    | Subscription limit reached                        | Your quota has been exceeded.                     | Bạn đã vượt quá giới hạn sử dụng.                    |
