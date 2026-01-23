@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useFilterPrompts, useSemanticSearch } from '@/hooks/queries/search';
 import { useGetMyPrompts, useGetGroupSharedPrompts } from '@/hooks/queries/prompt';
 import { useCountMyCollections } from '@/hooks/queries/collection';
+import { useDebounce } from "@/hooks/useDebounce";
 import { PromptMetadataResponse, SemanticSearchResult, PromptResponse } from "@/types/prompt.api";
 import { TagResponse } from "@/types/tag.api";
 import { useAuth } from "@/hooks/useAuth";
@@ -25,114 +26,191 @@ const PromptsPage: React.FC = () => {
 
     // Search State
     const [searchQuery, setSearchQuery] = useState('');
-    const [executedSearchQuery, setExecutedSearchQuery] = useState('');
     const [searchType, setSearchType] = useState<'keyword' | 'semantic'>('keyword');
+    const debouncedSearchQuery = useDebounce(searchQuery, 500);
     const [isSearching, setIsSearching] = useState(false);
 
-    // Queries
-    // Fetch "My Prompts" (all prompts created by user) initially
-    const { data: myPromptsData, isLoading: isMyPromptsLoading } = useGetMyPrompts(
-        0, 20, undefined,
-        { enabled: !isSearching }
-    );
-
-    const { data: keywordResults, isLoading: isKeywordLoading } = useFilterPrompts(
-        { title: executedSearchQuery, page: 0, size: 20 },
-        { enabled: searchType === 'keyword' && isSearching }
-    );
-
-    // Shared Prompts
-    const { data: sharedPromptsData, isLoading: isSharedLoading } = useGetGroupSharedPrompts(
-        0, 20, undefined,
-        { enabled: !isSearching }
-    );
-
-    const { mutate: performSemanticSearch, data: semanticResults, isPending: isSemanticLoading } = useSemanticSearch();
-    const { data: quotaData } = useGetQuota();
-    const { data: collectionCountData } = useCountMyCollections();
-
-    const handleSearch = () => {
-        if (!searchQuery.trim()) {
-            setExecutedSearchQuery('');
-            setIsSearching(false);
-            return;
-        }
-        setExecutedSearchQuery(searchQuery);
-        setIsSearching(true);
-        if (searchType === 'semantic') {
-            performSemanticSearch({ query: searchQuery, limit: 20 });
-        }
-    };
+    // Pagination State
+    const [page, setPage] = useState(0);
+    const [allPrompts, setAllPrompts] = useState<DisplayPrompt[]>([]);
+    const [hasMore, setHasMore] = useState(false);
 
     // Helper to map PromptResponse to DisplayPrompt
-    const mapToDisplayPrompt = (p: PromptResponse): DisplayPrompt => {
-        const subjectTag = p.tags?.find((t: TagResponse) => t.type === 'Môn' || t.type === 'Subject')?.value || 'General';
-        const gradeTag = p.tags?.find((t: TagResponse) => t.type === 'Khối' || t.type === 'Grade')?.value || 'N/A';
+    const mapToDisplayPrompt = useCallback((p: any): DisplayPrompt => {
+        const tags = p.tags || [];
+        const subjectTag = tags.find((t: any) => t.type === 'Môn' || t.type === 'Subject')?.value || 'General';
+        const gradeTag = tags.find((t: any) => t.type === 'Khối' || t.type === 'Grade')?.value || 'N/A';
 
-        const otherTags = p.tags?.filter((t: TagResponse) =>
+        const otherTags = tags.filter((t: any) =>
             t.type !== 'Môn' && t.type !== 'Subject' && t.type !== 'Khối' && t.type !== 'Grade'
-        ).map((t: TagResponse) => `${t.type}: ${t.value}`) || [];
+        ).map((t: any) => `${t.type}: ${t.value}`) || [];
 
         return {
-            id: p.id,
+            id: p.id || p.promptId,
             title: p.title,
-            description: p.description || '',
-            author: p.fullName || 'Unknown',
+            description: p.description || p.matchedSnippet || '',
+            author: p.fullName || p.createdByName || 'Unknown',
             subject: subjectTag,
             grade: gradeTag,
             type: 'Prompt',
             rating: p.averageRating || 0,
             isTrending: false,
-            createdAt: p.createdAt,
-            lastUpdated: p.updatedAt || p.createdAt,
+            createdAt: p.createdAt || new Date().toISOString(),
+            lastUpdated: p.updatedAt || p.createdAt || new Date().toISOString(),
             tags: otherTags,
             isOwner: p.ownerId === user?.id
         };
+    }, [user]);
+
+    // Reset pagination when search changes
+    useEffect(() => {
+        setPage(0);
+        setAllPrompts([]); // Clear list to show loading state or fresh results
+    }, [debouncedSearchQuery, searchType]);
+
+    // Update isSearching based on query existence for keyword mode
+    useEffect(() => {
+        if (searchType === 'keyword') {
+            setIsSearching(!!debouncedSearchQuery);
+        }
+    }, [debouncedSearchQuery, searchType]);
+
+    // Queries
+    // 1. My Prompts (Default view)
+    const { data: myPromptsData, isLoading: isMyPromptsLoading } = useGetMyPrompts(
+        page, 20, undefined,
+        { enabled: !isSearching }
+    );
+
+    // 2. Keyword Search
+    const { data: keywordResults, isLoading: isKeywordLoading } = useFilterPrompts(
+        { title: debouncedSearchQuery, page: page, size: 20 },
+        { enabled: searchType === 'keyword' && !!debouncedSearchQuery }
+    );
+
+    // 3. Shared Prompts (Static, non-paginated for now in this view context or separate)
+    const { data: sharedPromptsData, isLoading: isSharedLoading } = useGetGroupSharedPrompts(
+        0, 20, undefined,
+        { enabled: !isSearching }
+    );
+
+    // 4. Semantic Search
+    const { mutate: performSemanticSearch, data: semanticResults, isPending: isSemanticLoading } = useSemanticSearch();
+
+    // Stats
+    const { data: quotaData } = useGetQuota();
+    const { data: collectionCountData } = useCountMyCollections();
+
+    const handleSearch = () => {
+        if (!searchQuery.trim()) return;
+
+        if (searchType === 'semantic') {
+            setIsSearching(true);
+            setPage(0);
+            setAllPrompts([]);
+            performSemanticSearch({ query: searchQuery, limit: 20 });
+        }
     };
 
-    // Map API results to DisplayPrompt format
-    const displayPrompts = useMemo(() => {
-        if (!isSearching) {
-            const apiPrompts = (myPromptsData?.data?.content || []).map(mapToDisplayPrompt);
-            return [...promptData.map(p => ({ ...p, isOwner: false })), ...apiPrompts];
-        } else if (searchType === 'keyword') {
-            return (keywordResults?.data?.content || []).map((p: PromptMetadataResponse) => ({
-                id: p.id,
-                title: p.title,
-                description: p.description || '',
-                author: p.fullName || 'Unknown',
-                subject: 'General',
-                grade: 'N/A',
-                type: 'Prompt',
-                rating: p.averageRating || 0,
-                isTrending: false,
-                createdAt: p.createdAt,
-                lastUpdated: p.updatedAt || p.createdAt,
-                tags: [],
-                isOwner: p.ownerId === user?.id
-            }));
-        } else {
-            return (semanticResults?.data?.results || []).map((p: SemanticSearchResult) => ({
-                id: p.promptId,
-                title: p.title,
-                description: p.description || p.matchedSnippet,
-                author: p.createdByName || 'Unknown',
-                subject: 'Semantic Match',
-                grade: 'N/A',
-                type: 'Prompt',
-                rating: p.averageRating || 0,
-                isTrending: false,
-                createdAt: new Date().toISOString(),
-                lastUpdated: new Date().toISOString(),
-                tags: [],
-                isOwner: p.ownerId === user?.id
-            }));
-        }
-    }, [isSearching, searchType, myPromptsData, keywordResults, semanticResults, user]);
+    // Data Accumulation Logic
+    useEffect(() => {
+        let newData: any[] = [];
+        let total = 0;
+        let shouldUpdate = false;
 
+        // Debug logging
+        console.log('[PromptsPage] Effect Run:', { isSearching, searchType, page, hasKeywordData: !!keywordResults?.data, hasMyPrompts: !!myPromptsData?.data });
+
+        if (isSearching) {
+            // SEARCH MODE
+            if (searchType === 'keyword') {
+                if (keywordResults?.data?.content) {
+                    newData = keywordResults.data.content;
+                    total = keywordResults.data.totalElements;
+                    shouldUpdate = true;
+                }
+            } else if (searchType === 'semantic') {
+                if (semanticResults?.data?.results) {
+                    newData = semanticResults.data.results;
+                    total = newData.length;
+                    shouldUpdate = true;
+                }
+            }
+        } else {
+            // MY PROMPTS MODE
+            if (myPromptsData?.data?.content) {
+                newData = myPromptsData.data.content;
+                total = myPromptsData.data.totalElements;
+                shouldUpdate = true;
+            }
+        }
+
+        // Only update if we have data or if it's the first page
+        if (shouldUpdate || (page === 0 && !isSearching)) {
+            const mapped = newData.map(p => {
+                // Handle missing tags in PromptMetadataResponse
+                const tags = Array.isArray(p.tags) ? p.tags : [];
+
+                const subjectTag = tags.find((t: any) => t.type === 'Môn' || t.type === 'Subject')?.value || 'General';
+                const gradeTag = tags.find((t: any) => t.type === 'Khối' || t.type === 'Grade')?.value || 'N/A';
+                const otherTags = tags.filter((t: any) =>
+                    t.type !== 'Môn' && t.type !== 'Subject' && t.type !== 'Khối' && t.type !== 'Grade'
+                ).map((t: any) => `${t.type}: ${t.value}`) || [];
+
+                return {
+                    id: p.id || p.promptId,
+                    title: p.title,
+                    description: p.description || p.matchedSnippet || '',
+                    author: p.fullName || p.createdByName || 'Unknown',
+                    subject: subjectTag,
+                    grade: gradeTag,
+                    type: 'Prompt',
+                    rating: p.averageRating || 0,
+                    isTrending: false,
+                    createdAt: p.createdAt || new Date().toISOString(),
+                    lastUpdated: p.updatedAt || p.createdAt || new Date().toISOString(),
+                    tags: otherTags,
+                    isOwner: p.ownerId === user?.id
+                };
+            });
+
+            setAllPrompts(prev => {
+                if (page === 0) {
+                    if (!isSearching && page === 0) {
+                        const mocks = promptData.map(p => ({ ...p, isOwner: false }));
+                        // Verify unique IDs to clean up any potential dupes
+                        const mockIds = new Set(mocks.map(m => m.id));
+                        const uniqueMapped = mapped.filter(m => !mockIds.has(m.id));
+                        return [...mocks, ...uniqueMapped];
+                    }
+                    return mapped;
+                }
+                // Append
+                const prevIds = new Set(prev.map(p => p.id));
+                const uniqueNew = mapped.filter(m => !prevIds.has(m.id));
+                return [...prev, ...uniqueNew];
+            });
+
+            if (searchType === 'semantic') {
+                setHasMore(false);
+            } else {
+                const currentFetchedCount = (page + 1) * 20;
+                setHasMore(total > currentFetchedCount);
+            }
+        } else if (page === 0 && isSearching) {
+            // Handle empty search results explicit
+            if (searchType === 'keyword' && keywordResults?.data && keywordResults.data.content.length === 0) {
+                setAllPrompts([]);
+                setHasMore(false);
+            }
+        }
+    }, [myPromptsData, keywordResults, semanticResults, isSearching, searchType, page, user, promptData]);
+
+
+    // Derived Shared Prompts
     const displaySharedPrompts = useMemo(() => {
         return (sharedPromptsData?.data?.content || []).map(mapToDisplayPrompt);
-    }, [sharedPromptsData, user]);
+    }, [sharedPromptsData, mapToDisplayPrompt]);
 
     const isLoading = isSearching
         ? (searchType === 'keyword' ? isKeywordLoading : isSemanticLoading)
@@ -159,13 +237,37 @@ const PromptsPage: React.FC = () => {
                 <SuggestedPrompts suggestions={suggestedData} />
             )}
 
-            {/* My Prompts */}
+            {/* Main Prompts Grid (My Prompts or Search Results) */}
             <PromptsGrid
                 isSearching={isSearching}
-                isLoading={isLoading}
-                prompts={displayPrompts}
-                executedSearchQuery={executedSearchQuery}
+                isLoading={isLoading && page === 0} // Full loader only on first page
+                prompts={allPrompts}
+                executedSearchQuery={searchType === 'keyword' ? debouncedSearchQuery : searchQuery}
             />
+
+            {/* Load More Button */}
+            {hasMore && !isLoading && (
+                <div className="flex justify-center py-6">
+                    <button
+                        onClick={() => setPage(p => p + 1)}
+                        disabled={isLoading}
+                        className="px-6 py-2.5 bg-white border border-gray-200 text-gray-700 font-medium rounded-full shadow-sm hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-95 flex items-center gap-2"
+                    >
+                        {isLoading ? (
+                            <>Loading...</>
+                        ) : (
+                            t('loadMore') || "Load More"
+                        )}
+                    </button>
+                </div>
+            )}
+
+            {/* Next Page Loader */}
+            {isLoading && page > 0 && (
+                <div className="flex justify-center py-6">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-brand-primary"></div>
+                </div>
+            )}
 
             {/* Shared Prompts (only when not searching) */}
             {!isSearching && (

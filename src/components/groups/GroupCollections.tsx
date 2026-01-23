@@ -21,16 +21,12 @@ export const GroupCollections: React.FC<GroupCollectionsProps> = ({ groupId, isO
     const { data: collectionsData, isLoading } = useQuery({
         queryKey: ['group-collections', groupId],
         queryFn: async () => {
-            // Fetching a large number to ensure we get group collections. 
-            // Ideally there should be a proper endpoint for this.
-            const response = await collectionService.getMyCollections(0, 100);
+            const response = await collectionService.getCollectionsByGroup(groupId);
             return response;
         },
     });
 
-    const groupCollections = collectionsData?.data?.content?.filter(
-        (c: CollectionResponse) => c.groupId === groupId
-    ) || [];
+    const groupCollections = Array.isArray(collectionsData?.data) ? collectionsData.data : [];
 
     return (
         <div className="space-y-4">

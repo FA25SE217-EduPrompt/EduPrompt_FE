@@ -500,7 +500,7 @@ export const promptsService = {
     async getGroupSharedPrompts(page = 0, size = 20, opts?: ApiRequestOptions): Promise<BaseResponse<PaginatedResponse<PromptResponse>>> {
         return ApiCall<PaginatedResponse<PromptResponse>>(() =>
             apiClient.request({
-                url: `${BASE}/group-shared?page=${page}&size=${size}`,
+                url: `${BASE}/my-group-shared?page=${page}&size=${size}`,
                 method: 'get',
                 ...buildRequestConfig(opts),
             })

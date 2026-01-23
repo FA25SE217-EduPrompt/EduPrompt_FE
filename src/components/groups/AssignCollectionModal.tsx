@@ -34,7 +34,12 @@ export const AssignCollectionModal: React.FC<AssignCollectionModalProps> = ({
                 collectionId,
                 groupId,
             }),
-        onSuccess: () => {
+        onSuccess: (data) => {
+            if (data.error) {
+                toast.error(t('assignCollectionFailed'));
+                console.error(data.error);
+                return;
+            }
             toast.success(t('assignCollectionSuccess'));
             queryClient.invalidateQueries({ queryKey: ['group-collections', groupId] });
             queryClient.invalidateQueries({ queryKey: ['my-collections'] });

@@ -47,7 +47,7 @@ const Button: React.FC<ButtonProps> = ({
 }) => {
     // Base classes (shared by all variants)
     const baseClasses =
-        'px-8 py-4 rounded-lg text-lg font-semibold transition-all duration-300 ease-in-out inline-flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none';
+        'px-8 py-4 rounded-lg text-lg font-semibold transition-transform duration-100 ease-in-out inline-flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none active:scale-95';
 
     // Variant-specific classes
     let variantClasses = '';

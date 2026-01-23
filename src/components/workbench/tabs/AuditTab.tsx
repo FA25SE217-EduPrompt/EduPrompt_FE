@@ -104,8 +104,17 @@ ${promptData.constraints}
 
         } catch (error: unknown) {
             console.error(error);
-            const err = error as { message?: string };
-            toast.error(err.message || "Failed to score prompt");
+            const err = error as any;
+
+            // Check for Quota Exceeded (503)
+            if (err.response?.status === 503 && err.response?.data?.code === 'QUOTA_EXCEED') {
+                toast.error("Quota Exceeded", {
+                    description: "You have insufficient balance to perform this action. Please top up your wallet."
+                });
+            } else {
+                const message = err.response?.data?.message || err.message || "Failed to score prompt";
+                toast.error(message);
+            }
         } finally {
             setAnalyzing(false);
         }

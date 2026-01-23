@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslations } from "next-intl";
 import LocaleSwitcher from "./LocaleSwitcher";
+import { AnimatePresence, motion } from "framer-motion";
 
 export default function Navbar() {
     const t = useTranslations('Navbar');
@@ -82,7 +83,7 @@ export default function Navbar() {
                             <div className="relative" ref={dropdownRef}>
                                 <button
                                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                    className="flex items-center space-x-2 pl-2 pr-1 py-1 rounded-full hover:bg-subtle transition-colors border border-transparent hover:border-border"
+                                    className="flex items-center space-x-2 pl-2 pr-1 py-1 rounded-full hover:bg-subtle transition-all duration-200 active:scale-95 border border-transparent hover:border-border"
                                 >
                                     <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
                                         {user?.firstName?.charAt(0) || user?.email?.charAt(0) || 'U'}
@@ -92,28 +93,36 @@ export default function Navbar() {
                                     </span>
                                 </button>
 
-                                {isDropdownOpen && (
-                                    <div className="absolute right-0 mt-2 w-56 bg-surface rounded-xl shadow-xl border border-border py-1 animate-in fade-in slide-in-from-top-2 duration-200">
-                                        <div className="px-4 py-3 border-b border-border/50 bg-subtle/30">
-                                            <p className="text-sm font-medium text-text-main">{user?.firstName} {user?.lastName}</p>
-                                            <p className="text-xs text-text-muted truncate">{user?.email}</p>
-                                        </div>
-                                        <div className="p-1">
-                                            <DropdownLink href="/profile" onClick={() => setIsDropdownOpen(false)}>
-                                                {t('profile')}
-                                            </DropdownLink>
-                                            <DropdownLink href="/dashboard" onClick={() => setIsDropdownOpen(false)}>
-                                                {t('dashboard')}
-                                            </DropdownLink>
-                                            <button
-                                                onClick={handleLogout}
-                                                className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center"
-                                            >
-                                                {t('logout')}
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
+                                <AnimatePresence>
+                                    {isDropdownOpen && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                            transition={{ duration: 0.2 }}
+                                            className="absolute right-0 mt-2 w-56 bg-surface rounded-xl shadow-xl border border-border py-1 overflow-hidden"
+                                        >
+                                            <div className="px-4 py-3 border-b border-border/50 bg-subtle/30">
+                                                <p className="text-sm font-medium text-text-main">{user?.firstName} {user?.lastName}</p>
+                                                <p className="text-xs text-text-muted truncate">{user?.email}</p>
+                                            </div>
+                                            <div className="p-1">
+                                                <DropdownLink href="/profile" onClick={() => setIsDropdownOpen(false)}>
+                                                    {t('profile')}
+                                                </DropdownLink>
+                                                <DropdownLink href="/dashboard" onClick={() => setIsDropdownOpen(false)}>
+                                                    {t('dashboard')}
+                                                </DropdownLink>
+                                                <button
+                                                    onClick={handleLogout}
+                                                    className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center"
+                                                >
+                                                    {t('logout')}
+                                                </button>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
                         ) : (
                             <div className="flex items-center gap-3 ml-2">

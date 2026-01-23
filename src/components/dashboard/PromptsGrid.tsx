@@ -92,51 +92,35 @@ export const PromptsGrid: React.FC<PromptsGridProps> = ({
                         : (emptyStateMessage || t('noPrompts'))}
                 </motion.div>
             ) : (
-                <motion.div
+                <div
                     className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
-                    initial="hidden"
-                    animate="show"
-                    variants={{
-                        hidden: { opacity: 0 },
-                        show: {
-                            opacity: 1,
-                            transition: {
-                                staggerChildren: 0.05
-                            }
-                        }
-                    }}
+                    style={{ contentVisibility: 'auto', containIntrinsicSize: '1px 300px' }}
                 >
-                    <AnimatePresence mode="popLayout">
-                        {prompts.map((prompt) => (
-                            <motion.div
-                                key={prompt.id}
-                                layout
-                                variants={{
-                                    hidden: { opacity: 0, y: 20 },
-                                    show: { opacity: 1, y: 0 }
-                                }}
-                                exit={{ opacity: 0, scale: 0.9 }}
-                                transition={{ duration: 0.3 }}
-                            >
-                                <PromptCard
-                                    id={prompt.id}
-                                    title={prompt.title}
-                                    description={prompt.description}
-                                    author={prompt.author}
-                                    subject={prompt.subject}
-                                    grade={prompt.grade}
-                                    type={prompt.type}
-                                    rating={prompt.rating}
-                                    isTrending={prompt.isTrending}
-                                    createdAt={prompt.createdAt}
-                                    lastUpdated={prompt.lastUpdated}
-                                    tags={prompt.tags}
-                                    isOwner={prompt.isOwner}
-                                />
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
-                </motion.div>
+                    {prompts.map((prompt, index) => (
+                        <motion.div
+                            key={prompt.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3, delay: index * 0.05 }}
+                        >
+                            <PromptCard
+                                id={prompt.id}
+                                title={prompt.title}
+                                description={prompt.description}
+                                author={prompt.author}
+                                subject={prompt.subject}
+                                grade={prompt.grade}
+                                type={prompt.type}
+                                rating={prompt.rating}
+                                isTrending={prompt.isTrending}
+                                createdAt={prompt.createdAt}
+                                lastUpdated={prompt.lastUpdated}
+                                tags={prompt.tags}
+                                isOwner={prompt.isOwner}
+                            />
+                        </motion.div>
+                    ))}
+                </div>
             )}
         </section>
     );

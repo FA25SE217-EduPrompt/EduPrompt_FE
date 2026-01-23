@@ -40,3 +40,5 @@ export type GetMyCollectionsResponse = BaseResponse<PaginatedResponse<Collection
 export type CreateCollectionResponse = BaseResponse<CollectionResponse>;
 
 export type CountMyCollectionsResponse = BaseResponse<number>;
+
+export type GetGroupCollectionsResponse = BaseResponse<CollectionResponse[]>;

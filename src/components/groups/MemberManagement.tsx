@@ -8,6 +8,7 @@ import { useGetUsersInMySchool } from "@/hooks/queries/user";
 import { Loader2, Plus, UserX, X as XMarkIcon, ShieldCheck as ShieldCheckIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 
 interface MemberManagementProps {
     groupId: string;
@@ -140,8 +141,21 @@ export const MemberManagement: React.FC<MemberManagementProps> = ({ groupId }) =
                                     </button>
                                 ))
                             ) : (
-                                <div className="px-3 py-2 text-sm text-gray-500 text-center">
-                                    {availableUsers.length === 0 ? t('noUsersAvailable') : t('noResults')}
+                                <div className="px-3 py-2 text-sm text-gray-500 text-center flex flex-col gap-1">
+                                    {availableUsers.length === 0 ? (
+                                        (schoolUsers?.data?.length || 0) <= 1 ? (
+                                            <>
+                                                <span>{t('noTeachersFound')}</span>
+                                                <Link href="/dashboard/settings/profile" className="text-brand-primary hover:underline">
+                                                    {t('updateProfile')}
+                                                </Link>
+                                            </>
+                                        ) : (
+                                            t('noUsersAvailable')
+                                        )
+                                    ) : (
+                                        t('noResults')
+                                    )}
                                 </div>
                             )}
                         </div>

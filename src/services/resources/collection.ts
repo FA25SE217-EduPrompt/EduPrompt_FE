@@ -1,6 +1,5 @@
-// src/services/resources/collection.ts
 import { apiClient } from '@/services/auth';
-import { CreateCollectionRequest, CreateCollectionResponse, GetMyCollectionsResponse, CollectionResponse, CountMyCollectionsResponse } from '@/types/collection.api';
+import { CreateCollectionRequest, CreateCollectionResponse, GetMyCollectionsResponse, CollectionResponse, CountMyCollectionsResponse, GetGroupCollectionsResponse } from '@/types/collection.api';
 import { BaseResponse } from '@/types/api';
 import ApiCall from '@/utils/apiCall';
 import { buildRequestConfig } from '@/services/resources/prompts';
@@ -127,6 +126,23 @@ export const collectionService = {
                 url: `${BASE}/assign-to-group`,
                 method: 'post',
                 data: payload,
+                ...buildRequestConfig(opts),
+            }),
+        );
+    },
+
+    /**
+     * GET /api/collections/group/{groupId}
+     * Get collections belonging to a group
+     */
+    async getCollectionsByGroup(
+        groupId: string,
+        opts?: ApiRequestOptions,
+    ): Promise<GetGroupCollectionsResponse> {
+        return ApiCall(() =>
+            apiClient.request({
+                url: `${BASE}/group/${groupId}`,
+                method: 'get',
                 ...buildRequestConfig(opts),
             }),
         );

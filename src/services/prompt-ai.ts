@@ -10,7 +10,9 @@ import {
 
 // 1. Prompt Scoring
 export async function scorePrompt(data: ScorePromptRequest): Promise<{ data: PromptScoreResult }> {
-    const response = await apiClient.post('/api/v2/prompts/score', data);
+    const response = await apiClient.post('/api/v2/prompts/score', data, {
+        timeout: 300000 // 5 minutes explicit timeout (user requested removal of 30s limit)
+    });
     return response.data;
 }
 
