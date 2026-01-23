@@ -12,7 +12,7 @@ export const getAllSchools = async (page: number = 0, size: number = 100) => {
 };
 
 export const joinSchool = async (payload: JoinSchoolRequest) => {
-    const response = await apiClient.post<BaseResponse<any>>(`${API_URL}/join`, payload);
+    const response = await apiClient.post<BaseResponse<unknown>>(`${API_URL}/join`, payload);
     return response.data;
 };
 

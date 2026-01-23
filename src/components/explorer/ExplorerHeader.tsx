@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
-import { Search, Filter, X, Loader2, BookOpen, Star } from 'lucide-react';
+import { Search, Filter, X, Loader2, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useFilterPrompts } from '@/hooks/queries/search';

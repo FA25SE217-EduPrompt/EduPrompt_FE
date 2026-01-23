@@ -3,10 +3,12 @@
 import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { AlertTriangle, AlertCircle, RefreshCw, BarChart3, Loader2 } from 'lucide-react';
+import { AxiosError } from 'axios';
 import { useWorkbench } from '../WorkbenchContext';
 import { cn } from '@/lib/utils';
 import { scorePrompt } from '@/services/prompt-ai';
 import { DimensionScore } from '@/types/prompt.api';
+import { ErrorPayload } from '@/types/api';
 import { toast } from 'sonner';
 
 export const AuditTab = () => {
@@ -160,7 +162,7 @@ ${promptData.constraints}
 
         } catch (error: unknown) {
             console.error(error);
-            const err = error as any;
+            const err = error as AxiosError<ErrorPayload, unknown>;
 
             if (err.response?.status === 503) {
                 if (err.response?.data?.code === 'QUOTA_EXCEED') {
@@ -177,7 +179,7 @@ ${promptData.constraints}
                     // But if backend deducted, message says it will be refunded. 
                 }
             } else {
-                const message = err.response?.data?.message || err.message || "Failed to score prompt";
+                const message = err.response?.data?.messages?.join(', ') || err.message || "Failed to score prompt";
                 toast.error(message);
             }
         } finally {

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { collectionService } from '@/services/resources/collection';
-import { CollectionResponse } from '@/types/collection.api';
+
 import Button from '@/components/ui/Button';
 import { Loader2, FolderPlus, Folder } from 'lucide-react';
 import { AssignCollectionModal } from './AssignCollectionModal';

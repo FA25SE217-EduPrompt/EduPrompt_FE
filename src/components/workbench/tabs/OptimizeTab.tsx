@@ -3,12 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { Sparkles, Sliders, Check, X, Loader2 } from 'lucide-react';
+import { AxiosError } from 'axios';
 import { useWorkbench } from '../WorkbenchContext';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { optimizePrompt } from '@/services/prompt-ai';
 import { OptimizationResponse, OptimizationMode } from '@/types/prompt.api';
+import { ErrorPayload } from '@/types/api';
 
 export const OptimizeTab = () => {
     const t = useTranslations('Workbench');
@@ -105,7 +107,7 @@ ${promptData.constraints}
 
         } catch (error: unknown) {
             console.error(error);
-            const err = error as any;
+            const err = error as AxiosError<ErrorPayload, unknown>;
             if (err.response?.status === 503) {
                 if (err.response?.data?.code === 'QUOTA_EXCEED') {
                     toast.error("Quota Exceeded", {
