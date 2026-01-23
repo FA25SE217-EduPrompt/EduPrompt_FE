@@ -328,6 +328,7 @@ export type OptimizationResponse = {
 };
 
 // 3. Prompt Generation (File)
+// [SCHOOL_ADMIN_DASHBOARD] - Start
 export type PromptTaskType = 'LESSON_PLAN' | 'SLIDE' | 'TEST' | 'TEST_MATRIX' | 'GROUP_ACTIVITY';
 
 export type GeneratePromptFromFileResponse = {
@@ -341,3 +342,4 @@ export type GeneratePromptFromFileResponse = {
     completionTokens: number;
     totalTokens: number;
 };
+// [SCHOOL_ADMIN_DASHBOARD] - End

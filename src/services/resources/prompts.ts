@@ -496,6 +496,7 @@ export const promptsService = {
             })
         );
     },
+    // [SCHOOL_ADMIN_DASHBOARD] - Start
     // Get group shared prompts
     async getGroupSharedPrompts(page = 0, size = 20, opts?: ApiRequestOptions): Promise<BaseResponse<PaginatedResponse<PromptResponse>>> {
         return ApiCall<PaginatedResponse<PromptResponse>>(() =>
@@ -506,6 +507,7 @@ export const promptsService = {
             })
         );
     },
+    // [SCHOOL_ADMIN_DASHBOARD] - End
 };
 
 export default promptsService;

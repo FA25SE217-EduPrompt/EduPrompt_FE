@@ -62,8 +62,8 @@ const SchoolAdminDashboard: React.FC = () => {
             ]);
 
             setStats({
-                activeTeachers: usageData.data?.activeMembers || 0,
-                maxTeachers: usageData.data?.maxMembers || 0,
+                activeTeachers: 0, // [SCHOOL_ADMIN_DASHBOARD] - Fix: Property missing in DTO, UI uses teachers.length
+                maxTeachers: 0, // [SCHOOL_ADMIN_DASHBOARD] - Fix: Property missing in DTO
             });
 
             if (schoolData.data) {

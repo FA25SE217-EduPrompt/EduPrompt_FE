@@ -102,7 +102,7 @@ const PromptsPage: React.FC = () => {
     // 3. Shared Prompts (Static, non-paginated for now in this view context or separate)
     const { data: sharedPromptsData, isLoading: isSharedLoading } = useGetGroupSharedPrompts(
         0, 20, undefined,
-        { enabled: !isSearching }
+        { enabled: !isSearching && user?.role !== 'SCHOOL_ADMIN' }
     );
 
     // 4. Semantic Search

@@ -29,6 +29,9 @@ export interface User {
     isPremiumTier?: boolean;
     hasSchoolSubscription?: boolean;
     schoolId?: string;
+    // [SCHOOL_ADMIN_DASHBOARD] - Start
+    role?: string;
+    // [SCHOOL_ADMIN_DASHBOARD] - End
 }
 
 
@@ -181,6 +184,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         isSystemAdmin: payload.role === SYSTEM_ADMIN_ROLE,
                         isSchoolAdmin: payload.role === SCHOOL_ADMIN_ROLE,
                         isTeacher: payload.role === TEACHER_ROLE,
+                        role: payload.role, // [SCHOOL_ADMIN_DASHBOARD]
                     };
 
                     setAuthState({
@@ -252,6 +256,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 isSystemAdmin: payload.role === SYSTEM_ADMIN_ROLE,
                 isSchoolAdmin: payload.role === SCHOOL_ADMIN_ROLE,
                 isTeacher: payload.role === TEACHER_ROLE,
+                role: payload.role, // [SCHOOL_ADMIN_DASHBOARD]
             };
 
             // Store remember email preference
@@ -330,6 +335,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 isSystemAdmin: payload.role === SYSTEM_ADMIN_ROLE,
                 isSchoolAdmin: payload.role === SCHOOL_ADMIN_ROLE,
                 isTeacher: payload.role === TEACHER_ROLE,
+                role: payload.role, // [SCHOOL_ADMIN_DASHBOARD]
             };
 
             setAuthState({

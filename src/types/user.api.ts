@@ -1,3 +1,4 @@
+// [SCHOOL_ADMIN_DASHBOARD] - New File
 import { BaseResponse } from './api';
 
 export type UserSchoolResponse = {
