@@ -11,6 +11,16 @@ const SYSTEM_ADMIN_ROLE = 'ADMIN';
 const SCHOOL_ADMIN_ROLE = 'SCHOOL_ADMIN';
 const TEACHER_ROLE = 'TEACHER';
 
+// Helper function to determine redirect path based on user role
+export const getDefaultRedirectPath = (user: User | null): string => {
+    if (!user) return '/';
+
+    if (user.isSystemAdmin) return '/admin';
+    if (user.isSchoolAdmin) return '/school-admin';
+    if (user.isTeacher) return '/dashboard';
+
+    return '/';
+};
 
 // Types based on backend API
 export interface User {
@@ -194,8 +204,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         isLoading: false,
                     });
 
-                    // Fetch full user data
-                    fetchUserData();
+                    // Fetch full user data (non-blocking, optional)
+                    fetchUserData().catch((error) => {
+                        console.warn('Failed to fetch full user data:', error);
+                        // Continue with JWT data, don't block authentication
+                    });
                 } else {
                     TokenManager.clearTokens();
                     setAuthState({
@@ -291,6 +304,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             // Fetch full user data
             await fetchUserData();
+
+            // Get redirect path based on user role
+            const redirectPath = getDefaultRedirectPath(user);
 
         } catch (error) {
             setAuthState(prev => ({ ...prev, isLoading: false }));

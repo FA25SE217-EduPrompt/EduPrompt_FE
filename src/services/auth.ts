@@ -64,7 +64,7 @@ apiClient.interceptors.response.use(
                 const fullUrl = `${response.config.baseURL ?? ''}${response.config.url ?? ''}`;
                 // eslint-disable-next-line no-console
                 console.debug('[apiClient] Response <-', response.status, fullUrl);
-            } catch (e) {}
+            } catch (e) { }
         }
         return response;
     },
@@ -78,7 +78,7 @@ apiClient.interceptors.response.use(
                 try { body = JSON.stringify(error.response?.data); } catch (e) { body = String(error.response?.data); }
                 // eslint-disable-next-line no-console
                 console.error('[apiClient] Response error <-', status, fullUrl, body);
-            } catch (e) {}
+            } catch (e) { }
         }
         const originalRequest = error.config;
 

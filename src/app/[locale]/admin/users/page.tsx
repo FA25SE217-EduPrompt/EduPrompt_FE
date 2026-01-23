@@ -1,0 +1,547 @@
+'use client';
+
+import React, { useEffect, useState } from "react";
+import { getAllUsers, deleteUser } from "@/services/resources/users";
+import { User, UserRole } from "@/types/user.types";
+import {
+    UserGroupIcon,
+    MagnifyingGlassIcon,
+    ArrowPathIcon,
+    FunnelIcon,
+    TrashIcon,
+    EyeIcon,
+    XMarkIcon,
+} from "@heroicons/react/24/outline";
+import Spinner from "@/components/ui/Spinner";
+import { toast } from "sonner";
+import { useTranslations } from "next-intl";
+
+export default function UsersManagementPage() {
+    const t = useTranslations('Admin.Users');
+    const tCommon = useTranslations('Admin.Common');
+    const [users, setUsers] = useState<User[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [statusFilter, setStatusFilter] = useState("ALL");
+    const [roleFilter, setRoleFilter] = useState("ALL");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
+    const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    const [userToDelete, setUserToDelete] = useState<User | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const usersPerPage = 10;
+
+    // Fetch users from API (server-side pagination)
+    const fetchUsers = async (page = 0) => {
+        setLoading(true);
+        setError("");
+        try {
+            const response = await getAllUsers(page, usersPerPage);
+            console.log("=== USERS API DEBUG ===");
+            console.log("API Response:", response);
+
+            if (response && response.data && Array.isArray(response.data.content)) {
+                setUsers(response.data.content);
+                setTotalPages(response.data.totalPages || 0);
+                setTotalItems(response.data.totalElements || 0);
+                console.log(`✅ Loaded page ${page + 1}: ${response.data.content.length} users`);
+
+                if (response.data.content.length > 0) {
+                    toast.success(t('loadedPage', { page: page + 1, count: response.data.content.length }), { duration: 3000 });
+                }
+            } else {
+                console.error("Unexpected response structure:", response);
+                setUsers([]);
+                setTotalPages(0);
+                setTotalItems(0);
+            }
+        } catch (err: unknown) {
+            console.error("Failed to fetch users:", err);
+            const axiosError = err as { response?: { data?: unknown }; message?: string };
+            console.error("Error details:", axiosError.response?.data);
+            const errorMsg = axiosError.message || t('failedToLoad');
+            setError(errorMsg);
+            toast.error(t('failedToLoad'), { duration: 3000 });
+            setUsers([]);
+            setTotalPages(0);
+            setTotalItems(0);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchUsers(currentPage - 1);
+    }, [currentPage]);
+
+    // Get user status from isActive and isVerified
+    const getUserStatus = (user: User): string => {
+        if (!user.isVerified) return t('statuses.pending');
+        if (!user.isActive) return t('statuses.inactive');
+        return t('statuses.active');
+    };
+
+    // Get status badge color
+    const getStatusColor = (isActive: boolean, isVerified: boolean) => {
+        const status = getUserStatus({ isActive, isVerified } as User);
+        const activeStatus = t('statuses.active');
+        const inactiveStatus = t('statuses.inactive');
+        const pendingStatus = t('statuses.pending');
+
+        if (status === activeStatus) return "bg-green-100 text-green-700";
+        if (status === inactiveStatus) return "bg-gray-100 text-gray-700";
+        if (status === pendingStatus) return "bg-yellow-100 text-yellow-700";
+        return "bg-gray-100 text-gray-700";
+    };
+
+    // Filter users based on search query, status, and role (client-side filtering on current page)
+    const filteredUsers = users.filter(user => {
+        // Hide SYSTEM_ADMIN users
+        if (user.role === UserRole.SYSTEM_ADMIN) {
+            return false;
+        }
+
+        const query = searchQuery.toLowerCase();
+        const matchesSearch =
+            user.email.toLowerCase().includes(query) ||
+            user.firstName.toLowerCase().includes(query) ||
+            user.lastName.toLowerCase().includes(query) ||
+            user.role.toLowerCase().includes(query);
+
+        const userStatus = getUserStatus(user);
+        const matchesStatus = statusFilter === "ALL" || userStatus === statusFilter;
+        const matchesRole = roleFilter === "ALL" || user.role === roleFilter;
+
+        return matchesSearch && matchesStatus && matchesRole;
+    });
+
+    // Use filtered users for display
+    const currentUsers = filteredUsers;
+
+    // Handle view user
+    const handleViewUser = (user: User) => {
+        setSelectedUser(user);
+    };
+
+    // Handle delete click
+    const handleDeleteClick = (user: User) => {
+        setUserToDelete(user);
+    };
+
+    // Handle confirm delete
+    const handleConfirmDelete = async () => {
+        if (!userToDelete) return;
+
+        setIsDeleting(true);
+        try {
+            await deleteUser(userToDelete.id);
+            setUsers(users.filter(u => u.id !== userToDelete.id));
+            toast.success(t('deleteSuccess', { name: `${userToDelete.firstName} ${userToDelete.lastName}` }), { duration: 3000 });
+            setUserToDelete(null);
+        } catch (err) {
+            console.error("Failed to delete user:", err);
+            toast.error(t('deleteFailed'), { duration: 3000 });
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    // Get role badge color
+    const getRoleColor = (role: string) => {
+        switch (role) {
+            case "SYSTEM_ADMIN":
+                return "bg-red-100 text-red-700";
+            case "ADMIN":
+                return "bg-purple-100 text-purple-700";
+            case "SCHOOL_ADMIN":
+                return "bg-blue-100 text-blue-700";
+            case "TEACHER":
+                return "bg-indigo-100 text-indigo-700";
+            case "STUDENT":
+                return "bg-teal-100 text-teal-700";
+            default:
+                return "bg-gray-100 text-gray-700";
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+                <Spinner size="page" />
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-8">
+            {/* Header */}
+            <header className="mb-8 flex justify-between items-start">
+                <div>
+                    <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
+                        <UserGroupIcon className="h-10 w-10 text-blue-600" />
+                        {t('title')}
+                    </h1>
+                    <p className="text-gray-600 mt-2">{t('description')}</p>
+                </div>
+                <div className="flex items-center gap-4">
+                    <div className="text-right">
+                        <p className="text-sm text-gray-500">{t('totalUsers')}</p>
+                        <p className="text-2xl font-bold text-blue-600">{totalItems}</p>
+                    </div>
+                    <button
+                        onClick={() => fetchUsers(currentPage - 1)}
+                        className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all hover:scale-105"
+                        title={tCommon('refresh')}
+                    >
+                        <ArrowPathIcon className="h-6 w-6 text-blue-600" />
+                    </button>
+                </div>
+            </header>
+
+            {/* Error Message */}
+            {error && (
+                <div className="mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 px-6 py-4 rounded-lg shadow-sm">
+                    <p className="font-medium">{tCommon('error')}</p>
+                    <p className="text-sm">{error}</p>
+                </div>
+            )}
+
+            {/* Filters */}
+            <div className="mb-6 bg-white rounded-xl shadow-md p-6 border border-gray-200">
+                <div className="flex items-center gap-4 flex-wrap">
+                    <div className="flex items-center gap-2">
+                        <FunnelIcon className="h-5 w-5 text-gray-500" />
+                        <span className="font-semibold text-gray-700">{tCommon('filters')}:</span>
+                    </div>
+
+                    {/* Status Filter */}
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => {
+                            setStatusFilter(e.target.value);
+                            setCurrentPage(1);
+                        }}
+                        className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                    >
+                        <option value="ALL">{t('allStatuses')}</option>
+                        <option value="ACTIVE">{t('statuses.active')}</option>
+                        <option value="INACTIVE">{t('statuses.inactive')}</option>
+                        <option value="PENDING">{t('statuses.pending')}</option>
+                    </select>
+
+                    {/* Role Filter */}
+                    <select
+                        value={roleFilter}
+                        onChange={(e) => {
+                            setRoleFilter(e.target.value);
+                            setCurrentPage(1);
+                        }}
+                        className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                    >
+                        <option value="ALL">{t('allRoles')}</option>
+                        <option value={UserRole.ADMIN}>{t('roles.admin')}</option>
+                        <option value={UserRole.SCHOOL_ADMIN}>{t('roles.schoolAdmin')}</option>
+                        <option value={UserRole.TEACHER}>{t('roles.teacher')}</option>
+                        <option value={UserRole.STUDENT}>{t('roles.student')}</option>
+                    </select>
+
+                    {/* Clear Filters */}
+                    {(statusFilter !== "ALL" || roleFilter !== "ALL") && (
+                        <button
+                            onClick={() => {
+                                setStatusFilter("ALL");
+                                setRoleFilter("ALL");
+                                setCurrentPage(1);
+                            }}
+                            className="px-4 py-2 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                            {tCommon('clearFilters')}
+                        </button>
+                    )}
+                </div>
+            </div>
+
+            {/* Users List */}
+            <section className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                {/* Search Bar */}
+                <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-blue-50 to-purple-50">
+                    <h2 className="text-xl font-semibold text-gray-900">{t('allUsers')}</h2>
+                    <div className="relative">
+                        <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <input
+                            placeholder={t('searchPlaceholder')}
+                            value={searchQuery}
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                setCurrentPage(1);
+                            }}
+                            className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-80"
+                        />
+                    </div>
+                </div>
+
+                {/* Table */}
+                <div className="overflow-x-auto">
+                    <table className="w-full">
+                        <thead className="bg-gray-50 text-gray-900 font-semibold border-b-2 border-gray-200">
+                            <tr>
+                                <th className="px-6 py-4">{t('id')}</th>
+                                <th className="px-6 py-4">{t('fullName')}</th>
+                                <th className="px-6 py-4">{t('email')}</th>
+                                <th className="px-6 py-4">{t('phoneNumber')}</th>
+                                <th className="px-6 py-4">{t('role')}</th>
+                                <th className="px-6 py-4">{t('status')}</th>
+                                <th className="px-6 py-4">{t('createdAt')}</th>
+                                <th className="px-6 py-4">{t('actions')}</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                            {currentUsers.length === 0 ? (
+                                <tr>
+                                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                                        {searchQuery || statusFilter !== "ALL" || roleFilter !== "ALL"
+                                            ? t('noUsersFound')
+                                            : t('noUsers')}
+                                    </td>
+                                </tr>
+                            ) : (
+                                currentUsers.map((user) => (
+                                    <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                                        <td className="px-6 py-4 text-sm text-gray-500 font-mono">
+                                            {user.id.substring(0, 8)}...
+                                        </td>
+                                        <td className="px-6 py-4 font-medium text-gray-900">
+                                            {user.firstName} {user.lastName}
+                                        </td>
+                                        <td className="px-6 py-4 text-gray-600">{user.email}</td>
+                                        <td className="px-6 py-4 text-gray-600">
+                                            {user.phoneNumber || "N/A"}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getRoleColor(user.role)}`}>
+                                                {user.role}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(user.isActive, user.isVerified)}`}>
+                                                {getUserStatus(user)}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-gray-500">
+                                            {new Date(user.createdAt).toLocaleDateString('vi-VN')}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => handleViewUser(user)}
+                                                    className="flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg font-medium text-sm transition-colors"
+                                                    title={tCommon('viewDetails')}
+                                                >
+                                                    <EyeIcon className="h-4 w-4" />
+                                                    {tCommon('view')}
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteClick(user)}
+                                                    className="flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg font-medium text-sm transition-colors"
+                                                    title={tCommon('delete')}
+                                                >
+                                                    <TrashIcon className="h-4 w-4" />
+                                                    {tCommon('delete')}
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                    <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
+                        <span className="text-sm text-gray-500">
+                            {t('pageInfo', { current: currentPage, total: totalPages, count: totalItems })}
+                        </span>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                                className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                            >
+                                {tCommon('previous')}
+                            </button>
+                            <span className="px-4 py-2 text-sm font-medium text-gray-700">
+                                {t('pageShort', { current: currentPage, total: totalPages })}
+                            </span>
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                disabled={currentPage === totalPages}
+                                className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                            >
+                                {tCommon('next')}
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </section>
+
+            {/* View User Modal */}
+            {selectedUser && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        {/* Modal Header */}
+                        <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-2xl flex justify-between items-center">
+                            <h3 className="text-2xl font-bold">{t('userDetails')}</h3>
+                            <button
+                                onClick={() => setSelectedUser(null)}
+                                className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                            >
+                                <XMarkIcon className="h-6 w-6" />
+                            </button>
+                        </div>
+
+                        {/* Modal Body */}
+                        <div className="p-6">
+                            {/* User Info Grid */}
+                            <div className="grid grid-cols-2 gap-6">
+                                <div>
+                                    <label className="text-sm font-semibold text-gray-500 uppercase">{t('firstName')}</label>
+                                    <p className="text-lg font-medium text-gray-900 mt-1">{selectedUser.firstName}</p>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-semibold text-gray-500 uppercase">{t('lastName')}</label>
+                                    <p className="text-lg font-medium text-gray-900 mt-1">{selectedUser.lastName}</p>
+                                </div>
+                                <div className="col-span-2">
+                                    <label className="text-sm font-semibold text-gray-500 uppercase">{t('email')}</label>
+                                    <p className="text-lg font-medium text-gray-900 mt-1">{selectedUser.email}</p>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-semibold text-gray-500 uppercase">{t('phoneNumber')}</label>
+                                    <p className="text-lg font-medium text-gray-900 mt-1">{selectedUser.phoneNumber || t('na')}</p>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-semibold text-gray-500 uppercase">User ID</label>
+                                    <p className="text-sm font-mono text-gray-600 mt-1">{selectedUser.id}</p>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-semibold text-gray-500 uppercase">{t('role')}</label>
+                                    <p className="mt-1">
+                                        <span className={`px-3 py-1 rounded-lg text-sm font-semibold ${getRoleColor(selectedUser.role)}`}>
+                                            {selectedUser.role}
+                                        </span>
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-semibold text-gray-500 uppercase">{t('status')}</label>
+                                    <p className="mt-1">
+                                        <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(selectedUser.isActive, selectedUser.isVerified)}`}>
+                                            {getUserStatus(selectedUser)}
+                                        </span>
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-semibold text-gray-500 uppercase">{t('isActive')}</label>
+                                    <p className="mt-1">
+                                        <span className={`px-3 py-1 rounded-lg text-sm font-semibold ${selectedUser.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                            {selectedUser.isActive ? t('yes') : t('no')}
+                                        </span>
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-semibold text-gray-500 uppercase">{t('isVerified')}</label>
+                                    <p className="mt-1">
+                                        <span className={`px-3 py-1 rounded-lg text-sm font-semibold ${selectedUser.isVerified ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                            {selectedUser.isVerified ? t('yes') : t('no')}
+                                        </span>
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-semibold text-gray-500 uppercase">{t('createdAt')}</label>
+                                    <p className="text-lg font-medium text-gray-900 mt-1">
+                                        {new Date(selectedUser.createdAt).toLocaleString('vi-VN')}
+                                    </p>
+                                </div>
+                                {selectedUser.updatedAt && (
+                                    <div>
+                                        <label className="text-sm font-semibold text-gray-500 uppercase">{t('updatedAt')}</label>
+                                        <p className="text-lg font-medium text-gray-900 mt-1">
+                                            {new Date(selectedUser.updatedAt).toLocaleString('vi-VN')}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="p-6 border-t border-gray-200 flex justify-end">
+                            <button
+                                onClick={() => setSelectedUser(null)}
+                                className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium transition-colors"
+                            >
+                                {tCommon('close')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {userToDelete && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+                        {/* Modal Header */}
+                        <div className="bg-red-600 text-white p-6 rounded-t-2xl flex justify-between items-center">
+                            <h3 className="text-2xl font-bold">{t('confirmDelete')}</h3>
+                            <button
+                                onClick={() => setUserToDelete(null)}
+                                className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                            >
+                                <XMarkIcon className="h-6 w-6" />
+                            </button>
+                        </div>
+
+                        {/* Modal Body */}
+                        <div className="p-6">
+                            <p className="text-gray-700 text-lg">
+                                {t('confirmDeleteMessage')}{" "}
+                                <span className="font-bold text-gray-900">
+                                    {userToDelete.firstName} {userToDelete.lastName}
+                                </span>?
+                            </p>
+                            <p className="text-gray-500 mt-2">{t('confirmDeleteNote')}</p>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+                            <button
+                                onClick={() => setUserToDelete(null)}
+                                className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium transition-colors"
+                                disabled={isDeleting}
+                            >
+                                {tCommon('cancel')}
+                            </button>
+                            <button
+                                onClick={handleConfirmDelete}
+                                className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
+                                disabled={isDeleting}
+                            >
+                                {isDeleting ? (
+                                    <>
+                                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                                        {t('deleting')}
+                                    </>
+                                ) : (
+                                    tCommon('delete')
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}

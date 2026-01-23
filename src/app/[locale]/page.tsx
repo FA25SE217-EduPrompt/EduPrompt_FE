@@ -15,6 +15,7 @@ export default function Home() {
                 <SocialTicker />
                 <FeaturesBento />
                 <PricingSection />
+
             </main>
 
             <LandingFooter />
