@@ -37,7 +37,7 @@ const PromptsPage: React.FC = () => {
 
     // Helper to map PromptResponse to DisplayPrompt
     // Helper to map PromptResponse to DisplayPrompt
-    const mapToDisplayPrompt = useCallback((p: PromptResponse | SemanticSearchResult): DisplayPrompt => {
+    const mapToDisplayPrompt = useCallback((p: PromptResponse | SemanticSearchResult | PromptMetadataResponse): DisplayPrompt => {
         // SemanticSearchResult might not have tags, createdAt, updatedAt
         const tags = 'tags' in p ? (p.tags || []) : [];
         const subjectTag = tags.find((t: TagResponse) => t.type === 'Môn' || t.type === 'Subject')?.value || 'General';
@@ -125,7 +125,7 @@ const PromptsPage: React.FC = () => {
 
     // Data Accumulation Logic
     useEffect(() => {
-        let newData: (PromptResponse | SemanticSearchResult)[] = [];
+        let newData: (PromptResponse | SemanticSearchResult | PromptMetadataResponse)[] = [];
         let total = 0;
         let shouldUpdate = false;
 
