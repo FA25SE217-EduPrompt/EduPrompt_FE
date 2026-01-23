@@ -23,7 +23,7 @@ export const SchoolAdminService = {
         return response.data;
     },
 
-    addEmails: async (schoolId: number, emails: string[]) => {
+    addEmails: async (schoolId: number | string, emails: string[]) => {
         const response = await apiClient.post(`/api/school-admin/${schoolId}/new-email`, { emails });
         return response.data;
     }
