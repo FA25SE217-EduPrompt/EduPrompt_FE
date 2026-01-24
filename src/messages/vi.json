@@ -321,7 +321,14 @@
             "author": "Tác giả:",
             "updated": "Cập nhật:",
             "manageTooltip": "Quản lý Prompt",
-            "grade": "Lớp"
+            "grade": "Lớp",
+            "locked": "Đã khóa",
+            "unlock": "Mở khóa",
+            "unlockTooltip": "Mở khóa prompt này",
+            "unlockQuestion": "Mở khóa prompt này?",
+            "unlockConfirm": "Hành động này sẽ trừ 1 lượt mở khóa trong hạn mức của bạn.",
+            "unlocking": "Đang mở...",
+            "lockedContent": "Mở khóa để xem chi tiết"
         },
         "Common": {
             "myPrompts": "Prompt của tôi",
@@ -374,7 +381,11 @@
             "optimizationStarted": "Đã bắt đầu tối ưu hóa. Kiểm tra thông báo của bạn để xem kết quả.",
             "optimizationFailed": "Không thể bắt đầu tối ưu hóa",
             "confirmRollback": "Bạn có chắc chắn muốn khôi phục về phiên bản này không? Các thay đổi hiện tại sẽ được lưu dưới dạng phiên bản mới.",
-            "loadMore": "Tải thêm"
+            "loadMore": "Tải thêm",
+            "promptUnlocked": "Mở khóa prompt thành công",
+            "unlockFailed": "Mở khóa thất bại",
+            "promptUnlocks": "Lượt mở khóa còn lại",
+            "quotaExceeded": "Bạn đã hết lượt mở khóa. Vui lòng nâng cấp gói."
         },
         "Teacher": {
             "promptsCreated": "Prompt đã tạo",
@@ -988,6 +999,17 @@
         "error": {
             "save": "Không thể lưu hồ sơ",
             "fetch": "Không thể lấy thông tin hồ sơ"
+        },
+        "school": {
+            "title": "Thông tin Trường học",
+            "alreadyJoinedWithSubscription": "Bạn đã tham gia một trường học và có gói đăng ký đang hoạt động.",
+            "alreadyJoined": "Bạn đã tham gia trường {schoolName}.",
+            "cannotChangeWarning": "Bạn không thể tự thay đổi trường học sau khi đã tham gia. Vui lòng liên hệ quản trị viên để được hỗ trợ.",
+            "selectSchool": "Chọn trường học",
+            "selectPlaceholder": "-- Chọn trường của bạn --",
+            "join": "Tham gia",
+            "joinSuccess": "Đã tham gia trường học thành công",
+            "joinError": "Không thể tham gia trường học"
         }
     },
     "Footer": {
@@ -1113,6 +1135,7 @@
             "tags": "Quản Lý Tags",
             "groups": "Quản Lý Groups",
             "collections": "Quản Lý Collections",
+            "analytics": "Phân tích",
             "backToHome": "Về Trang Chủ",
             "systemAdmin": "System Admin",
             "logout": "Đăng Xuất"
@@ -1125,6 +1148,28 @@
             "version": "Phiên Bản",
             "role": "Vai Trò",
             "account": "Tài Khoản"
+        },
+        "Analytics": {
+            "pageTitle": "Bảng phân tích Dữ liệu",
+            "pageDescription": "Tổng quan về doanh thu, giao dịch và sử dụng token của hệ thống.",
+            "totalRevenue": "Tổng Doanh Thu",
+            "totalTransactions": "Tổng Giao Dịch",
+            "totalTokenUsage": "Tổng Token Sử Dụng",
+            "revenueChartTitle": "Doanh Thu Hàng Tháng",
+            "revenue": "Doanh thu",
+            "tokenUsageChartTitle": "Sử Dụng Token Hàng Tháng",
+            "tokensUsed": "Token đã dùng",
+            "recentTransactions": "Giao Dịch Gần Đây",
+            "user": "Người dùng",
+            "plan": "Gói",
+            "amount": "Số tiền",
+            "status": "Trạng thái",
+            "date": "Ngày",
+            "noTransactions": "Không tìm thấy giao dịch nào gần đây.",
+            "errorFetchingRevenue": "Không thể tải dữ liệu doanh thu.",
+            "errorFetchingToken": "Không thể tải dữ liệu token.",
+            "errorFetchingTransactions": "Không thể tải dữ liệu giao dịch.",
+            "genericError": "Có lỗi xảy ra khi tải dữ liệu phân tích."
         },
         "Prompts": {
             "title": "Quản Lý Prompts",

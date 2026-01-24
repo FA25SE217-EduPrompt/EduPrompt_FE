@@ -320,7 +320,14 @@
             "author": "Author:",
             "updated": "Updated:",
             "manageTooltip": "Manage Prompt",
-            "grade": "Grade"
+            "grade": "Grade",
+            "locked": "Locked",
+            "unlock": "Unlock",
+            "unlockTooltip": "Unlock this prompt",
+            "unlockQuestion": "Unlock this prompt?",
+            "unlockConfirm": "This will deduct 1 unlock from your quota.",
+            "unlocking": "Unlocking...",
+            "lockedContent": "Unlock to view details"
         },
         "Common": {
             "myPrompts": "My Prompts",
@@ -373,7 +380,11 @@
             "optimizationStarted": "Optimization started. Check your notifications for results.",
             "optimizationFailed": "Failed to start optimization",
             "confirmRollback": "Are you sure you want to rollback to this version? Current changes will be saved as a new version.",
-            "loadMore": "Load More"
+            "loadMore": "Load More",
+            "promptUnlocked": "Prompt unlocked successfully",
+            "unlockFailed": "Failed to unlock prompt",
+            "promptUnlocks": "Unlocks Remaining",
+            "quotaExceeded": "You have reached your unlock limit. Please upgrade your plan."
         },
         "Teacher": {
             "promptsCreated": "Prompts Created",
@@ -984,6 +995,17 @@
         "error": {
             "save": "Failed to save profile",
             "fetch": "Failed to fetch profile"
+        },
+        "school": {
+            "title": "School Information",
+            "alreadyJoinedWithSubscription": "You have joined a school and have an active subscription.",
+            "alreadyJoined": "You have joined {schoolName}.",
+            "cannotChangeWarning": "You cannot change your school once joined. Please contact an administrator for assistance.",
+            "selectSchool": "Select School",
+            "selectPlaceholder": "-- Select your school --",
+            "join": "Join",
+            "joinSuccess": "Joined school successfully",
+            "joinError": "Failed to join school"
         }
     },
     "Footer": {
@@ -1109,6 +1131,7 @@
             "tags": "Tags Management",
             "groups": "Groups Management",
             "collections": "Collections Management",
+            "analytics": "Analytics",
             "backToHome": "Back to Home",
             "systemAdmin": "System Admin",
             "logout": "Logout"
@@ -1121,6 +1144,28 @@
             "version": "Version",
             "role": "Role",
             "account": "Account"
+        },
+        "Analytics": {
+            "pageTitle": "Analytics Dashboard",
+            "pageDescription": "Overview of system revenue, transactions, and token usage.",
+            "totalRevenue": "Total Revenue",
+            "totalTransactions": "Total Transactions",
+            "totalTokenUsage": "Total Token Usage",
+            "revenueChartTitle": "Monthly Revenue",
+            "revenue": "Revenue",
+            "tokenUsageChartTitle": "Monthly Token Usage",
+            "tokensUsed": "Tokens Used",
+            "recentTransactions": "Recent Transactions",
+            "user": "User",
+            "plan": "Plan",
+            "amount": "Amount",
+            "status": "Status",
+            "date": "Date",
+            "noTransactions": "No recent transactions found.",
+            "errorFetchingRevenue": "Failed to fetch revenue data.",
+            "errorFetchingToken": "Failed to fetch token data.",
+            "errorFetchingTransactions": "Failed to fetch transactions.",
+            "genericError": "An error occurred while fetching analytics data."
         },
         "Prompts": {
             "title": "Prompts Management",
