@@ -74,7 +74,7 @@ export const OptimizeTab = () => {
         const headers = Object.keys(headerMap);
 
         // Strategy: Find indices of all headers
-        let foundHeaders: { index: number, key: string, rawHeader: string }[] = [];
+        const foundHeaders: { index: number, key: string, rawHeader: string }[] = [];
 
         headers.forEach(h => {
             // Look for **HEADER**, ## HEADER, followed optional colon, optional spaces
@@ -250,7 +250,7 @@ ${promptData.constraints}
                 if (sectionsToApply[key]) {
                     // key matches PromptData keys (instruction, context, etc.)
                     // TypeScript cast needed as parsedSections keys are strings
-                    (newData as any)[key] = content;
+                    (newData as Record<string, string>)[key] = content;
                 }
             });
 
@@ -441,7 +441,7 @@ ${promptData.constraints}
                             {Object.entries(parsedSections).map(([key, content]) => {
                                 // Skip empty sections if they are empty in both (optional, but good for cleanup)
                                 // Actually better to show what's changing.
-                                const originalContent = (promptData as any)[key] || '';
+                                const originalContent = ((promptData as unknown) as Record<string, string | undefined>)[key] || '';
                                 const isModified = content.trim() !== originalContent.trim();
 
                                 if (!content && !originalContent) return null;
@@ -466,7 +466,7 @@ ${promptData.constraints}
                                             <span className="text-sm font-bold capitalize text-slate-700">
                                                 {/* Map key to nice label if needed, or rely on key name from parser which matches data keys */}
                                                 {/* Translate key? For now capitalize */}
-                                                {t(`sections.${key}` as any) || key}
+                                                {t(`sections.${key}` as string) || key}
                                             </span>
 
                                             {isModified && (
