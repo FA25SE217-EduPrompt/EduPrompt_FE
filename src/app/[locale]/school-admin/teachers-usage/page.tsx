@@ -19,69 +19,7 @@ export default function TeachersUsagePage() {
     const [totalElements, setTotalElements] = useState(0);
     const size = 10;
 
-    const generateMockData = () => {
-        const mockUsers: UserUsageResponse[] = [
-            {
-                userId: '87d261b6-8254-47b2-965b-d8a5e1234567',
-                firstName: 'Nguyễn Văn',
-                lastName: 'An',
-                email: 'nguyenvanan@school.edu.vn',
-                phoneNumber: '0901234567',
-                schoolTokensUsed: 15000,
-                individualTokensUsed: 5000,
-            },
-            {
-                userId: 'a1b2c3d4-5e6f-7890-abcd-ef1234567890',
-                firstName: 'Trần Thị',
-                lastName: 'Bình',
-                email: 'tranthibinh@school.edu.vn',
-                phoneNumber: '0902345678',
-                schoolTokensUsed: 22000,
-                individualTokensUsed: 8000,
-            },
-            {
-                userId: 'f9e8d7c6-b5a4-3210-9876-543210fedcba',
-                firstName: 'Lê Minh',
-                lastName: 'Châu',
-                email: 'leminhchau@school.edu.vn',
-                phoneNumber: '0903456789',
-                schoolTokensUsed: 18500,
-                individualTokensUsed: null,
-            },
-            {
-                userId: '12345678-90ab-cdef-1234-567890abcdef',
-                firstName: 'Phạm Hoàng',
-                lastName: 'Dũng',
-                email: 'phamhoangdung@school.edu.vn',
-                phoneNumber: '0904567890',
-                schoolTokensUsed: 12000,
-                individualTokensUsed: 15000,
-            },
-            {
-                userId: 'abcdef12-3456-7890-abcd-ef1234567890',
-                firstName: 'Võ Thị',
-                lastName: 'Em',
-                email: 'vothiem@school.edu.vn',
-                phoneNumber: null,
-                schoolTokensUsed: 25000,
-                individualTokensUsed: 10000,
-            },
-        ];
 
-        const mockSchoolInfo: SchoolUsageSummaryDto = {
-            schoolName: 'THPT Chuyên Lê Hồng Phong',
-            totalTeachers: mockUsers.length,
-            schoolTokenPool: 100000,
-            schoolTokensUsed: mockUsers.reduce((sum, u) => sum + u.schoolTokensUsed, 0),
-            schoolTokensRemaining: 7500,
-            totalTeachersId: mockUsers.length,
-            users: mockUsers,
-        };
-
-        setSchoolInfo(mockSchoolInfo);
-        setUsers(mockUsers);
-        setLoading(false);
-    };
 
     const fetchTeachers = async (pageNum: number) => {
         setLoading(true);
@@ -89,120 +27,7 @@ export default function TeachersUsagePage() {
 
         const result = await SchoolAdminService.getTeachersUsage();
 
-        // Luôn lấy fake data
-        const mockUsers: UserUsageResponse[] = [
-            {
-                userId: '87d261b6-8254-47b2-965b-d8a5e1234567',
-                firstName: 'Nguyễn Văn',
-                lastName: 'An',
-                email: 'nguyenvanan@school.edu.vn',
-                phoneNumber: '0901234567',
-                schoolTokensUsed: 15000,
-                individualTokensUsed: 5000,
-            },
-            {
-                userId: 'a1b2c3d4-5e6f-7890-abcd-ef1234567890',
-                firstName: 'Trần Thị',
-                lastName: 'Bình',
-                email: 'tranthibinh@school.edu.vn',
-                phoneNumber: '0902345678',
-                schoolTokensUsed: 22000,
-                individualTokensUsed: 8000,
-            },
-            {
-                userId: 'f9e8d7c6-b5a4-3210-9876-543210fedcba',
-                firstName: 'Lê Minh',
-                lastName: 'Châu',
-                email: 'leminhchau@school.edu.vn',
-                phoneNumber: '0903456789',
-                schoolTokensUsed: 18500,
-                individualTokensUsed: null,
-            },
-            {
-                userId: '12345678-90ab-cdef-1234-567890abcdef',
-                firstName: 'Phạm Hoàng',
-                lastName: 'Dũng',
-                email: 'phamhoangdung@school.edu.vn',
-                phoneNumber: '0904567890',
-                schoolTokensUsed: 12000,
-                individualTokensUsed: 15000,
-            },
-            {
-                userId: 'abcdef12-3456-7890-abcd-ef1234567890',
-                firstName: 'Võ Thị',
-                lastName: 'Em',
-                email: 'vothiem@school.edu.vn',
-                phoneNumber: null,
-                schoolTokensUsed: 25000,
-                individualTokensUsed: 10000,
-            },
-            {
-                userId: 'abcdef12-3456-7890-abcd-ef1234567890',
-                firstName: 'Võ Thị',
-                lastName: 'Em',
-                email: 'vothiem@school.edu.vn',
-                phoneNumber: null,
-                schoolTokensUsed: 25000,
-                individualTokensUsed: 10000,
-            },
-            {
-                userId: 'abcdef12-3456-7890-abcd-ef1234567890',
-                firstName: 'Võ Thị',
-                lastName: 'Em',
-                email: 'vothiem@school.edu.vn',
-                phoneNumber: null,
-                schoolTokensUsed: 25000,
-                individualTokensUsed: 10000,
-            },
-            {
-                userId: 'abcdef12-3456-7890-abcd-ef1234567890',
-                firstName: 'Võ Thị',
-                lastName: 'Em',
-                email: 'vothiem@school.edu.vn',
-                phoneNumber: null,
-                schoolTokensUsed: 25000,
-                individualTokensUsed: 10000,
-            },
-            {
-                userId: 'abcdef12-3456-7890-abcd-ef1234567890',
-                firstName: 'Võ Thị',
-                lastName: 'Em',
-                email: 'vothiem@school.edu.vn',
-                phoneNumber: null,
-                schoolTokensUsed: 25000,
-                individualTokensUsed: 10000,
-            },
-            {
-                userId: 'abcdef12-3456-7890-abcd-ef1234567890',
-                firstName: 'Võ Thị',
-                lastName: 'Em',
-                email: 'vothiem@school.edu.vn',
-                phoneNumber: null,
-                schoolTokensUsed: 25000,
-                individualTokensUsed: 10000,
-            },
-
-        ];
-
         if (result.error) {
-            // Nếu API lỗi, dùng fake data với phân trang
-            const startIndex = pageNum * size;
-            const endIndex = startIndex + size;
-            const paginatedMockUsers = mockUsers.slice(startIndex, endIndex);
-
-            const mockSchoolInfo: SchoolUsageSummaryDto = {
-                schoolName: 'THPT Chuyên Lê Hồng Phong',
-                totalTeachers: mockUsers.length,
-                schoolTokenPool: 100000,
-                schoolTokensUsed: mockUsers.reduce((sum, u) => sum + u.schoolTokensUsed, 0),
-                schoolTokensRemaining: 7500,
-                totalTeachersId: mockUsers.length,
-                users: paginatedMockUsers,
-            };
-            setSchoolInfo(mockSchoolInfo);
-            setUsers(paginatedMockUsers);
-            setTotalPages(Math.ceil(mockUsers.length / size));
-            setTotalElements(mockUsers.length);
             setError(mapErrorToUserMessage({ error: result.error }));
             setLoading(false);
             return;
@@ -210,22 +35,20 @@ export default function TeachersUsagePage() {
 
         if (result.data) {
             const realUsers = result.data.users || [];
-            // Kết hợp real data với fake data
-            const combinedUsers = [...realUsers, ...mockUsers];
 
-            // Phân trang cho combined data
+            // Phân trang cho real data
             const startIndex = pageNum * size;
             const endIndex = startIndex + size;
-            const paginatedUsers = combinedUsers.slice(startIndex, endIndex);
+            const paginatedUsers = realUsers.slice(startIndex, endIndex);
 
             setSchoolInfo({
                 ...result.data,
-                totalTeachers: combinedUsers.length,
+                totalTeachers: realUsers.length,
                 users: paginatedUsers,
             });
             setUsers(paginatedUsers);
-            setTotalPages(Math.ceil(combinedUsers.length / size));
-            setTotalElements(combinedUsers.length);
+            setTotalPages(Math.ceil(realUsers.length / size));
+            setTotalElements(realUsers.length);
         }
         setLoading(false);
     };

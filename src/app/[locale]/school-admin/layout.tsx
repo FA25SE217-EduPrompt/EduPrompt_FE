@@ -85,21 +85,13 @@ export default function SchoolAdminLayout({
                         label={t('mySchool')}
                         href="/school-admin/info"
                     />
-                    <NavItem
-                        icon={<UserGroupIcon className="h-5 w-5" />}
-                        label={t('teachers')}
-                        href="/school-admin/teachers"
-                    />
+
                     <NavItem
                         icon={<ChartBarIcon className="h-5 w-5" />}
                         label={t('teachersUsage')}
                         href="/school-admin/teachers-usage"
                     />
-                    <NavItem
-                        icon={<CreditCardIcon className="h-5 w-5" />}
-                        label={t('subscription')}
-                        href="/school-admin/subscription"
-                    />
+
                     <NavItem
                         icon={<ClipboardDocumentListIcon className="h-5 w-5" />}
                         label={t('subscriptionUsage')}
@@ -110,11 +102,7 @@ export default function SchoolAdminLayout({
                         label={t('allTeachersSubscription')}
                         href="/school-admin/all-teachers-subscription"
                     />
-                    <NavItem
-                        icon={<Cog6ToothIcon className="h-5 w-5" />}
-                        label={t('settings')}
-                        href="/school-admin/settings"
-                    />
+
                 </nav>
 
                 <div className="p-4 border-t border-blue-800">

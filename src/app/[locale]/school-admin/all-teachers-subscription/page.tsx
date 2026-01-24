@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import SchoolAdminService from '@/services/resources/schoolAdmin';
-import { TeacherTokenUsageLogDto } from '@/types/school-admin.api';
+import { TeacherTokenUsageLogDto, UserUsageResponse } from '@/types/school-admin.api';
 import { mapErrorToUserMessage } from '@/utils/errorMapper';
 import { useTranslations } from 'next-intl';
 
 export default function AllTeachersSubscriptionPage() {
     const t = useTranslations('SchoolAdmin.AllTeachersSubscription');
     const [logs, setLogs] = useState<TeacherTokenUsageLogDto[]>([]);
+    const [teachersMap, setTeachersMap] = useState<Record<string, UserUsageResponse>>({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [page, setPage] = useState(0);
@@ -25,158 +26,26 @@ export default function AllTeachersSubscriptionPage() {
             size,
         });
 
-        const mockLogs: TeacherTokenUsageLogDto[] = [
-            {
-                id: 'mock-1',
-                userId: '87d261b6-8254-47b2-965b-d8a5e1234567',
-                userName: 'Nguyễn Văn An',
-                actionType: 'TEST',
-                tokensUsed: 500,
-                createdAt: '2024-12-23T10:30:00Z',
-            },
-            {
-                id: 'mock-2',
-                userId: 'a1b2c3d4-5e6f-7890-abcd-ef1234567890',
-                userName: 'Trần Thị Bình',
-                actionType: 'OPTIMIZATION',
-                tokensUsed: 1200,
-                createdAt: '2024-12-23T09:15:00Z',
-            },
-            {
-                id: 'mock-3',
-                userId: 'f9e8d7c6-b5a4-3210-9876-543210fedcba',
-                userName: 'Lê Minh Châu',
-                actionType: 'TEST',
-                tokensUsed: 800,
-                createdAt: '2024-12-22T14:45:00Z',
-            },
-            {
-                id: 'mock-4',
-                userId: '12345678-90ab-cdef-1234-567890abcdef',
-                userName: 'Phạm Hoàng Dũng',
-                actionType: 'TEST',
-                tokensUsed: 600,
-                createdAt: '2024-12-22T11:20:00Z',
-            },
-            {
-                id: 'mock-5',
-                userId: 'abcdef12-3456-7890-abcd-ef1234567890',
-                userName: 'Võ Thị Em',
-                actionType: 'OPTIMIZATION',
-                tokensUsed: 1500,
-                createdAt: '2024-12-21T16:00:00Z',
-            },
-            {
-                id: 'mock-6',
-                userId: '87d261b6-8254-47b2-965b-d8a5e1234567',
-                userName: 'Nguyễn Văn An',
-                actionType: 'OPTIMIZATION',
-                tokensUsed: 950,
-                createdAt: '2024-12-21T10:10:00Z',
-            },
-            {
-                id: 'mock-7',
-                userId: 'a1b2c3d4-5e6f-7890-abcd-ef1234567890',
-                userName: 'Trần Thị Bình',
-                actionType: 'TEST',
-                tokensUsed: 700,
-                createdAt: '2024-12-20T15:30:00Z',
-            },
-            {
-                id: 'mock-8',
-                userId: '11111111-2222-3333-4444-555555555555',
-                userName: 'Hoàng Văn Khoa',
-                actionType: 'OPTIMIZATION',
-                tokensUsed: 1100,
-                createdAt: '2024-12-20T14:00:00Z',
-            },
-            {
-                id: 'mock-9',
-                userId: '22222222-3333-4444-5555-666666666666',
-                userName: 'Đỗ Thị Lan',
-                actionType: 'TEST',
-                tokensUsed: 450,
-                createdAt: '2024-12-19T16:30:00Z',
-            },
-            {
-                id: 'mock-10',
-                userId: '33333333-4444-5555-6666-777777777777',
-                userName: 'Bùi Minh Nam',
-                actionType: 'OPTIMIZATION',
-                tokensUsed: 1300,
-                createdAt: '2024-12-19T10:45:00Z',
-            },
-            {
-                id: 'mock-11',
-                userId: '44444444-5555-6666-7777-888888888888',
-                userName: 'Vũ Thị Oanh',
-                actionType: 'TEST',
-                tokensUsed: 550,
-                createdAt: '2024-12-18T13:20:00Z',
-            },
-            {
-                id: 'mock-12',
-                userId: '55555555-6666-7777-8888-999999999999',
-                userName: 'Đinh Văn Phong',
-                actionType: 'OPTIMIZATION',
-                tokensUsed: 900,
-                createdAt: '2024-12-18T09:00:00Z',
-            },
-            {
-                id: 'mock-13',
-                userId: '66666666-7777-8888-9999-aaaaaaaaaaaa',
-                userName: 'Lý Thị Quỳnh',
-                actionType: 'TEST',
-                tokensUsed: 650,
-                createdAt: '2024-12-17T15:15:00Z',
-            },
-            {
-                id: 'mock-14',
-                userId: '77777777-8888-9999-aaaa-bbbbbbbbbbbb',
-                userName: 'Trịnh Văn Sơn',
-                actionType: 'OPTIMIZATION',
-                tokensUsed: 1400,
-                createdAt: '2024-12-17T11:30:00Z',
-            },
-
-        ];
+        // Parallel fetch for teacher details to map names/emails
+        const teachersResult = await SchoolAdminService.getTeachersUsage(); // Assuming this gets all or enough teachers
+        if (teachersResult.data && teachersResult.data.users) {
+            const map: Record<string, UserUsageResponse> = {};
+            teachersResult.data.users.forEach(u => {
+                map[u.userId] = u;
+            });
+            setTeachersMap(map);
+        }
 
         if (result.error) {
-            // Nếu API lỗi, dùng fake data với phân trang
-            const startIndex = pageNum * size;
-            const endIndex = startIndex + size;
-            const paginatedMockLogs = mockLogs.slice(startIndex, endIndex);
-
-            setLogs(paginatedMockLogs);
-            setTotalPages(Math.ceil(mockLogs.length / size));
-            setTotalElements(mockLogs.length);
             setError(mapErrorToUserMessage({ error: result.error }));
             setLoading(false);
             return;
         }
 
         if (result.data) {
-            const realLogs = result.data.content || [];
-            // Kết hợp real data với fake data
-            const combinedLogs = [...realLogs, ...mockLogs];
-
-            // Phân trang cho combined data
-            const startIndex = pageNum * size;
-            const endIndex = startIndex + size;
-            const paginatedLogs = combinedLogs.slice(startIndex, endIndex);
-
-            setLogs(paginatedLogs);
-            setTotalPages(Math.ceil(combinedLogs.length / size));
-            setTotalElements(combinedLogs.length);
-        } else {
-            // Nếu không có data, dùng fake data với phân trang
-            const startIndex = pageNum * size;
-            const endIndex = startIndex + size;
-            const paginatedMockLogs = mockLogs.slice(startIndex, endIndex);
-
-            setLogs(paginatedMockLogs);
-            setTotalPages(Math.ceil(mockLogs.length / size));
-            setTotalElements(mockLogs.length);
+            setLogs(result.data.content || []);
+            setTotalPages(result.data.totalPages || 0);
+            setTotalElements(result.data.totalElements || 0);
         }
         setLoading(false);
     };
@@ -250,9 +119,13 @@ export default function AllTeachersSubscriptionPage() {
                                             <tr key={log.id} className="hover:bg-gray-50">
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="text-sm font-medium text-gray-900">
-                                                        {log.userName}
+                                                        {teachersMap[log.userId]
+                                                            ? `${teachersMap[log.userId].firstName} ${teachersMap[log.userId].lastName}`
+                                                            : log.userName}
                                                     </div>
-                                                    <div className="text-xs text-gray-500">{log.userId}</div>
+                                                    <div className="text-xs text-gray-500">
+                                                        {teachersMap[log.userId]?.email || log.userId}
+                                                    </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${log.actionType === 'TEST' ? 'bg-blue-100 text-blue-800' :

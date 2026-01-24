@@ -8,6 +8,7 @@ import {
     PlusIcon,
     TrashIcon
 } from "@heroicons/react/24/outline";
+import { SubscriptionUsageDto } from "@/types/school-admin.api";
 import { useRouter } from "next/navigation";
 import { SchoolAdminService } from "@/services/resources/schoolAdmin";
 import { toast } from "sonner";
@@ -26,19 +27,14 @@ interface Teacher {
     createdAt: string; // or assignedAt
 }
 
-interface SubscriptionUsage {
-    activeTeachers: number;
-    totalPrompts?: number; // Might not be available yet
-    usagePercentage?: number;
-    maxTeachers?: number;
-}
+
 
 const SchoolAdminDashboard: React.FC = () => {
     const router = useRouter();
     const { user, isLoading } = useAuth();
     const t = useTranslations('SchoolAdmin');
     const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState<SubscriptionUsage | null>(null);
+    const [stats, setStats] = useState<SubscriptionUsageDto | null>(null);
     const [teachers, setTeachers] = useState<Teacher[]>([]);
     const [school, setSchool] = useState<School | null>(null);
 
@@ -61,10 +57,9 @@ const SchoolAdminDashboard: React.FC = () => {
                 SchoolService.getSchoolByUserId(user.id)
             ]);
 
-            setStats({
-                activeTeachers: 0, // [SCHOOL_ADMIN_DASHBOARD] - Fix: Property missing in DTO, UI uses teachers.length
-                maxTeachers: 0, // [SCHOOL_ADMIN_DASHBOARD] - Fix: Property missing in DTO
-            });
+            if (usageData.data) {
+                setStats(usageData.data);
+            }
 
             if (schoolData.data) {
                 setSchool(schoolData.data);
@@ -139,7 +134,7 @@ const SchoolAdminDashboard: React.FC = () => {
             <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <StatCard
                     title={t('stats.activeTeachers')}
-                    value={`${teachers.length} / ${stats?.maxTeachers || 'Unlimited'}`}
+                    value={`${teachers.length}`}
                     icon={<UserGroupIcon />}
                     gradientClass="from-brand-secondary to-brand-secondary/70"
                 />
@@ -151,7 +146,7 @@ const SchoolAdminDashboard: React.FC = () => {
                 />
                 <StatCard
                     title={t('stats.subscriptionStatus')}
-                    value="Active"
+                    value={stats?.isActive ? "Active" : "Inactive"}
                     icon={<ChartBarIcon />}
                     gradientClass="from-brand-secondary to-brand-secondary/70"
                 />

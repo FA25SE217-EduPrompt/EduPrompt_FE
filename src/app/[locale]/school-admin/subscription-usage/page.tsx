@@ -22,36 +22,14 @@ export default function SubscriptionUsagePage() {
 
         const result = await SchoolAdminService.getSubscriptionUsage();
 
-        const mockUsage: SubscriptionUsageDto = {
-            subscriptionId: 'mock-sub-id',
-            subscriptionType: 'Standard School',
-            tokensUsed: 45000,
-            totalTokensLimit: 100000,
-            tokensRemaining: 55000,
-            testsUsed: 120,
-            testsLimit: 500,
-            testsRemaining: 380,
-            optimizationsUsed: 85,
-            optimizationsLimit: 200,
-            optimizationsRemaining: 115,
-            resetDate: new Date().toISOString(),
-            isActive: true,
-        };
-
         if (result.error) {
-            // Nếu API lỗi, dùng fake data
-            setUsage(mockUsage);
             setError(mapErrorToUserMessage({ error: result.error }));
             setLoading(false);
             return;
         }
 
         if (result.data) {
-            // Kết hợp real data với fake data (ưu tiên real data)
-            const hasRealData = result.data.totalTokensLimit > 0 || result.data.testsLimit > 0 || result.data.optimizationsLimit > 0;
-            setUsage(hasRealData ? result.data : mockUsage);
-        } else {
-            setUsage(mockUsage);
+            setUsage(result.data);
         }
         setLoading(false);
     };
