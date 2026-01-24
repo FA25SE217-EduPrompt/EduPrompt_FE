@@ -1,8 +1,11 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { promptsService } from "@/services/resources/prompts";
+import { toast } from "sonner";
 import { Link } from '@/i18n/navigation';
 import { PlusCircleIcon } from "@heroicons/react/24/outline";
 import { PromptCard } from "./PromptCard";
 import { SkeletonLoader } from "@/components/ui/SkeletonLoader";
+import { PromptCardSkeleton } from "./PromptCardSkeleton";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 
@@ -42,6 +45,78 @@ export const PromptsGrid: React.FC<PromptsGridProps> = ({
     emptyStateMessage,
 }) => {
     const t = useTranslations('Dashboard.Manage');
+    const [viewedStatus, setViewedStatus] = useState<Record<string, boolean>>({});
+    const [unlockingId, setUnlockingId] = useState<string | null>(null);
+
+    // Check viewed status for displayed prompts
+    // Optimization: Create a stable dependency key from non-owned prompt IDs needed to check
+    // This prevents re-runs when the 'prompts' array reference changes but the IDs are the same
+    const stableIdsToCheck = React.useMemo(() => {
+        return prompts
+            .filter(p => !p.isOwner)
+            .map(p => p.id)
+            .sort()
+            .join(',');
+    }, [prompts]);
+
+    // Check viewed status for displayed prompts
+    useEffect(() => {
+        const checkViewedStatus = async () => {
+            // Parse the IDs from our stable key
+            const allNonOwnedIds = stableIdsToCheck ? stableIdsToCheck.split(',') : [];
+
+            const idsNeeded = allNonOwnedIds.filter(id => viewedStatus[id] === undefined);
+
+            // Deduplicate just in case
+            const uniqueIds = Array.from(new Set(idsNeeded));
+
+            if (uniqueIds.length === 0) return;
+
+            try {
+                const response = await promptsService.checkPromptsViewedBatch(uniqueIds);
+                if (response && response.data) {
+                    const statusMap: Record<string, boolean> = {};
+                    response.data.forEach((item: { id: string; value: boolean }) => {
+                        statusMap[item.id] = item.value;
+                    });
+                    setViewedStatus(prev => ({ ...prev, ...statusMap }));
+                }
+            } catch (error: any) {
+                if (error?.response?.status === 403) {
+                    console.warn("Viewed status check forbidden (403).");
+                } else {
+                    console.error("Failed to check viewed status", error);
+                }
+            }
+        };
+
+        const timer = setTimeout(checkViewedStatus, 300);
+        return () => clearTimeout(timer);
+    }, [stableIdsToCheck, viewedStatus]);
+
+    const handleUnlock = async (promptId: string) => {
+        setUnlockingId(promptId);
+        try {
+            const response = await promptsService.logPromptView(promptId);
+
+            if (response.error) {
+                if (response.error.code === 'QUOTA_EXCEEDED' && response.error.status === '503') {
+                    toast.error(t('quotaExceeded') || "Quota exceeded for unlocking prompts.");
+                } else {
+                    toast.error(t('unlockFailed') || "Failed to unlock prompt");
+                }
+                return;
+            }
+
+            setViewedStatus(prev => ({ ...prev, [promptId]: true }));
+            toast.success(t('promptUnlocked') || "Prompt unlocked successfully");
+        } catch (error) {
+            console.error("Unlock failed", error);
+            toast.error(t('unlockFailed') || "Failed to unlock prompt");
+        } finally {
+            setUnlockingId(null);
+        }
+    };
 
     return (
         <section>
@@ -65,20 +140,7 @@ export const PromptsGrid: React.FC<PromptsGridProps> = ({
             {isLoading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {Array.from({ length: 8 }).map((_, i) => (
-                        <div key={i} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 h-[280px] flex flex-col justify-between">
-                            <div className="space-y-4">
-                                <div className="flex justify-between">
-                                    <SkeletonLoader lines={0} hasHeading={false} className="w-16 h-5" />
-                                    <SkeletonLoader lines={0} hasHeading={false} className="w-16 h-5" />
-                                </div>
-                                <SkeletonLoader lines={1} hasHeading={true} className="w-3/4" />
-                                <SkeletonLoader lines={2} hasHeading={false} />
-                            </div>
-                            <div className="flex gap-2 mt-4">
-                                <SkeletonLoader lines={0} hasHeading={false} className="w-12 h-5" />
-                                <SkeletonLoader lines={0} hasHeading={false} className="w-12 h-5" />
-                            </div>
-                        </div>
+                        <PromptCardSkeleton key={i} />
                     ))}
                 </div>
             ) : prompts.length === 0 ? (
@@ -117,6 +179,9 @@ export const PromptsGrid: React.FC<PromptsGridProps> = ({
                                 lastUpdated={prompt.lastUpdated}
                                 tags={prompt.tags}
                                 isOwner={prompt.isOwner}
+                                isLocked={!prompt.isOwner && viewedStatus[prompt.id] !== true}
+                                onUnlock={() => handleUnlock(prompt.id)}
+                                isUnlocking={unlockingId === prompt.id}
                             />
                         </motion.div>
                     ))}

@@ -509,6 +509,17 @@ export const promptsService = {
             })
         );
     },
+
+    // Get recommended prompts
+    async getRecommendedPrompts(opts?: ApiRequestOptions): Promise<BaseResponse<PromptResponse[]>> {
+        return ApiCall<PromptResponse[]>(() =>
+            apiClient.request({
+                url: `/api/prompts-recommend/recommended`,
+                method: 'get',
+                ...buildRequestConfig(opts),
+            })
+        );
+    },
     // [SCHOOL_ADMIN_DASHBOARD] - End
 
     // [System Admin Merge Ref] Accepted change from system-admin-dashboard branch

@@ -64,8 +64,15 @@ const WorkbenchContent = () => {
                         constraints: response.data.constraints,
                     });
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.error("Failed to load prompt", error);
+                if (error.response?.status === 403) {
+                    toast.error("Access Denied", { description: "You do not have permission to view this prompt." });
+                } else if (error.response?.status === 503) {
+                    toast.error("Quota Exceeded", { description: "Cannot view prompt details." });
+                } else {
+                    toast.error("Failed to load prompt details");
+                }
             } finally {
                 setIsLoading(false);
             }

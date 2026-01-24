@@ -222,7 +222,7 @@ ${promptData.constraints}
             console.error(error);
             const err = error as AxiosError<ErrorPayload, unknown>;
             if (err.response?.status === 503) {
-                if (err.response?.data?.code === 'QUOTA_EXCEED') {
+                if (err.response?.data?.code === 'QUOTA_EXCEED' || err.response?.data?.code === 'QUOTA_EXCEEDED') {
                     toast.error("Quota Exceeded", {
                         description: "You have insufficient balance. Please top up."
                     });

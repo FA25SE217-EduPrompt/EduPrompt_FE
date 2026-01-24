@@ -10,4 +10,7 @@ export interface QuotaResponse {
     promptActionRemaining: number;
     collectionActionLimit: number;
     collectionActionRemaining: number;
+    promptUnlockLimit: number;
+    promptUnlockRemaining: number;
+    quotaResetDate: string;
 }

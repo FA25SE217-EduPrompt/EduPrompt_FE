@@ -5,6 +5,7 @@ import {
     CircleStackIcon,
     SparklesIcon,
     WalletIcon,
+    LockOpenIcon,
 } from "@heroicons/react/24/outline";
 import { StatCard } from "./StatCard";
 import { useTranslations } from "next-intl";
@@ -41,6 +42,20 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                 icon={<BookOpenIcon />}
                 gradientClass="from-brand-primary to-brand-primary/70"
             />
+
+            <StatCard
+                title={t('promptUnlocks')}
+                value={quotaData?.promptUnlockRemaining !== undefined
+                    ? quotaData.promptUnlockRemaining.toString()
+                    : "Loading..."}
+                icon={<LockOpenIcon />}
+                gradientClass="from-brand-secondary to-brand-secondary/70"
+                progress={quotaData?.promptUnlockRemaining !== undefined ? {
+                    current: quotaData.promptUnlockRemaining,
+                    max: quotaData.promptUnlockLimit
+                } : undefined}
+            />
+
             {!user?.hasSchoolSubscription && (
                 <>
                     <StatCard
@@ -67,6 +82,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                             max: quotaData.optimizationQuotaLimit
                         } : undefined}
                     />
+
                     <StatCard
                         title="Testing Quota"
                         value={quotaData?.testingQuotaRemaining !== undefined

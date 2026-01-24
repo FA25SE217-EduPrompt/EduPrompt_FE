@@ -46,6 +46,7 @@ export const promptKeys = {
         size
     }, opts] as const,
     optimizationsPending: (opts?: ApiRequestOptions) => [...promptKeys.optimizations(), 'pending', opts] as const,
+    recommended: (opts?: ApiRequestOptions) => [...promptKeys.all, 'recommended', opts] as const,
 };
 
 /* ----------------------------
@@ -162,6 +163,18 @@ export const useGetGroupSharedPrompts = (
         placeholderData: keepPreviousData,
         staleTime: 5 * 60 * 1000,
         enabled: queryOptions?.enabled !== false,
+    });
+};
+
+/**
+ * Query to get recommended prompts
+ */
+export const useGetRecommendedPrompts = (opts?: ApiRequestOptions, queryOptions?: { enabled?: boolean }) => {
+    return useQuery({
+        queryKey: promptKeys.recommended(opts),
+        queryFn: () => promptsService.getRecommendedPrompts(opts),
+        enabled: queryOptions?.enabled !== false,
+        staleTime: 5 * 60 * 1000, // 5 minutes
     });
 };
 

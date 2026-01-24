@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { BoltIcon, ChevronDownIcon, StarIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
+import { BoltIcon, ChevronDownIcon, StarIcon, PencilSquareIcon, LockClosedIcon, LockOpenIcon } from "@heroicons/react/24/outline";
 import { Badge } from "./Badge";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
@@ -47,7 +47,7 @@ const formatDate = (dateString: string): string => {
     }
 };
 
-export const PromptCard: React.FC<PromptCardProps> = (props) => {
+export const PromptCard: React.FC<PromptCardProps & { isLocked?: boolean; onUnlock?: () => void; isUnlocking?: boolean }> = (props) => {
     const t = useTranslations('Dashboard.PromptCard');
     const router = useRouter();
     const [isExpanded, setIsExpanded] = useState(false);
@@ -116,17 +116,32 @@ export const PromptCard: React.FC<PromptCardProps> = (props) => {
                             </Link>
                         )}
 
-                        <button
-                            aria-label={`${t('optimize')} prompt ${props.title}`}
-                            className="btn-optimize z-10 active:scale-95 transition-transform"
-                            onClick={(e) => {
-                                e.stopPropagation(); // Prevent card from expanding when clicking optimize
-                                router.push(`/prompt/workbench?loadPromptId=${props.id}&tab=optimize`);
-                            }}
-                        >
-                            <BoltIcon className="h-4 w-4" />
-                            <span>{t('optimize')}</span>
-                        </button>
+                        {!props.isLocked && (
+                            <button
+                                aria-label={`${t('optimize')} prompt ${props.title}`}
+                                className="btn-optimize z-10 active:scale-95 transition-transform"
+                                onClick={(e) => {
+                                    e.stopPropagation(); // Prevent card from expanding when clicking optimize
+                                    router.push(`/prompt/workbench?loadPromptId=${props.id}&tab=optimize`);
+                                }}
+                            >
+                                <BoltIcon className="h-4 w-4" />
+                                <span>{t('optimize')}</span>
+                            </button>
+                        )}
+                        {props.isLocked && (
+                            <button
+                                aria-label={t('unlock')}
+                                className="p-1.5 text-gray-400 hover:text-brand-primary rounded-md transition-colors z-10 active:scale-95"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setIsExpanded(true); // Expand to show unlock prompt
+                                }}
+                                title={t('unlockTooltip')}
+                            >
+                                <LockClosedIcon className="h-5 w-5" />
+                            </button>
+                        )}
                     </div>
 
                     {/* Chevron Icon for expand/collapse */}
@@ -144,22 +159,62 @@ export const PromptCard: React.FC<PromptCardProps> = (props) => {
                     }`}
             >
                 <div className="px-4 pb-4 border-t border-gray-100">
-                    {/* Description */}
-                    <p className="text-sm text-text-secondary mt-3">
-                        {props.description || t('noDescription')}
-                    </p>
+                    {props.isLocked ? (
+                        <div className="flex flex-col items-center justify-center py-6 text-center space-y-3">
+                            <LockClosedIcon className="w-8 h-8 text-gray-400 mb-1" />
+                            <h4 className="font-medium text-gray-900">{t('unlockQuestion')}</h4>
+                            <p className="text-sm text-gray-500 max-w-xs">{t('unlockConfirm')}</p>
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    props.onUnlock?.();
+                                }}
+                                disabled={props.isUnlocking}
+                                className="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-brand-primary hover:bg-brand-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary disabled:opacity-70 disabled:cursor-not-allowed transition-all active:scale-95"
+                            >
+                                {props.isUnlocking ? (
+                                    <>
+                                        <div className="animate-spin -ml-1 mr-2 h-4 w-4 text-white">
+                                            <svg className="fill-current" viewBox="0 0 24 24">
+                                                <path
+                                                    className="opacity-75"
+                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                                />
+                                            </svg>
+                                        </div>
+                                        {t('unlocking')}
+                                    </>
+                                ) : (
+                                    <>
+                                        <LockOpenIcon className="-ml-1 mr-2 h-4 w-4" />
+                                        {t('unlock')}
+                                    </>
+                                )}
+                            </button>
+                            <div className="text-xs text-gray-400 italic mt-2">
+                                {t('lockedContent')}
+                            </div>
+                        </div>
+                    ) : (
+                        <>
+                            {/* Description */}
+                            <p className="text-sm text-text-secondary mt-3">
+                                {props.description || t('noDescription')}
+                            </p>
 
-                    {/* Metadata */}
-                    <div className="mt-4 space-y-2 text-xs text-text-secondary">
-                        <div className="flex">
-                            <span className="font-medium w-20">{t('author')}</span>
-                            <span className="truncate">{props.author}</span>
-                        </div>
-                        <div className="flex">
-                            <span className="font-medium w-20">{t('updated')}</span>
-                            <span>{formatDate(props.lastUpdated)}</span>
-                        </div>
-                    </div>
+                            {/* Metadata */}
+                            <div className="mt-4 space-y-2 text-xs text-text-secondary">
+                                <div className="flex">
+                                    <span className="font-medium w-20">{t('author')}</span>
+                                    <span className="truncate">{props.author}</span>
+                                </div>
+                                <div className="flex">
+                                    <span className="font-medium w-20">{t('updated')}</span>
+                                    <span>{formatDate(props.lastUpdated)}</span>
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
 

@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useFilterPrompts, useSemanticSearch } from '@/hooks/queries/search';
-import { useGetMyPrompts, useGetGroupSharedPrompts } from '@/hooks/queries/prompt';
+import { useGetMyPrompts, useGetGroupSharedPrompts, useGetRecommendedPrompts } from '@/hooks/queries/prompt';
 import { useCountMyCollections } from '@/hooks/queries/collection';
 import { useDebounce } from "@/hooks/useDebounce";
 import { PromptMetadataResponse, SemanticSearchResult, PromptResponse } from "@/types/prompt.api";
@@ -18,7 +18,8 @@ import { SuggestedPrompts } from "@/components/dashboard/SuggestedPrompts";
 import { PromptsGrid, DisplayPrompt } from "@/components/dashboard/PromptsGrid";
 
 // Data
-import { promptData, suggestedData } from "./data";
+// Data
+// import { promptData, suggestedData } from "./data";
 
 const PromptsPage: React.FC = () => {
     const { user } = useAuth();
@@ -108,6 +109,9 @@ const PromptsPage: React.FC = () => {
     // 4. Semantic Search
     const { mutate: performSemanticSearch, data: semanticResults, isPending: isSemanticLoading } = useSemanticSearch();
 
+    // 5. Recommended Prompts
+    const { data: recommendedPromptsData, isLoading: isRecommendedLoading } = useGetRecommendedPrompts(undefined, { enabled: !isSearching });
+
     // Stats
     const { data: quotaData } = useGetQuota();
     const { data: collectionCountData } = useCountMyCollections();
@@ -163,11 +167,7 @@ const PromptsPage: React.FC = () => {
             setAllPrompts(prev => {
                 if (page === 0) {
                     if (!isSearching && page === 0) {
-                        const mocks = promptData.map(p => ({ ...p, isOwner: false }));
-                        // Verify unique IDs to clean up any potential dupes
-                        const mockIds = new Set(mocks.map(m => m.id));
-                        const uniqueMapped = mapped.filter(m => !mockIds.has(m.id));
-                        return [...mocks, ...uniqueMapped];
+                        return mapped;
                     }
                     return mapped;
                 }
@@ -198,6 +198,10 @@ const PromptsPage: React.FC = () => {
         return (sharedPromptsData?.data?.content || []).map(mapToDisplayPrompt);
     }, [sharedPromptsData, mapToDisplayPrompt]);
 
+    const displayRecommendedPrompts = useMemo(() => {
+        return (recommendedPromptsData?.data || []).map(mapToDisplayPrompt);
+    }, [recommendedPromptsData, mapToDisplayPrompt]);
+
     const isLoading = isSearching
         ? (searchType === 'keyword' ? isKeywordLoading : isSemanticLoading)
         : isMyPromptsLoading;
@@ -220,7 +224,10 @@ const PromptsPage: React.FC = () => {
             />
 
             {!isSearching && (
-                <SuggestedPrompts suggestions={suggestedData} />
+                <SuggestedPrompts
+                    suggestions={displayRecommendedPrompts as any}
+                    isLoading={isRecommendedLoading}
+                />
             )}
 
             {/* Main Prompts Grid (My Prompts or Search Results) */}

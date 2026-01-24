@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, GitCompare, Sparkles, Info, Copy, BookOpen, Star, TrendingUp, X, ChevronDown, Play, Loader2, Filter, CheckCircle2, FlaskConical } from 'lucide-react';
+import { Search, GitCompare, Sparkles, Info, Copy, BookOpen, Star, TrendingUp, X, ChevronDown, Play, Loader2, Filter, CheckCircle2, FlaskConical, Lock } from 'lucide-react';
 import { useFilterPrompts, useSemanticSearch } from '@/hooks/queries/search';
 import { useGetMyCollections } from '@/hooks/queries/collection';
 import { useRunPromptTest, useGetTestUsage, useGetPrompt } from '@/hooks/queries/prompt';
@@ -25,6 +25,7 @@ interface PromptDisplay {
     category: string;
     rating: number;
     description?: string;
+    ownerId?: string;
 }
 
 const MODEL_OPTIONS = [
@@ -66,7 +67,9 @@ const PromptSelectionModal = ({
     expandedCollection,
     setExpandedCollection,
     collectionPromptsData,
-    isCollectionPromptsLoading
+    isCollectionPromptsLoading,
+    viewedStatus,
+    userId
 }: {
     isOpen: boolean;
     onClose: () => void;
@@ -83,8 +86,15 @@ const PromptSelectionModal = ({
     setExpandedCollection: (id: string | null) => void;
     collectionPromptsData: BaseResponse<PaginatedResponse<PromptMetadataResponse>> | undefined;
     isCollectionPromptsLoading: boolean;
+    viewedStatus: Record<string, boolean>;
+    userId?: string;
 }) => {
     const t = useTranslations('Prompt.Search');
+
+    const getLockStatus = (promptId: string, ownerId?: string) => {
+        if (!userId || userId === ownerId) return false;
+        return viewedStatus[promptId] === false;
+    };
 
     return (
         <AnimatePresence>
@@ -185,6 +195,11 @@ const PromptSelectionModal = ({
                                                             <div className="text-xs text-gray-500 mt-0.5 truncate">{prompt.description || t('noDescription')}</div>
                                                         </div>
                                                         <div className="flex items-center space-x-3">
+                                                            {getLockStatus(prompt.id, prompt.ownerId) && (
+                                                                <div className="text-gray-400" title="Locked">
+                                                                    <Lock className="w-4 h-4" />
+                                                                </div>
+                                                            )}
                                                             <span className="text-[10px] uppercase font-medium px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full border border-gray-200">{prompt.category}</span>
                                                             <div className="flex items-center text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-100">
                                                                 <Star className="w-3 h-3 fill-current" />
@@ -249,7 +264,10 @@ const PromptSelectionModal = ({
                                                                                 })}
                                                                                 className="w-full text-left px-3 py-2 hover:bg-white hover:shadow-sm rounded-lg border border-transparent hover:border-gray-100 transition-all duration-200 text-sm text-gray-600 hover:text-blue-600 flex justify-between items-center group"
                                                                             >
-                                                                                <span className="truncate group-hover:font-medium">{prompt.title}</span>
+                                                                                <div className="flex items-center gap-2 truncate">
+                                                                                    {getLockStatus(prompt.id, prompt.ownerId) && <Lock className="w-3 h-3 text-gray-400" />}
+                                                                                    <span className="truncate group-hover:font-medium">{prompt.title}</span>
+                                                                                </div>
                                                                             </button>
                                                                         ))
                                                                     ) : (
@@ -505,6 +523,9 @@ const PromptTestingPage = () => {
     const [modelA, setModelA] = useState(MODEL_OPTIONS[0].value);
     const [modelB, setModelB] = useState(MODEL_OPTIONS[1].value);
 
+    const [viewedStatus, setViewedStatus] = useState<Record<string, boolean>>({});
+    const { user } = useAuth();
+
     const [temperature, setTemperature] = useState(0.7);
     const [topP, setTopP] = useState(0.9);
     const [maxTokens, setMaxTokens] = useState(2048);
@@ -537,6 +558,10 @@ const PromptTestingPage = () => {
         { title: '', collectionName: selectedCollectionName, page: 0, size: 20 },
         { enabled: !!expandedCollection && !!selectedCollectionName }
     );
+
+
+
+
 
     // Fetch selected prompts details
     const { data: promptA } = useGetPrompt(selectedPromptIdA!, {}, { enabled: !!selectedPromptIdA });
@@ -718,7 +743,8 @@ const PromptTestingPage = () => {
                 title: p.title,
                 category: p.collectionName || 'General',
                 rating: p.averageRating || 0,
-                description: p.description
+                description: p.description,
+                ownerId: p.ownerId
             })) || [];
         } else {
             return semanticResults?.data?.results?.map((p) => ({
@@ -726,10 +752,71 @@ const PromptTestingPage = () => {
                 title: p.title,
                 category: 'Semantic Match',
                 rating: p.averageRating || 0,
-                description: p.description || p.matchedSnippet
+                description: p.description || p.matchedSnippet,
+                ownerId: p.ownerId
             })) || [];
         }
     }, [searchType, keywordResults, semanticResults]);
+
+    // Stable key for batch checking to prevent re-renders
+    const stableIdsToCheck = useMemo(() => {
+        if (!user) return '';
+
+        const promptsToCheck: { id: string; ownerId?: string }[] = [];
+
+        // Add from search results
+        displayResults.forEach(p => {
+            if (p.id) promptsToCheck.push({ id: p.id, ownerId: p.ownerId });
+        });
+
+        // Add from collection
+        if (collectionPromptsData?.data?.content) {
+            collectionPromptsData.data.content.forEach(p => {
+                if (p.id) promptsToCheck.push({ id: p.id, ownerId: p.ownerId });
+            });
+        }
+
+        return promptsToCheck
+            .filter(p => p.ownerId !== user.id)
+            .map(p => p.id)
+            .sort()
+            .join(',');
+    }, [displayResults, collectionPromptsData, user]);
+
+    // Batch check viewed status for search results and collection items
+    useEffect(() => {
+        const checkViewedStatus = async () => {
+            if (!stableIdsToCheck) return;
+
+            const allIds = stableIdsToCheck.split(',');
+            const uniqueIds = Array.from(new Set(allIds));
+
+            // Filter out ones where we already have a status (true or false)
+            // We only need to check ones that are 'undefined' in our local state
+            const neededIds = uniqueIds.filter(id => viewedStatus[id] === undefined);
+
+            if (neededIds.length === 0) return;
+
+            try {
+                const results = await promptsService.checkPromptsViewedBatch(neededIds);
+                if (results.data) {
+                    const statusUpdate: Record<string, boolean> = {};
+                    results.data.forEach((item: { id: string; value: boolean }) => {
+                        statusUpdate[item.id] = item.value;
+                    });
+                    setViewedStatus(prev => ({ ...prev, ...statusUpdate }));
+                }
+            } catch (error) {
+                console.error("Failed to check viewed status", error);
+            }
+        };
+
+        const timer = setTimeout(() => {
+            checkViewedStatus();
+        }, 300); // Debounce slightly to avoid rapid calls if results update fast
+
+        return () => clearTimeout(timer);
+    }, [stableIdsToCheck, viewedStatus]);
 
     const isLoading = searchType === 'keyword' ? isKeywordLoading : isSemanticLoading;
 
@@ -955,6 +1042,8 @@ const PromptTestingPage = () => {
                 setExpandedCollection={setExpandedCollection}
                 collectionPromptsData={collectionPromptsData}
                 isCollectionPromptsLoading={isCollectionPromptsLoading}
+                viewedStatus={viewedStatus}
+                userId={user?.id}
             />
         </div >
     );

@@ -1,6 +1,7 @@
 import React from "react";
 import { SparklesIcon } from "@heroicons/react/24/outline";
 import { PromptCard } from "./PromptCard";
+import { PromptCardSkeleton } from "./PromptCardSkeleton";
 import { useTranslations } from "next-intl";
 
 interface SuggestedPrompt {
@@ -20,9 +21,10 @@ interface SuggestedPrompt {
 
 interface SuggestedPromptsProps {
     suggestions: SuggestedPrompt[];
+    isLoading?: boolean;
 }
 
-export const SuggestedPrompts: React.FC<SuggestedPromptsProps> = ({ suggestions }) => {
+export const SuggestedPrompts: React.FC<SuggestedPromptsProps> = ({ suggestions, isLoading = false }) => {
     const t = useTranslations('Dashboard.Manage');
 
     return (
@@ -34,22 +36,29 @@ export const SuggestedPrompts: React.FC<SuggestedPromptsProps> = ({ suggestions 
                 </h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {suggestions.map((prompt) => (
-                    <PromptCard
-                        key={prompt.id}
-                        id={prompt.id}
-                        title={prompt.title}
-                        description={prompt.description}
-                        author={prompt.author}
-                        subject={prompt.subject}
-                        grade={prompt.grade}
-                        type={prompt.type}
-                        rating={prompt.rating}
-                        isTrending={prompt.isTrending}
-                        createdAt={prompt.createdAt}
-                        lastUpdated={prompt.lastUpdated}
-                    />
-                ))}
+                {isLoading ? (
+                    // Render 4 skeletons for suggestions
+                    Array.from({ length: 4 }).map((_, i) => (
+                        <PromptCardSkeleton key={i} />
+                    ))
+                ) : (
+                    suggestions.map((prompt) => (
+                        <PromptCard
+                            key={prompt.id}
+                            id={prompt.id}
+                            title={prompt.title}
+                            description={prompt.description}
+                            author={prompt.author}
+                            subject={prompt.subject}
+                            grade={prompt.grade}
+                            type={prompt.type}
+                            rating={prompt.rating}
+                            isTrending={prompt.isTrending}
+                            createdAt={prompt.createdAt}
+                            lastUpdated={prompt.lastUpdated}
+                        />
+                    ))
+                )}
             </div>
         </section>
     );
