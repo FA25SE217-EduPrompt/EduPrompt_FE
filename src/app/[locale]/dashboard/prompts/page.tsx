@@ -225,7 +225,8 @@ const PromptsPage: React.FC = () => {
 
             {!isSearching && (
                 <SuggestedPrompts
-                    suggestions={displayRecommendedPrompts as any}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    suggestions={displayRecommendedPrompts as unknown as any[]} // TODO: Fix type definition for SuggestedPrompts suggestions prop to match displayRecommendedPrompts
                     isLoading={isRecommendedLoading}
                 />
             )}

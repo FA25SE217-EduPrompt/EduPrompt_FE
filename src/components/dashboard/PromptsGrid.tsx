@@ -81,8 +81,9 @@ export const PromptsGrid: React.FC<PromptsGridProps> = ({
                     });
                     setViewedStatus(prev => ({ ...prev, ...statusMap }));
                 }
-            } catch (error: any) {
-                if (error?.response?.status === 403) {
+            } catch (error: unknown) {
+                const axiosError = error as { response?: { status: number } };
+                if (axiosError?.response?.status === 403) {
                     console.warn("Viewed status check forbidden (403).");
                 } else {
                     console.error("Failed to check viewed status", error);

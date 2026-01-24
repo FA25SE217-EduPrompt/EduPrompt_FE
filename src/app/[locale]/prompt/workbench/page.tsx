@@ -14,6 +14,7 @@ import { PROMPT_TEMPLATES } from '@/data/prompt_templates';
 // Helper component to read search params
 const WorkbenchContent = () => {
     const searchParams = useSearchParams();
+    const [error, setError] = React.useState<unknown>(null);
     const loadPromptId = searchParams.get('loadPromptId');
     const templateKey = searchParams.get('template');
     const template = templateKey ? PROMPT_TEMPLATES[templateKey] : null;
@@ -64,11 +65,12 @@ const WorkbenchContent = () => {
                         constraints: response.data.constraints,
                     });
                 }
-            } catch (error: any) {
+            } catch (error: unknown) {
                 console.error("Failed to load prompt", error);
-                if (error.response?.status === 403) {
+                const err = error as { response?: { status: number } };
+                if (err.response?.status === 403) {
                     toast.error("Access Denied", { description: "You do not have permission to view this prompt." });
-                } else if (error.response?.status === 503) {
+                } else if (err.response?.status === 503) {
                     toast.error("Quota Exceeded", { description: "Cannot view prompt details." });
                 } else {
                     toast.error("Failed to load prompt details");

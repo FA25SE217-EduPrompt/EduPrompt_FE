@@ -64,17 +64,17 @@ export interface PaginatedResponse<T> {
         pageNumber: number;
         pageSize: number;
     };
-    error: any;
+    error: unknown;
 }
 
 export interface SingleResponse<T> {
     data: T;
-    error: any;
+    error: unknown;
 }
 
 export interface ListResponse<T> {
     data: T[];
-    error: any;
+    error: unknown;
 }
 
 export const AdminAnalyticsService = {
@@ -84,7 +84,7 @@ export const AdminAnalyticsService = {
     },
 
     getAllPayments: async (page = 0, size = 20, status?: string, yearMonth?: string): Promise<PaginatedResponse<PaymentRecord>> => {
-        const params: any = { page, size };
+        const params: Record<string, string | number> = { page, size };
         if (status) params.status = status;
         if (yearMonth) params.yearMonth = yearMonth;
 
