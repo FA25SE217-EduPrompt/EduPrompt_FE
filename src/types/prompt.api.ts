@@ -292,6 +292,7 @@ export type PromptScoreResult = {
     overallScore: number;
     detectedContext?: Record<string, unknown>;
     detectedWeaknesses?: Record<string, string[]>;
+    weaknesses?: Record<string, string[]>;
     instructionClarity: DimensionScore;
     curriculumAlignment: DimensionScore;
     contextCompleteness: DimensionScore;

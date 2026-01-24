@@ -40,9 +40,9 @@
                 "taskType": "Loại nhiệm vụ",
                 "tasks": {
                     "LESSON_PLAN": "Giáo án",
-                    "SLIDE_OUTLINE": "Đề cương Slide",
-                    "QUIZ": "Bài kiểm tra / Đánh giá",
-                    "TEST_MATRIX": "Ma trận đề thi",
+                    "SLIDE": "Slide bài giảng",
+                    "TEST": "Đề kiểm tra",
+                    "TEST_MATRIX": "Ma trận đề",
                     "GROUP_ACTIVITY": "Hoạt động nhóm"
                 },
                 "customNote": "Ghi chú tùy chọn",
@@ -96,6 +96,7 @@
                 "focusAreas": "Khu vực tập trung",
                 "auditDetected": "(Phát hiện từ Đánh giá)",
                 "noWeakness": "Không phát hiện điểm yếu cụ thể nào. Hãy chấm điểm prompt trong tab Đánh giá để thấy các gợi ý mục tiêu.",
+                "noWeaknessDetected": "Tuyệt vời! Không tìm thấy điểm yếu cụ thể nào trong prompt của bạn.",
                 "aiAnalyze": "AI sẽ phân tích prompt của bạn và đề xuất các cải tiến về cấu trúc và ngữ nghĩa.",
                 "optimize": "Tối ưu hóa Prompt",
                 "processing": "Đang xử lý...",
@@ -300,6 +301,7 @@
         "about": "Giới thiệu",
         "profile": "Hồ sơ cá nhân",
         "dashboard": "Bảng điều khiển",
+        "systemDashboard": "Quản trị Hệ thống",
         "schoolDashboard": "Quản lý Trường học",
         "logout": "Đăng xuất",
         "signIn": "Đăng nhập",

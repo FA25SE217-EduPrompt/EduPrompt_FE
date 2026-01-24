@@ -159,7 +159,16 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                                 >
                                     {tNavbar('dashboard')}
                                 </Link>
-                                {(user?.isSchoolAdmin || user?.isSystemAdmin) && (
+                                {(user?.isSystemAdmin === true) && (
+                                    <Link
+                                        href="/admin"
+                                        className="block px-4 py-2 text-sm text-text-secondary hover:bg-bg-secondary transition-colors"
+                                        onClick={() => setIsDropdownOpen(false)}
+                                    >
+                                        {tNavbar('systemDashboard')}
+                                    </Link>
+                                )}
+                                {(user?.isSchoolAdmin === true) && (
                                     <Link
                                         href="/school-admin"
                                         className="block px-4 py-2 text-sm text-text-secondary hover:bg-bg-secondary transition-colors"

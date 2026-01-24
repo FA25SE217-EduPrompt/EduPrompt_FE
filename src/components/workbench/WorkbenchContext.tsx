@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { PromptScoreResult } from '@/types/prompt.api';
+import { PromptScoreResult, OptimizationResponse, OptimizationMode } from '@/types/prompt.api';
 import { useAuth } from '@/contexts/AuthContext';
 
 // Define the shape of our Prompt Data
@@ -15,6 +15,14 @@ export interface PromptData {
     inputData: string;
     outputFormat: string;
     constraints: string;
+    visibility: 'private' | 'public' | 'group' | 'school';
+}
+
+export interface OptimizationState {
+    isOptimizing: boolean;
+    optimizedData: OptimizationResponse | null;
+    optimizationMode: OptimizationMode;
+    selectedDimensions: string[];
 }
 
 // Define the Context Value
@@ -24,6 +32,9 @@ interface WorkbenchContextType {
     quota: number;
     scoringResult: PromptScoreResult | null;
 
+    // Optimization State
+    optimizationState: OptimizationState;
+    setOptimizationState: React.Dispatch<React.SetStateAction<OptimizationState>>;
 
     // Versioning State
     viewingVersionId: string | null;
@@ -53,6 +64,14 @@ const defaultPromptData: PromptData = {
     inputData: '',
     outputFormat: '',
     constraints: '',
+    visibility: 'private'
+};
+
+const defaultOptimizationState: OptimizationState = {
+    isOptimizing: false,
+    optimizedData: null,
+    optimizationMode: 'PEDAGOGICAL',
+    selectedDimensions: []
 };
 
 const WorkbenchContext = createContext<WorkbenchContextType | undefined>(undefined);
@@ -73,6 +92,9 @@ export const WorkbenchProvider: React.FC<{ children: ReactNode; initialData?: Pa
     const [quota, setQuota] = useState(10000);
     const [scoringResult, setScoringResult] = useState<PromptScoreResult | null>(null);
     const [viewingVersionId, setViewingVersionId] = useState<string | null>(null);
+
+    // Optimization State
+    const [optimizationState, setOptimizationState] = useState<OptimizationState>(defaultOptimizationState);
 
     const isHistoryMode = !!viewingVersionId;
 
@@ -105,6 +127,8 @@ export const WorkbenchProvider: React.FC<{ children: ReactNode; initialData?: Pa
             promptData,
             quota,
             scoringResult,
+            optimizationState,
+            setOptimizationState,
             isOwner,
             activeSection,
             updatePromptField,

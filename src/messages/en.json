@@ -40,10 +40,10 @@
                 "taskType": "Task Type",
                 "tasks": {
                     "LESSON_PLAN": "Lesson Plan",
-                    "SLIDE_OUTLINE": "Slide Deck Outline",
-                    "QUIZ": "Quiz / Assessment",
+                    "SLIDE": "Presentation Slides",
+                    "TEST": "Tests/Quizzes",
                     "TEST_MATRIX": "Test Matrix",
-                    "GROUP_ACTIVITY": "Group Activity"
+                    "GROUP_ACTIVITY": "Group Activities"
                 },
                 "customNote": "Custom Note (Optional)",
                 "notePlaceholder": "e.g. Focus on Chapter 3, make it engaging for kids...",
@@ -96,6 +96,7 @@
                 "focusAreas": "Focus Areas",
                 "auditDetected": "(Detected from Audit)",
                 "noWeakness": "No specific weaknesses detected. Score your prompt in the Audit tab to see targeted suggestions.",
+                "noWeaknessDetected": "Great! No specific weaknesses found in your prompt.",
                 "aiAnalyze": "AI will analyze your prompt and suggest structural and semantic improvements.",
                 "optimize": "Optimize Prompt",
                 "processing": "Processing...",
@@ -299,6 +300,7 @@
         "about": "About",
         "profile": "Profile",
         "dashboard": "Dashboard",
+        "systemDashboard": "System Dashboard",
         "schoolDashboard": "School Dashboard",
         "logout": "Log Out",
         "signIn": "Sign In",

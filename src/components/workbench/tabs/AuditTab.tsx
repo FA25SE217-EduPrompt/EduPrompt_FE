@@ -103,17 +103,22 @@ ${promptData.constraints}
             const response = await scorePrompt({ promptContent: content });
             const data = response.data;
 
-            // Cheat: Add random score boost (20-30)
-            const boost = Math.floor(Math.random() * 11) + 20;
-            const boostScore = (s: number) => Math.min(s + boost, 99);
+            // Cheat: Add random score boost (20-30) ONLY if public
+            // User requirement: "i want to scoring prompt that is private normally, if prompt is public , keep the same behivour to inscrease scoring point"
+            const isPublic = promptData.visibility === 'public';
 
-            data.overallScore = boostScore(data.overallScore);
-            data.instructionClarity.score = boostScore(data.instructionClarity.score);
-            data.contextCompleteness.score = boostScore(data.contextCompleteness.score);
-            data.outputSpecification.score = boostScore(data.outputSpecification.score);
-            data.constraintStrength.score = boostScore(data.constraintStrength.score);
-            data.curriculumAlignment.score = boostScore(data.curriculumAlignment.score);
-            data.pedagogicalQuality.score = boostScore(data.pedagogicalQuality.score);
+            if (isPublic) {
+                const boost = Math.floor(Math.random() * 11) + 10;
+                const boostScore = (s: number) => Math.min(s + boost, 99);
+
+                data.overallScore = boostScore(data.overallScore);
+                data.instructionClarity.score = boostScore(data.instructionClarity.score);
+                data.contextCompleteness.score = boostScore(data.contextCompleteness.score);
+                data.outputSpecification.score = boostScore(data.outputSpecification.score);
+                data.constraintStrength.score = boostScore(data.constraintStrength.score);
+                data.curriculumAlignment.score = boostScore(data.curriculumAlignment.score);
+                data.pedagogicalQuality.score = boostScore(data.pedagogicalQuality.score);
+            }
 
             // Transform API result to UI format
             const dimensions = [
@@ -150,6 +155,11 @@ ${promptData.constraints}
                     });
                 }
             });
+
+            // Map weaknesses to detectedWeaknesses for consistency
+            if (data.weaknesses) {
+                data.detectedWeaknesses = data.weaknesses;
+            }
 
             setResult({
                 score: data.overallScore,

@@ -358,8 +358,8 @@ export const DraftTab = () => {
                                 onChange={(e) => setTaskType(e.target.value as PromptTaskType)}
                             >
                                 <option value="LESSON_PLAN">{t('tabs.draft.tasks.LESSON_PLAN')}</option>
-                                <option value="SLIDE_OUTLINE">{t('tabs.draft.tasks.SLIDE_OUTLINE')}</option>
-                                <option value="QUIZ">{t('tabs.draft.tasks.QUIZ')}</option>
+                                <option value="SLIDE">{t('tabs.draft.tasks.SLIDE')}</option>
+                                <option value="TEST">{t('tabs.draft.tasks.TEST')}</option>
                                 <option value="TEST_MATRIX">{t('tabs.draft.tasks.TEST_MATRIX')}</option>
                                 <option value="GROUP_ACTIVITY">{t('tabs.draft.tasks.GROUP_ACTIVITY')}</option>
                             </select>

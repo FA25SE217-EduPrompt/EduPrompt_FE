@@ -113,10 +113,16 @@ export default function Navbar() {
                                                 <DropdownLink href="/dashboard" onClick={() => setIsDropdownOpen(false)}>
                                                     {t('dashboard')}
                                                 </DropdownLink>
-                                                {/* // [System Admin Merge Ref] Accepted change from system-admin-dashboard branch - Keeping admin link */}
-                                                <DropdownLink href="/admin" onClick={() => setIsDropdownOpen(false)}>
-                                                    {t('schoolDashboard')}
-                                                </DropdownLink>
+                                                {user?.isSystemAdmin === true && (
+                                                    <DropdownLink href="/admin" onClick={() => setIsDropdownOpen(false)}>
+                                                        {t('systemDashboard')}
+                                                    </DropdownLink>
+                                                )}
+                                                {user?.isSchoolAdmin === true && (
+                                                    <DropdownLink href="/school-admin" onClick={() => setIsDropdownOpen(false)}>
+                                                        {t('schoolDashboard')}
+                                                    </DropdownLink>
+                                                )}
                                                 <button
                                                     onClick={handleLogout}
                                                     className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center"
