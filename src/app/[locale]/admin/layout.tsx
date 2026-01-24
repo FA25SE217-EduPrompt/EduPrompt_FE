@@ -12,7 +12,8 @@ import {
     ArrowLeftOnRectangleIcon,
     XMarkIcon,
     Bars3Icon,
-    UsersIcon
+    UsersIcon,
+    ChartBarIcon
 } from "@heroicons/react/24/outline";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
@@ -54,7 +55,7 @@ export default function AdminLayout({
     // Check permissions and redirect if not System Admin
     React.useEffect(() => {
         if (!isLoading && user && !user.isSystemAdmin) {
-            router.push('/forbidden');
+            router.push('/unauthorized');
         }
     }, [user, isLoading, router]);
 
@@ -110,6 +111,11 @@ export default function AdminLayout({
                         icon={<FolderIcon className="h-5 w-5" />}
                         label={t('collections')}
                         href="/admin/collections"
+                    />
+                    <NavItem
+                        icon={<ChartBarIcon className="h-5 w-5" />}
+                        label={t('analytics')}
+                        href="/admin/analytics"
                     />
 
 
