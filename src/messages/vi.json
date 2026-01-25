@@ -557,6 +557,8 @@
                 "searchPlaceholder": "Tìm kiếm prompt...",
                 "noPrompts": "Không tìm thấy prompt nào",
                 "addSelected": "Thêm đã chọn",
+                "addFailed": "Thêm prompt thất bại",
+                "addSuccessCount": "Đã thêm thành công {count} prompt",
                 "cancel": "Hủy",
                 "add": "Thêm"
             }

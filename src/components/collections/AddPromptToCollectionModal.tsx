@@ -26,7 +26,7 @@ export const AddPromptToCollectionModal: React.FC<AddPromptToCollectionModalProp
     // Queries & Mutations
     // Fetching large page size to handle client-side filtering comfortably for now
     const { data: promptsResponse, isLoading: isLoadingPrompts } = useGetMyPrompts(0, 100, undefined, { enabled: isOpen });
-    const { mutate: addPromptToCollection, isPending: isAdding } = useAddPromptToCollection();
+    const { mutateAsync: addPromptToCollection, isPending: isAdding } = useAddPromptToCollection();
 
     const prompts = promptsResponse?.data?.content || [];
 
@@ -45,24 +45,55 @@ export const AddPromptToCollectionModal: React.FC<AddPromptToCollectionModalProp
         setSelectedPromptIds(newSet);
     };
 
-    const handleAddSequentially = () => {
+    const handleAddSequentially = async () => {
         const total = selectedPromptIds.size;
 
         if (total === 0) return;
 
-        // Fire and forget style loop for now, as we don't have batch API
-        // In a real scenario with many items, we should chain promises or use Promise.all
-        // However, react-query mutation is a hook wrapper. 
-        // We will trigger them and close the modal.
+        let successCount = 0;
+        let failCount = 0;
+        const failedMessages = new Set<string>();
 
-        Array.from(selectedPromptIds).forEach(promptId => {
-            addPromptToCollection({ promptId, collectionId });
-        });
+        // Use mutateAsync to wait for response
+        for (const promptId of Array.from(selectedPromptIds)) {
+            try {
+                const response = await addPromptToCollection({ promptId, collectionId });
 
-        toast.success(`Adding ${total} prompts to collection`);
-        onClose();
+                if (response.error) {
+                    failCount++;
+                    // Prioritize showing specific error messages from backend
+                    if (response.error.messages && response.error.messages.length > 0) {
+                        response.error.messages.forEach((msg: string) => failedMessages.add(msg));
+                    } else {
+                        failedMessages.add(t('addFailed') || "Failed to add prompt");
+                    }
+                } else {
+                    successCount++;
+                }
+            } catch (error) {
+                failCount++;
+                console.error("Add prompt error:", error);
+                failedMessages.add(t('addFailed') || "Failed to add one or more prompts");
+            }
+        }
+
+        // Show feedback
+        if (successCount > 0) {
+            toast.success(t('addSuccessCount', { count: successCount }) || `Successfully added ${successCount} prompts`);
+        }
+
+        if (failCount > 0) {
+            failedMessages.forEach(msg => toast.error(msg));
+        }
+
+        // Clean up
         setSelectedPromptIds(new Set());
         setSearchQuery("");
+
+        // If everything succeeded or we want to close anyway
+        if (failCount === 0) {
+            onClose();
+        }
     };
 
     if (!isOpen) return null;

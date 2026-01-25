@@ -556,6 +556,8 @@
                 "searchPlaceholder": "Search prompts...",
                 "noPrompts": "No prompts found",
                 "addSelected": "Add Selected",
+                "addFailed": "Failed to add prompt",
+                "addSuccessCount": "Successfully added {count} prompts",
                 "cancel": "Cancel",
                 "add": "Add"
             }
