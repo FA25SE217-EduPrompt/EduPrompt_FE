@@ -71,9 +71,9 @@ export default function ProfilePage() {
                 setSchools(schoolsResponse.data.content);
             }
             // 2. Direct PaginatedResponse: { content: [...] }
-            // @ts-ignore - Dynamic check for runtime safety
+            // @ts-expect-error - Runtime check for flexible response structure
             else if (schoolsResponse && Array.isArray(schoolsResponse.content)) {
-                // @ts-ignore
+                // @ts-expect-error - Runtime check for flexible response structure
                 setSchools(schoolsResponse.content);
             }
             // 3. Direct Array: [...] 
