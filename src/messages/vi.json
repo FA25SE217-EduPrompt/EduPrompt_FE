@@ -1169,7 +1169,10 @@
             "errorFetchingRevenue": "Không thể tải dữ liệu doanh thu.",
             "errorFetchingToken": "Không thể tải dữ liệu token.",
             "errorFetchingTransactions": "Không thể tải dữ liệu giao dịch.",
-            "genericError": "Có lỗi xảy ra khi tải dữ liệu phân tích."
+            "genericError": "Có lỗi xảy ra khi tải dữ liệu phân tích.",
+            "previous": "Trước",
+            "next": "Tiếp",
+            "pageOf": "Trang {current} / {total}"
         },
         "Prompts": {
             "title": "Quản Lý Prompts",

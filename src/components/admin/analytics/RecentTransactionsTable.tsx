@@ -5,9 +5,17 @@ import { useTranslations, useLocale } from 'next-intl';
 
 interface RecentTransactionsTableProps {
     transactions: PaymentRecord[];
+    totalPages: number;
+    currentPage: number;
+    onPageChange: (page: number) => void;
 }
 
-export const RecentTransactionsTable: React.FC<RecentTransactionsTableProps> = ({ transactions }) => {
+export const RecentTransactionsTable: React.FC<RecentTransactionsTableProps> = ({
+    transactions,
+    totalPages,
+    currentPage,
+    onPageChange
+}) => {
     const t = useTranslations('Admin.Analytics');
     const locale = useLocale();
 
@@ -25,11 +33,11 @@ export const RecentTransactionsTable: React.FC<RecentTransactionsTableProps> = (
     };
 
     return (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col h-full">
             <div className="p-6 border-b border-gray-200">
                 <h3 className="text-lg font-semibold text-gray-900">{t('recentTransactions')}</h3>
             </div>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto flex-grow">
                 <table className="w-full text-sm text-left text-gray-500">
                     <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                         <tr>
@@ -58,7 +66,8 @@ export const RecentTransactionsTable: React.FC<RecentTransactionsTableProps> = (
                                     </td>
                                     <td className="px-6 py-4">{transaction.tierName}</td>
                                     <td className="px-6 py-4">
-                                        {new Intl.NumberFormat(locale === 'vi' ? 'vi-VN' : 'en-US', { style: 'currency', currency: locale === 'vi' ? 'VND' : 'USD' }).format(transaction.amount)}
+                                        {/* Force VND formatting as requested */}
+                                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(transaction.amount)}
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(transaction.status)}`}>
@@ -74,6 +83,29 @@ export const RecentTransactionsTable: React.FC<RecentTransactionsTableProps> = (
                     </tbody>
                 </table>
             </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+                <div className="p-4 border-t border-gray-200 flex items-center justify-between">
+                    <button
+                        onClick={() => onPageChange(Math.max(0, currentPage - 1))}
+                        disabled={currentPage === 0}
+                        className="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {t('previous')}
+                    </button>
+                    <span className="text-sm text-gray-700">
+                        {t('pageOf', { current: currentPage + 1, total: totalPages })}
+                    </span>
+                    <button
+                        onClick={() => onPageChange(Math.min(totalPages - 1, currentPage + 1))}
+                        disabled={currentPage >= totalPages - 1}
+                        className="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {t('next')}
+                    </button>
+                </div>
+            )}
         </div>
     );
 };

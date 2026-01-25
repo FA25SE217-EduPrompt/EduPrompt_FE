@@ -17,13 +17,23 @@ export default function AnalyticsPage() {
     const [tokenData, setTokenData] = useState<MonthlyTokenUsageSummary[]>([]);
     const [recentTransactions, setRecentTransactions] = useState<PaymentRecord[]>([]);
 
+    // Pagination state
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const pageSize = 10;
+
     useEffect(() => {
         const fetchData = async () => {
             try {
+                // Fetch charts data only on initial load if not dependent on page (optional optimization, but simple to keep here)
+                // For simplicity, we can fetch everything or separate the effects. 
+                // Since charts are top-level summary, they don't change with table pagination.
+                // However, to keep it simple and consistent with previous code structure:
+
                 const [revenueRes, tokenRes, transactionsRes] = await Promise.all([
                     AdminAnalyticsService.getMonthlyPaymentSummary(),
                     AdminAnalyticsService.getMonthlyTokenUsageSummary(),
-                    AdminAnalyticsService.getAllPayments(0, 5) // Top 5 recent
+                    AdminAnalyticsService.getAllPayments(page, pageSize)
                 ]);
 
                 if (revenueRes.error) toast.error(t('errorFetchingRevenue'));
@@ -32,7 +42,11 @@ export default function AnalyticsPage() {
 
                 setRevenueData(revenueRes.data || []);
                 setTokenData(tokenRes.data || []);
-                setRecentTransactions(transactionsRes.data?.content || []);
+
+                if (transactionsRes.data) {
+                    setRecentTransactions(transactionsRes.data.content || []);
+                    setTotalPages(transactionsRes.data.totalPages || 0);
+                }
             } catch (error) {
                 console.error("Failed to fetch analytics data", error);
                 toast.error(t('genericError'));
@@ -42,13 +56,17 @@ export default function AnalyticsPage() {
         };
 
         fetchData();
-    }, [t]);
+    }, [t, page]);
+
+    const handlePageChange = (newPage: number) => {
+        setPage(newPage);
+    };
 
     const totalRevenue = revenueData.reduce((acc, curr) => acc + curr.totalAmount, 0);
     const totalTransactions = revenueData.reduce((acc, curr) => acc + curr.totalTransactions, 0);
     const totalTokenUsage = tokenData.reduce((acc, curr) => acc + curr.totalTokensUsed, 0);
 
-    if (isLoading) {
+    if (isLoading && page === 0) { // Only show full loading state on first load
         return (
             <div className="p-8 space-y-8 animate-pulse">
                 <div className="h-8 bg-gray-200 rounded w-1/4"></div>
@@ -84,7 +102,12 @@ export default function AnalyticsPage() {
                 <TokenUsageChart data={tokenData} />
             </div>
 
-            <RecentTransactionsTable transactions={recentTransactions} />
+            <RecentTransactionsTable
+                transactions={recentTransactions}
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+            />
         </div>
     );
 }

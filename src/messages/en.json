@@ -1165,7 +1165,10 @@
             "errorFetchingRevenue": "Failed to fetch revenue data.",
             "errorFetchingToken": "Failed to fetch token data.",
             "errorFetchingTransactions": "Failed to fetch transactions.",
-            "genericError": "An error occurred while fetching analytics data."
+            "genericError": "An error occurred while fetching analytics data.",
+            "previous": "Previous",
+            "next": "Next",
+            "pageOf": "Page {current} of {total}"
         },
         "Prompts": {
             "title": "Prompts Management",

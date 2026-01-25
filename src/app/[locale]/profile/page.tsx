@@ -44,8 +44,12 @@ export default function ProfilePage() {
         setIsLoadingData(true);
         try {
             // Parallel fetching using Promise.all (Vercel best practice: async-parallel)
+            // Handle profile 404 gracefully (user might not have a profile yet)
             const [profileResponse, schoolsResponse] = await Promise.all([
-                getMyProfile(),
+                getMyProfile().catch(err => {
+                    console.warn("Profile not found or error fetching profile", err);
+                    return { data: null };
+                }),
                 getAllSchools(0, 100)
             ]);
 
@@ -60,8 +64,23 @@ export default function ProfilePage() {
             }
 
             // Handle Schools Data
-            if (schoolsResponse.data && schoolsResponse.data.content) {
+            // Handle Schools Data
+            // Flexible handling for different response structures
+            // 1. Standard BaseResponse: { data: { content: [...] } }
+            if (schoolsResponse && schoolsResponse.data && Array.isArray(schoolsResponse.data.content)) {
                 setSchools(schoolsResponse.data.content);
+            }
+            // 2. Direct PaginatedResponse: { content: [...] }
+            // @ts-ignore - Dynamic check for runtime safety
+            else if (schoolsResponse && Array.isArray(schoolsResponse.content)) {
+                // @ts-ignore
+                setSchools(schoolsResponse.content);
+            }
+            // 3. Direct Array: [...] 
+            else if (Array.isArray(schoolsResponse)) {
+                setSchools(schoolsResponse);
+            } else {
+                setSchools([]);
             }
 
         } catch (error) {
@@ -101,7 +120,8 @@ export default function ProfilePage() {
         if (!selectedSchoolId) return;
         setIsJoiningSchool(true);
         try {
-            await joinSchool({ schoolId: Number(selectedSchoolId) });
+            // Remove Number() cast as IDs are UUIDs (strings)
+            await joinSchool({ schoolId: selectedSchoolId });
             toast.success(t('school.joinSuccess'));
             // Optionally refresh profile or user info if it changes school status
         } catch (error) {
